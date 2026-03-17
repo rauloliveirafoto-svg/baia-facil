@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acesso ao Painel | Reserva de Baias</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/login.css" />
+  </head>
+  <body>
+    <div class="login-bg">
+      <div class="login-grain"></div>
+      <div class="login-circles">
+        <div class="circle circle--1"></div>
+        <div class="circle circle--2"></div>
+        <div class="circle circle--3"></div>
+      </div>
+    </div>
+
+    <main class="login-wrap">
+      <div class="login-card">
+        <div class="login-brand">
+          <img src="img/logo.png" alt="Baia Fácil" class="login-logo" />
+          <p class="login-subtitle">Acesso restrito ao painel do organizador</p>
+        </div>
+
+        <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:0.65rem 1rem;margin-bottom:0.5rem;font-size:0.78rem;color:var(--gold);text-align:center;">
+          <strong>Demo:</strong> &nbsp;usuário <code style="background:rgba(255,255,255,.08);padding:0.1rem 0.4rem;border-radius:4px;">organizador</code> &nbsp;senha <code style="background:rgba(255,255,255,.08);padding:0.1rem 0.4rem;border-radius:4px;">baias2025</code>
+        </div>
+        <form class="login-form" id="loginForm" novalidate>
+          <div class="field">
+            <label class="field__label" for="loginUser">Usuário</label>
+            <input
+              class="field__input"
+              id="loginUser"
+              type="text"
+              placeholder="organizador"
+              autocomplete="username"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="loginPass">Senha</label>
+            <div class="field__row">
+              <input
+                class="field__input"
+                id="loginPass"
+                type="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+              />
+              <button class="field__eye" id="togglePass" type="button" aria-label="Mostrar senha">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12C1 12 5 4 12 4s11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <p class="login-error" id="loginError" role="alert" aria-live="assertive"></p>
+
+          <button class="login-btn" id="loginBtn" type="submit">
+            <span class="login-btn__text">Entrar no painel</span>
+            <span class="login-btn__arrow">→</span>
+          </button>
+        </form>
+
+        <div class="login-footer" style="display:flex;flex-direction:column;gap:0.5rem;align-items:center;">
+          <a class="login-footer__link" href="index.html">← Voltar à página do competidor</a>
+          <button type="button" id="clearSessionBtn" style="background:none;border:none;color:rgba(122,158,126,0.4);font-size:0.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;" title="Limpar sessão salva">limpar sessão</button>
+        </div>
+      </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+    <script>
+      // Redireciona se já estiver autenticado
+      if (BAIA_AUTH.isAuthenticated()) {
+        window.location.replace('organizador.html');
+      }
+
+      const form = document.getElementById('loginForm');
+      const userInput = document.getElementById('loginUser');
+      const passInput = document.getElementById('loginPass');
+      const loginError = document.getElementById('loginError');
+      const togglePass = document.getElementById('togglePass');
+
+      togglePass.addEventListener('click', () => {
+        const isPassword = passInput.type === 'password';
+        passInput.type = isPassword ? 'text' : 'password';
+        togglePass.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+      });
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        loginError.textContent = '';
+
+        const user = userInput.value.trim();
+        const pass = passInput.value;
+
+        if (!user || !pass) {
+          loginError.textContent = 'Preencha usuário e senha para continuar.';
+          return;
+        }
+
+        var btn = document.getElementById('loginBtn');
+        var btnText = btn.querySelector('.login-btn__text');
+        btn.disabled = true;
+        btnText.textContent = 'Verificando...';
+
+        setTimeout(function() {
+          var result = BAIA_AUTH.login(user, pass);
+          if (result) {
+            btnText.textContent = '✓ Acesso autorizado';
+            // Passa sessão via hash como fallback para file://
+            var token = btoa(JSON.stringify(result));
+            setTimeout(function() {
+              window.location.href = 'organizador.html#auth=' + token;
+            }, 400);
+          } else {
+            loginError.textContent = 'Usuário ou senha incorretos. Tente novamente.';
+            passInput.value = '';
+            btn.disabled = false;
+            btnText.textContent = 'Entrar no painel';
+            passInput.focus();
+          }
+        }, 500);
+      });
+      // Botão limpar sessão (para testes)
+      var clearBtn = document.getElementById('clearSessionBtn');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+          try { localStorage.removeItem('baia_auth_session'); } catch(e) {}
+          try { sessionStorage.removeItem('baia_auth_session'); } catch(e) {}
+          try { document.cookie = 'baia_auth_session=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'; } catch(e) {}
+          clearBtn.textContent = '✓ sessão limpa';
+          setTimeout(function(){ clearBtn.textContent = 'limpar sessão'; }, 2000);
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"/><title>Baia Fácil — Seed</title>
+<style>body{font-family:monospace;background:#060f08;color:#e8dfc8;padding:2rem}button{background:#c9a84c;color:#1a1200;border:none;padding:1rem 2rem;font-size:1rem;border-radius:8px;cursor:pointer;display:block;margin:1rem 0}pre{background:#0d2b10;padding:1rem;border-radius:8px;white-space:pre-wrap;max-height:400px;overflow:auto}.ok{color:#4daa6a}.err{color:#e07070}</style>
+</head>
+<body>
+<h1>🐎 Baia Fácil — Inicializar Banco</h1>
+<p>Execute apenas uma vez para criar as 9 provas com 100 baias cada.</p>
+<button id="btn">Inicializar banco de dados</button>
+<pre id="log">Aguardando...</pre>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:'AIzaSyBlzdSYuhpVoDQgDtmXaDf6q_sdHXrotxI',
+  authDomain:'baia-facil.firebaseapp.com',
+  projectId:'baia-facil',
+  storageBucket:'baia-facil.firebasestorage.app',
+  messagingSenderId:'884178519628',
+  appId:'1:884178519628:web:de4343fc588e2cb18416e9'
+});
+var db = firebase.firestore();
+var PROVAS = [
+  {id:'1',name:'CSN Parque Equestre',date:'28–30 Mar 2025',loc:'São Paulo, SP',icon:'🏆'},
+  {id:'2',name:'Copa Brasil de Saltos',date:'05–07 Abr 2025',loc:'Campinas, SP',icon:'🥇'},
+  {id:'3',name:'Torneio Haras das Palmeiras',date:'12–13 Abr 2025',loc:'Jundiaí, SP',icon:'🌴'},
+  {id:'4',name:'Circuito Equestre Sul',date:'19–21 Abr 2025',loc:'Curitiba, PR',icon:'🐎'},
+  {id:'5',name:'Grande Prêmio Itapeva',date:'26–27 Abr 2025',loc:'Itapeva, SP',icon:'🎖️'},
+  {id:'6',name:'Festival de Adestramento',date:'03–04 Mai 2025',loc:'Belo Horizonte, MG',icon:'🎠'},
+  {id:'7',name:'Troféu Primavera',date:'10–11 Mai 2025',loc:'Brasília, DF',icon:'🌸'},
+  {id:'8',name:'Copa Nordeste Equestre',date:'17–18 Mai 2025',loc:'Recife, PE',icon:'⭐'},
+  {id:'9',name:'Campeonato Mineiro de Saltos',date:'24–25 Mai 2025',loc:'Uberlândia, MG',icon:'🏅'},
+];
+var log = document.getElementById('log');
+function print(m,c){log.innerHTML+='<span class="'+(c||'')+'">'+m+'</span>\n';log.scrollTop=log.scrollHeight;}
+document.getElementById('btn').addEventListener('click',async function(){
+  log.innerHTML='';
+  print('Iniciando...\n');
+  for(var i=0;i<PROVAS.length;i++){
+    var p=PROVAS[i];
+    try{
+      var snap=await db.collection('provas').doc(p.id).get();
+      if(snap.exists){print('⏭ Prova '+p.id+' ('+p.name+') — já existe.');continue;}
+      var stalls=Array.from({length:100},function(_,j){return{number:j+1,status:'available',holderName:'',contactPhone:'',requestedStalls:0,reservedAt:''};});
+      await db.collection('provas').doc(p.id).set({eventName:p.name,date:p.date,location:p.loc,icon:p.icon,stalls:stalls,reservations:[],updatedAt:new Date().toISOString()});
+      print('✓ Prova '+p.id+' ('+p.name+') — criada.','ok');
+    }catch(e){print('✗ Erro: '+e.message,'err');}
+  }
+  print('\n✅ Concluído!','ok');
+});
+</script>
+</body></html>

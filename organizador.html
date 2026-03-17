@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Baia Fácil | Organizador</title>
+    <!-- Auth — verificado antes de renderizar qualquer coisa -->
+    <script>
+      (function() {
+        var KEY = 'baia_auth_session';
+        var TTL = 8 * 60 * 60 * 1000;
+
+        function loadAndValidate() {
+          var data = null;
+          try { var r = localStorage.getItem(KEY);  if (r) data = JSON.parse(r); } catch(e) {}
+          if (!data) { try { var r = sessionStorage.getItem(KEY); if (r) data = JSON.parse(r); } catch(e) {} }
+          if (!data) {
+            try {
+              var m = document.cookie.match(new RegExp('(?:^|;\s*)' + KEY + '=([^;]*)'));
+              if (m) data = JSON.parse(decodeURIComponent(m[1]));
+            } catch(e) {}
+          }
+          if (!data) {
+            try {
+              var hash = window.location.hash.replace('#','');
+              if (hash.indexOf('auth=') === 0) data = JSON.parse(atob(hash.replace('auth=','')));
+            } catch(e) {}
+          }
+          // Validar: precisa ter user E timestamp at E não expirado
+          if (!data || !data.user || !data.at) return null;
+          if ((Date.now() - data.at) > TTL) return null;
+          return data;
+        }
+
+        if (!loadAndValidate()) {
+          document.documentElement.style.display = 'none';
+          window.location.replace('login.html');
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/main.css" />
+    <style>
+      /* ── TOPBAR ORGANIZADOR ───────────────────────── */
+      .org-topbar {
+        position: sticky; top: 0; z-index: 30;
+        display: flex; flex-direction: row; align-items: stretch;
+        flex-wrap: wrap;
+        background: rgba(6,15,8,0.96);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 4px 24px rgba(0,0,0,.45);
+      }
+
+      .org-topbar__stat {
+        display: flex; flex-direction: column; gap: 0.1rem;
+        padding: 0.65rem 1rem;
+        border-right: 1px solid var(--border-sub);
+        flex: 1; min-width: 0;
+      }
+
+      .org-topbar__label {
+        font-size: 0.63rem; text-transform: uppercase;
+        letter-spacing: 0.1em; color: var(--gold); font-weight: 500;
+      }
+
+      .org-topbar__val {
+        font-size: 1rem; color: var(--cream); font-weight: 600;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+
+      .org-topbar__logout {
+        padding: 0 1rem;
+        display: flex; align-items: center; gap: 0.75rem;
+        flex-shrink: 0;
+      }
+
+      .org-topbar__user { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+
+      /* Mobile: stats quebram para segunda linha */
+      @media (max-width: 700px) {
+        .org-topbar__stat:first-child { flex: 1 1 60%; border-bottom: 1px solid var(--border-sub); }
+        .org-topbar__logout           { flex: 0 0 auto; border-bottom: 1px solid var(--border-sub); }
+        .org-topbar__stat:not(:first-child) { flex: 1 1 22%; min-width: 70px; }
+        .logout-btn { padding: 0.45rem 0.75rem; font-size: 0.78rem; }
+        .logout-btn svg { display: none; }
+        .org-topbar__user { display: none; }
+      }
+
+      .logout-btn {
+        display: flex; align-items: center; gap: 0.4rem;
+        padding: 0.6rem 1.1rem;
+        background: rgba(224,82,82,.12);
+        border: 1px solid rgba(224,82,82,.3);
+        border-radius: 10px;
+        color: #e07070; font-family: 'DM Sans', sans-serif;
+        font-size: 0.86rem; font-weight: 600; cursor: pointer;
+        transition: background .2s, border-color .2s, color .2s;
+        white-space: nowrap;
+      }
+      .logout-btn:hover { background: rgba(224,82,82,.22); border-color: rgba(224,82,82,.6); color: #f09090; }
+
+      /* ── LAYOUT ──────────────────────────────────── */
+      .org-layout {
+        position: relative; z-index: 1;
+        max-width: 1380px; margin: 1rem auto 3rem;
+        padding: 0 1rem;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 1rem;
+        align-items: start;
+      }
+
+      .map-col { display: flex; flex-direction: column; gap: 0.75rem; }
+      .ctrl-col { display: flex; flex-direction: column; gap: 0.75rem; }
+
+      .col-title {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.1rem; color: var(--cream); font-weight: 700; margin: 0 0 0.1rem;
+      }
+      .col-sub { font-size: 0.82rem; color: var(--muted); margin: 0; }
+
+      /* ── PAINEL ──────────────────────────────────── */
+      .panel {
+        background: rgba(13,43,16,0.75);
+        border: 1px solid var(--border);
+        border-radius: 16px; padding: 1rem 1.1rem;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 24px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.03);
+      }
+
+      .panel__title {
+        font-size: 0.78rem; font-weight: 600; color: var(--gold);
+        text-transform: uppercase; letter-spacing: .08em; margin: 0 0 0.8rem;
+      }
+
+      /* ── DETAIL BOX ──────────────────────────────── */
+      .detail-grid {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 0.4rem 0.75rem; margin-bottom: 0.85rem;
+      }
+      .detail-item { display: flex; flex-direction: column; gap: 0.1rem; }
+      .detail-item__label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: .08em; color: var(--gold); font-weight: 500; }
+      .detail-item__val   { font-size: 0.9rem; color: var(--cream); font-weight: 500; }
+
+      .no-selection-hint {
+        font-size: 0.84rem; color: var(--muted); font-style: italic;
+        text-align: center; padding: 0.5rem 0;
+      }
+
+      /* ── BOTÕES DE AÇÃO ──────────────────────────── */
+      .action-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 0.75rem;
+      }
+
+      .action-grid .btn { font-size: 0.82rem; padding: 0.55rem 0.6rem; }
+      .action-grid .btn--primary { grid-column: 1 / -1; padding: 0.7rem; font-size: 0.88rem; }
+
+      /* ── TABELA ──────────────────────────────────── */
+      .filters-row {
+        display: grid; grid-template-columns: 1.2fr 1fr 0.8fr;
+        gap: 0.4rem; margin-bottom: 0.65rem;
+      }
+
+      .table-wrap { overflow-x: auto; }
+
+      .reservation-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+      .reservation-table th,
+      .reservation-table td {
+        padding: 0.45rem 0.4rem;
+        border-bottom: 1px solid var(--border-sub);
+        text-align: left; color: var(--text);
+      }
+      .reservation-table th {
+        color: var(--gold); font-weight: 600; font-size: 0.7rem;
+        text-transform: uppercase; letter-spacing: .06em;
+      }
+      .reservation-table tr:hover td { background: rgba(201,168,76,.03); }
+      .reservation-table .empty-row td { color: var(--muted); font-style: italic; text-align: center; padding: 1rem; }
+
+      .org-feedback {
+        font-size: 0.84rem; color: var(--success); min-height: 1.2rem;
+        margin-top: 0.5rem; text-align: center;
+      }
+      .org-feedback--err { color: var(--danger); }
+
+      /* ── MODAL MAPA MANUAL ───────────────────────── */
+      .manual-modal {
+        position: fixed; inset: 0; z-index: 60;
+        display: grid; place-items: center;
+        background: rgba(4,10,5,.8); padding: 1rem;
+        backdrop-filter: blur(5px);
+      }
+
+      .manual-modal__box {
+        width: min(900px, 100%); max-height: 90dvh;
+        background: rgba(13,43,16,0.97);
+        border: 1px solid var(--border); border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 24px 64px rgba(0,0,0,.7);
+        overflow-y: auto;
+        display: flex; flex-direction: column; gap: 1rem;
+      }
+
+      .manual-modal__head {
+        display: flex; justify-content: space-between; align-items: flex-start;
+      }
+
+      .manual-modal__head h2 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.2rem; color: var(--cream); margin: 0;
+      }
+
+      .manual-modal__close {
+        background: none; border: none; color: var(--muted);
+        font-size: 1.4rem; cursor: pointer; padding: 0; line-height: 1;
+        transition: color .2s;
+      }
+      .manual-modal__close:hover { color: var(--cream); }
+
+      .manual-form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
+      .manual-form-row .form-row { flex: 1; min-width: 150px; margin: 0; }
+
+      .manual-footer { display: flex; gap: 0.6rem; justify-content: flex-end; flex-wrap: wrap; }
+
+      .selected-preview {
+        font-size: 0.84rem; color: var(--gold);
+        font-weight: 500; padding: 0.35rem 0;
+        min-height: 1.4rem;
+      }
+
+      @media (max-width: 1100px) { .org-layout { grid-template-columns: 1fr; } }
+      @media (max-width: 900px) {
+        .org-topbar { grid-template-columns: repeat(3, 1fr); }
+        .org-topbar__logout { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-sub); padding: 0.6rem 1rem; }
+        .filters-row { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 560px) {
+        .org-topbar { grid-template-columns: 1fr 1fr; }
+        .action-grid { grid-template-columns: 1fr; }
+        .action-grid .btn--primary { grid-column: auto; }
+        .filters-row { grid-template-columns: 1fr; }
+        .detail-grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body data-page="organizador">
+
+    <!-- ── TOPBAR ──────────────────────────────────── -->
+    <header class="org-topbar">
+      <div class="org-topbar__stat" style="flex:1.8;">
+        <span class="org-topbar__label">Prova ativa</span>
+        <select id="orgEventSelect" style="background:transparent;border:none;color:var(--cream);font-family:'Playfair Display',Georgia,serif;font-size:0.92rem;font-weight:700;cursor:pointer;outline:none;width:100%;padding:0;">
+          <option value="1"  style="background:#0d2b10;">CSN Parque Equestre</option>
+          <option value="2"  style="background:#0d2b10;">Copa Brasil de Saltos</option>
+          <option value="3"  style="background:#0d2b10;">Torneio Haras das Palmeiras</option>
+          <option value="4"  style="background:#0d2b10;">Circuito Equestre Sul</option>
+          <option value="5"  style="background:#0d2b10;">Grande Prêmio Itapeva</option>
+          <option value="6"  style="background:#0d2b10;">Festival de Adestramento</option>
+          <option value="7"  style="background:#0d2b10;">Troféu Primavera</option>
+          <option value="8"  style="background:#0d2b10;">Copa Nordeste Equestre</option>
+          <option value="9"  style="background:#0d2b10;">Campeonato Mineiro de Saltos</option>
+        </select>
+      </div>
+      <div class="org-topbar__stat">
+        <span class="org-topbar__label">Total</span>
+        <span class="org-topbar__val" id="orgTotalStalls">—</span>
+      </div>
+      <div class="org-topbar__stat">
+        <span class="org-topbar__label">Reservadas</span>
+        <span class="org-topbar__val" id="orgReservedCount">—</span>
+      </div>
+      <div class="org-topbar__stat">
+        <span class="org-topbar__label">Disponíveis</span>
+        <span class="org-topbar__val" id="orgAvailableCount">—</span>
+      </div>
+      <div class="org-topbar__stat">
+        <span class="org-topbar__label">Bloqueadas</span>
+        <span class="org-topbar__val" id="orgBlockedCount">—</span>
+      </div>
+      <div class="org-topbar__logout">
+        <span class="org-topbar__user" id="sessionUserLabel">—</span>
+        <button class="logout-btn" id="logoutBtn" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Encerrar sessão
+        </button>
+      </div>
+    </header>
+
+    <!-- ── LAYOUT PRINCIPAL ────────────────────────── -->
+    <div class="org-layout">
+
+      <!-- COLUNA ESQUERDA: mapa -->
+      <div class="map-col">
+        <div>
+          <h1 class="col-title">Mapa de baias</h1>
+          <p class="col-sub">Clique em uma baia para selecionar e aplicar ações.</p>
+        </div>
+
+        <div class="panel" style="padding:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem;">
+            <div class="legend" style="margin:0;">
+              <span><i class="dot dot--org-available"></i>Disponível</span>
+              <span><i class="dot dot--org-reserved"></i>Reservada</span>
+              <span><i class="dot dot--org-blocked"></i>Bloqueada</span>
+              <span><i class="dot dot--org-maintenance"></i>Manutenção</span>
+            </div>
+            <div class="map-search-wrap" style="margin:0;">
+              <input id="orgMapSearch" type="number" min="1" max="100" placeholder="Ir para baia nº..." />
+              <button id="orgMapSearchBtn" class="btn" type="button">Localizar</button>
+            </div>
+          </div>
+          <div id="organizerStallMap" class="stall-map"></div>
+        </div>
+      </div>
+
+      <!-- COLUNA DIREITA: controles + lista -->
+      <div class="ctrl-col">
+
+        <!-- Detalhe da baia selecionada -->
+        <div class="panel">
+          <h2 class="panel__title">Baia selecionada</h2>
+
+          <p class="no-selection-hint" id="noSelectionHint">← Clique em uma baia no mapa</p>
+
+          <div id="stallDetailPanel" hidden>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-item__label">Número</span>
+                <span class="detail-item__val" id="detailNumber">—</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Status</span>
+                <span class="detail-item__val" id="detailStatus">—</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Titular</span>
+                <span class="detail-item__val" id="detailCompetitor">—</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-item__label">Contato</span>
+                <span class="detail-item__val" id="detailContact">—</span>
+              </div>
+            </div>
+
+            <div class="action-grid">
+              <button id="btnReleaseStall"     class="btn"            type="button">✓ Liberar baia</button>
+              <button id="btnBlockStall"        class="btn"            type="button">⊘ Bloquear baia</button>
+              <button id="btnMaintenanceStall"  class="btn"            type="button">🔧 Manutenção</button>
+              <button id="btnRemoveReservation" class="btn"            type="button">✕ Remover reserva</button>
+              <button id="btnCreateReservation" class="btn btn--primary" type="button">+ Criar reserva manual</button>
+            </div>
+
+            <div class="form-row" style="margin-bottom:0.4rem;">
+              <label for="moveTargetInput">Mover reserva para baia nº</label>
+              <div class="inline-row">
+                <input id="moveTargetInput" type="number" min="1" max="100" placeholder="Ex: 77" />
+                <button id="btnMoveReservation" class="btn" type="button">Mover</button>
+              </div>
+            </div>
+          </div>
+
+          <p class="org-feedback" id="organizerFeedback"></p>
+        </div>
+
+        <!-- Lista de reservas -->
+        <div class="panel">
+          <h2 class="panel__title">Lista de reservas</h2>
+
+          <div class="filters-row">
+            <input id="searchCompetitor" type="search" placeholder="Buscar por titular" />
+            <select id="filterStatus">
+              <option value="all">Todos os status</option>
+              <option value="reserved">Reservada</option>
+              <option value="blocked">Bloqueada</option>
+              <option value="available">Disponível</option>
+              <option value="maintenance">Manutenção</option>
+            </select>
+            <input id="findStall" type="number" min="1" max="100" placeholder="Nº da baia" />
+          </div>
+
+          <div class="table-wrap">
+            <table class="reservation-table">
+              <thead>
+                <tr>
+                  <th>Baia</th>
+                  <th>Titular</th>
+                  <th>Qtd.</th>
+                  <th>Contato</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="reservationTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Relatórios -->
+        <div class="panel">
+          <h2 class="panel__title">Relatórios</h2>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button id="exportCsv" class="btn" type="button">Exportar CSV</button>
+            <button id="exportPdf" class="btn" type="button">Exportar PDF</button>
+            <button id="printMap"  class="btn" type="button">Imprimir mapa</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── MODAL CRIAR RESERVA MANUAL ──────────────── -->
+    <div id="manualReservationModal" class="manual-modal" hidden>
+      <div class="manual-modal__box">
+        <div class="manual-modal__head">
+          <h2>Criar reserva manual</h2>
+          <button class="manual-modal__close" id="closeManualModal" type="button">✕</button>
+        </div>
+
+        <div class="manual-form-row">
+          <div class="form-row">
+            <label for="manualHolder">Titular *</label>
+            <input id="manualHolder" type="text" placeholder="Nome do titular" />
+          </div>
+          <div class="form-row">
+            <label for="manualPhone">Telefone *</label>
+            <input id="manualPhone" type="tel" placeholder="(11) 99999-9999" />
+          </div>
+          <div class="form-row" style="max-width:120px;">
+            <label for="manualQty">Qtd. baias *</label>
+            <input id="manualQty" type="number" min="1" max="100" placeholder="Ex: 3" />
+          </div>
+        </div>
+
+        <div>
+          <p style="font-size:0.8rem;color:var(--muted);margin:0 0 0.5rem;">Selecione as baias no mapa abaixo:</p>
+          <p class="selected-preview" id="manualSelectedPreview">Nenhuma baia selecionada</p>
+        </div>
+
+        <div class="panel" style="padding:0.85rem;">
+          <div class="legend" style="margin-bottom:0.6rem;">
+            <span><i class="dot dot--available"></i>Disponível</span>
+            <span><i class="dot dot--selected"></i>Selecionada</span>
+            <span><i class="dot dot--org-reserved"></i>Reservada</span>
+          </div>
+          <div id="manualStallMap" class="stall-map"></div>
+        </div>
+
+        <p class="org-feedback" id="manualFeedback"></p>
+
+        <div class="manual-footer">
+          <button id="cancelManualReservation" class="btn" type="button">Cancelar</button>
+          <button id="confirmManualReservation" class="btn btn--primary" type="button">Confirmar reserva</button>
+        </div>
+      </div>
+    </div>
+
+    <template id="organizerStallTemplate">
+      <button class="stall" type="button"><span class="stall__number"></span></button>
+    </template>
+
+    <template id="manualStallTemplate">
+      <button class="stall" type="button"><span class="stall__number"></span></button>
+    </template>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- App -->
+    <script src="js/auth.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/organizador.js"></script>
+  </body>
+</html>
