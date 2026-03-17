@@ -325,12 +325,12 @@
       document.getElementById('topbarMap').hidden     = true;
 
       // Aguardar Firebase inicializar o estado ANTES de notificar o competidor
-      if (typeof window.setActiveEvent === 'function') {
+      if (typeof window.entrarProva === 'function') {
         await window.entrarProva(ev.id, ev.name);
       }
 
       // Agora sim — dados estão no cache, mapa pode renderizar
-      if (typeof window._competitorEnterEvent === 'function') {
+      if (typeof window._entrarEvento === 'function') {
         window._entrarEvento(ev.name);
       }
     }
@@ -397,7 +397,7 @@
       if (finishBtn)     finishBtn.disabled   = true;
 
       // Cancelar listener do Firebase ao sair da prova
-      if (typeof window.stopRealtimeListener === 'function') {
+      if (typeof window.pararListenerCompetidor === 'function') {
         window.pararListenerCompetidor();
       }
 
