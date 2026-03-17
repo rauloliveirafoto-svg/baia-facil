@@ -207,8 +207,8 @@
   <script>
   // Função global para atualizar badges dos cards com dados do Firebase
   window.refreshBadgesFromFirebase = function() {
-    if (!window.BAIA_FIREBASE) return;
-    window.BAIA_FIREBASE.getProvas().then(function(provas) {
+    if (!window.FB) return;
+    window.FB.getProvas().then(function(provas) {
       provas.forEach(function(prova) {
         var badge = document.querySelector('[data-badge="' + prova.id + '"]');
         if (!badge) return;
