@@ -19,6 +19,35 @@
     }));
   }
 
+  // Gera as baias em 2 colunas verticais dentro de um elemento pai.
+  // Coluna A = baias ímpares (1ª, 3ª, 5ª...), Coluna B = baias pares (2ª, 4ª, 6ª...)
+  // Resultado visual: duas fileiras lado a lado, como baias reais montadas frente a frente.
+  function buildTwoCols(parent, template, start, total, onStallClick) {
+    const wrap = document.createElement('div');
+    wrap.className = 'stalls-two-cols';
+
+    const colA = document.createElement('div');
+    colA.className = 'stalls-col';
+    const colB = document.createElement('div');
+    colB.className = 'stalls-col';
+
+    const half = Math.ceil(total / 2);
+
+    for (let i = 0; i < total; i++) {
+      const stallNumber = start + i;
+      const btn = template.content.firstElementChild.cloneNode(true);
+      btn.dataset.stallNumber = stallNumber;
+      btn.querySelector('.stall__number').textContent = String(stallNumber).padStart(3, '0');
+      btn.addEventListener('click', () => onStallClick(stallNumber));
+      if (i < half) colA.appendChild(btn);
+      else          colB.appendChild(btn);
+    }
+
+    wrap.appendChild(colA);
+    wrap.appendChild(colB);
+    parent.appendChild(wrap);
+  }
+
   // Constrói o mapa completo (todos os blocos) — usado pelo organizador
   function buildStallMap({ mapElement, template, onStallClick }) {
     if (!mapElement || !template) { console.warn('[buildStallMap] mapElement ou template ausente'); return; }
@@ -26,28 +55,17 @@
     mapElement.innerHTML = '';
 
     layout.forEach((block, blockIndex) => {
-      const blockElement = document.createElement('section');
-      blockElement.className = 'block';
+      const blockEl = document.createElement('section');
+      blockEl.className = 'block';
 
       const title = document.createElement('h2');
       title.className = 'block__title';
       title.textContent = block.label || ('Bloco ' + block.id);
-      blockElement.appendChild(title);
+      blockEl.appendChild(title);
 
-      const row = document.createElement('div');
-      row.className = 'stalls-row';
+      buildTwoCols(blockEl, template, block.start, block.stalls, onStallClick);
 
-      for (let i = 0; i < block.stalls; i++) {
-        const stallNumber = block.start + i;
-        const btn = template.content.firstElementChild.cloneNode(true);
-        btn.dataset.stallNumber = stallNumber;
-        btn.querySelector('.stall__number').textContent = String(stallNumber).padStart(3, '0');
-        btn.addEventListener('click', () => onStallClick(stallNumber));
-        row.appendChild(btn);
-      }
-
-      blockElement.appendChild(row);
-      mapElement.appendChild(blockElement);
+      mapElement.appendChild(blockEl);
 
       if (blockIndex < layout.length - 1) {
         const corridor = document.createElement('div');
@@ -71,19 +89,8 @@
     title.textContent = bloco.label || ('Bloco ' + bloco.id);
     blockEl.appendChild(title);
 
-    const row = document.createElement('div');
-    row.className = 'stalls-row';
+    buildTwoCols(blockEl, template, bloco.start, bloco.stalls, onStallClick);
 
-    for (let i = 0; i < bloco.stalls; i++) {
-      const stallNumber = bloco.start + i;
-      const btn = template.content.firstElementChild.cloneNode(true);
-      btn.dataset.stallNumber = stallNumber;
-      btn.querySelector('.stall__number').textContent = String(stallNumber).padStart(3, '0');
-      btn.addEventListener('click', () => onStallClick(stallNumber));
-      row.appendChild(btn);
-    }
-
-    blockEl.appendChild(row);
     mapElement.appendChild(blockEl);
   }
 
