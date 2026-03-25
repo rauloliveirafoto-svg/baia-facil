@@ -6,9 +6,5 @@
     HOLD_DURATION_SECONDS: 300,
     STORAGE_KEY:           'baias_mvp_state_v2',
     DEFAULT_EVENT:         'CSN Parque Equestre',
-    ORGANIZER_CREDENTIALS: [
-      { user: 'organizador', pass: 'baias2025' },
-      { user: 'admin',       pass: 'admin123'  },
-    ],
   };
 })(window);

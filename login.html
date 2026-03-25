@@ -26,9 +26,6 @@
           <p class="login-subtitle">Acesso restrito ao painel do organizador</p>
         </div>
 
-        <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:0.65rem 1rem;margin-bottom:0.5rem;font-size:0.78rem;color:var(--gold);text-align:center;">
-          <strong>Demo:</strong> &nbsp;usuário <code style="background:rgba(255,255,255,.08);padding:0.1rem 0.4rem;border-radius:4px;">organizador</code> &nbsp;senha <code style="background:rgba(255,255,255,.08);padding:0.1rem 0.4rem;border-radius:4px;">baias2025</code>
-        </div>
         <form class="login-form" id="loginForm" novalidate>
           <div class="field">
             <label class="field__label" for="loginUser">Usuário</label>
@@ -36,7 +33,7 @@
               class="field__input"
               id="loginUser"
               type="text"
-              placeholder="organizador"
+              placeholder="Seu usuário"
               autocomplete="username"
               required
             />
@@ -96,7 +93,7 @@
         togglePass.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
       });
 
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         loginError.textContent = '';
 
@@ -113,8 +110,8 @@
         btn.disabled = true;
         btnText.textContent = 'Verificando...';
 
-        setTimeout(function() {
-          var result = BAIA_AUTH.login(user, pass);
+        setTimeout(async function() {
+          var result = await BAIA_AUTH.login(user, pass);
           if (result) {
             btnText.textContent = '✓ Acesso autorizado';
             // Passa sessão via hash como fallback para file://
