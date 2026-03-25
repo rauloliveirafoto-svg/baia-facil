@@ -111,16 +111,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var btnPorNumero = new Map();
   var lastRender   = new Map();
+  var _blocoFiltro = null; // bloco ativo selecionado no mapa aéreo
 
-  // ── Construir mapa uma única vez ──────────────────────────
-  window.BAIA_MAP.buildStallMap({
-    mapElement: mapEl,
-    template:   tplEl,
-    onStallClick: function(n) { ctrlSelecao.handleStallClick(n); },
-  });
-  mapEl.querySelectorAll('.stall').forEach(function(b) {
-    btnPorNumero.set(Number(b.dataset.stallNumber), b);
-  });
+  // ── Filtrar por bloco (chamado pelo index.html ao clicar num bloco) ──
+  window._filtrarBloco = function(bloco) {
+    _blocoFiltro = bloco;
+    lastRender = new Map(); // forçar re-render completo
+
+    // Reconstruir o mapa apenas com as baias do bloco
+    mapEl.innerHTML = '';
+    btnPorNumero.clear();
+
+    var blocoConfig = {
+      id: bloco.id,
+      label: bloco.label || ('Bloco ' + bloco.id),
+      stalls: bloco.stalls,
+      start: bloco.start,
+    };
+
+    window.BAIA_MAP.buildStallMapBloco({
+      mapElement: mapEl,
+      template:   tplEl,
+      bloco:      blocoConfig,
+      onStallClick: function(n) { ctrlSelecao.handleStallClick(n); },
+    });
+
+    mapEl.querySelectorAll('.stall').forEach(function(b) {
+      btnPorNumero.set(Number(b.dataset.stallNumber), b);
+    });
+
+    // Atualizar total de baias no controlador
+    ctrlSelecao.setTotalStalls(bloco.stalls);
+
+    refreshMap();
+  };
 
   // ── Controlador de seleção ────────────────────────────────
   // CORREÇÃO: actions agora inclui refreshMap (nome correto) em vez de refreshCompetitorMap
@@ -342,7 +366,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var storage = getState();
     if (!storage||!storage.stalls) return;
     var minhas = new Set(state.selectedStalls||[]);
-    storage.stalls.forEach(function(stall) {
+
+    // Filtrar apenas as baias do bloco ativo
+    var stallsVisiveis = _blocoFiltro
+      ? storage.stalls.filter(function(s){ return s.block === _blocoFiltro.id; })
+      : storage.stalls;
+
+    stallsVisiveis.forEach(function(stall) {
       var btn = btnPorNumero.get(stall.number);
       if (!btn) return;
       var sig = stall.status + (minhas.has(stall.number)?'_minha':'');
@@ -357,5 +387,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (stall.status==='reserved'||stall.status==='maintenance') { btn.classList.add('stall--reserved'); btn.disabled=true; }
       lastRender.set(stall.number, sig);
     });
+
+    // Atualizar indicadores do mapa aéreo sempre que o cache mudar
+    if (typeof window._atualizarBlocos === 'function') window._atualizarBlocos();
   }
 });

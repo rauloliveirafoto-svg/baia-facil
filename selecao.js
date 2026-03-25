@@ -134,6 +134,8 @@
       handleStallClick,
       acceptSequence,
       rejectSequence,
+      // Permite atualizar o total de baias quando o bloco muda
+      setTotalStalls: function(n) { constants.totalStalls = n; },
     };
   }
 

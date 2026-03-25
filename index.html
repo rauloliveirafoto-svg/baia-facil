@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
-    /* HOME */
+    /* ── HOME ─────────────────────────────────────────────── */
     .home-screen { min-height:100dvh; display:flex; flex-direction:column; align-items:center; }
     .home-header { width:100%; padding:2rem 1.25rem 1.25rem; display:flex; flex-direction:column; align-items:center; gap:0.4rem; border-bottom:1px solid rgba(201,168,76,0.12); }
     .home-header img { height:160px; width:auto; mix-blend-mode:lighten; filter:brightness(1.05); }
@@ -17,8 +17,6 @@
     .home-body { flex:1; width:100%; max-width:1080px; padding:2rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.25rem; position:relative; z-index:1; }
     .home-section-title { font-family:'Playfair Display',Georgia,serif; font-size:1.35rem; color:var(--cream); font-weight:700; margin:0 0 0.2rem; }
     .home-section-sub { font-size:0.86rem; color:var(--muted); margin:0; }
-
-    /* Cards */
     .events-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.9rem; }
     .event-card { background:rgba(13,43,16,0.65); border:1px solid rgba(201,168,76,0.16); border-radius:16px; padding:1.3rem 1.15rem 1.1rem; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:0.5rem; position:relative; overflow:hidden; transition:transform .18s, box-shadow .18s, border-color .18s, background .18s; font-family:'DM Sans',sans-serif; }
     .event-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); opacity:0; transition:opacity .2s; }
@@ -32,18 +30,15 @@
     .event-card__badge-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
     .event-card__arrow { position:absolute; bottom:0.9rem; right:1rem; font-size:1rem; color:var(--gold); opacity:0; transform:translateX(-4px); transition:opacity .18s, transform .18s; }
     .event-card:hover .event-card__arrow { opacity:1; transform:translateX(0); }
-
-    /* Botão organizador */
     .organizer-wrap { display:flex; justify-content:center; padding-top:0.75rem; }
     .organizer-btn { display:inline-flex; align-items:center; gap:0.5rem; padding:0.65rem 1.4rem; background:transparent; border:1px solid rgba(201,168,76,0.25); border-radius:12px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.86rem; font-weight:500; cursor:pointer; text-decoration:none; transition:border-color .2s, color .2s, background .2s; }
     .organizer-btn:hover { border-color:var(--gold); color:var(--gold-light); background:rgba(201,168,76,.06); }
 
-    /* Tela de reserva */
+    /* ── TELA RESERVA (formulário + mapa de baias) ─────────── */
     #reservaScreen { display:flex; flex-direction:column; min-height:100dvh; }
     .topbar-intake { display:flex; justify-content:center; align-items:center; padding:0.7rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); }
     .topbar-intake img { height:46px; width:auto; mix-blend-mode:lighten; filter:brightness(1.05); }
     .topbar-map { display:grid; grid-template-columns:auto 1fr 1fr 1fr auto; align-items:center; gap:0.5rem; padding:0.55rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); position:sticky; top:0; z-index:30; }
-    .topbar-map .t-logo img { height:36px; width:auto; mix-blend-mode:lighten; }
     .topbar-map .t-item { display:flex; flex-direction:column; gap:0.1rem; padding:0 0.5rem; border-left:1px solid var(--border-sub); }
     .topbar-map .t-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); font-weight:500; }
     .topbar-map .t-val { font-size:0.88rem; color:var(--cream); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -54,18 +49,109 @@
     .intake-back { background:none; border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.84rem; cursor:pointer; padding:0; display:flex; align-items:center; gap:0.35rem; transition:color .2s; margin-bottom:0.15rem; }
     .intake-back:hover { color:var(--gold-light); }
     .intake-event-tag { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin:0 0 0.15rem; }
-
-    .wz-icon { width:20px; height:20px; flex-shrink:0; }
     .map-search-wrap { display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center; }
     .map-search-wrap input { flex:1; max-width:160px; }
 
-    @media(max-width:900px) { .events-grid{grid-template-columns:repeat(2,1fr);} .topbar-map{grid-template-columns:auto 1fr 1fr auto;} }
-    @media(max-width:580px) { .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;} .topbar-map{grid-template-columns:1fr 1fr; row-gap:0.4rem;} .topbar-map .t-logo{display:none;} .topbar-map .t-action{grid-column:1/-1;} .topbar-map .finish-btn{width:100%;} }
+    /* ── TELA MAPA AÉREO ──────────────────────────────────── */
+    #aerialScreen { display:flex; flex-direction:column; min-height:100dvh; }
+
+    .aerial-topbar {
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;
+      padding:0.6rem 1.25rem;
+      background:rgba(6,15,8,0.96); backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+      box-shadow:0 4px 24px rgba(0,0,0,.4);
+      position:sticky; top:0; z-index:30;
+    }
+    .aerial-topbar img { height:38px; width:auto; mix-blend-mode:lighten; }
+    .aerial-topbar__info { display:flex; flex-direction:column; gap:0.1rem; flex:1; padding:0 1rem; }
+    .aerial-topbar__event { font-family:'Playfair Display',Georgia,serif; font-size:0.95rem; color:var(--cream); font-weight:700; }
+    .aerial-topbar__sub { font-size:0.72rem; color:var(--muted); }
+    .aerial-topbar__back { background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.82rem; padding:0.45rem 0.9rem; cursor:pointer; transition:color .2s, border-color .2s; white-space:nowrap; }
+    .aerial-topbar__back:hover { color:var(--gold-light); border-color:var(--gold); }
+
+    .aerial-body {
+      flex:1; display:flex; flex-direction:column; align-items:center;
+      padding:1.25rem 1rem 2rem; gap:0.75rem; position:relative; z-index:1;
+    }
+    .aerial-title { font-family:'Playfair Display',Georgia,serif; font-size:1.1rem; color:var(--cream); text-align:center; margin:0; }
+    .aerial-subtitle { font-size:0.84rem; color:var(--muted); text-align:center; margin:0; }
+
+    /* Foto aérea com botões sobrepostos */
+    .aerial-map-wrap {
+      position:relative; width:100%; max-width:960px;
+      border-radius:16px; overflow:hidden;
+      border:1px solid var(--border);
+      box-shadow:0 8px 40px rgba(0,0,0,.5);
+    }
+    .aerial-map-wrap img { width:100%; height:auto; display:block; }
+
+    /* Botão de bloco sobreposto */
+    .block-btn {
+      position:absolute;
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+      background:rgba(6,15,8,0.85);
+      border:2px solid var(--gold);
+      border-radius:10px;
+      padding:7px 11px;
+      cursor:pointer;
+      font-family:'DM Sans',sans-serif;
+      transition:background .18s, transform .15s, box-shadow .18s;
+      backdrop-filter:blur(6px);
+      min-width:76px; text-align:center;
+    }
+    .block-btn:hover:not(.full) {
+      background:rgba(201,168,76,0.2);
+      transform:scale(1.07);
+      box-shadow:0 4px 20px rgba(201,168,76,.4);
+    }
+    .block-btn.full  { border-color:var(--danger); cursor:not-allowed; }
+    .block-btn.quase { border-color:var(--warning); }
+
+    .block-btn__name { font-size:0.76rem; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:0.06em; line-height:1; }
+    .block-btn.full  .block-btn__name { color:#e07070; }
+    .block-btn.quase .block-btn__name { color:var(--warning); }
+
+    .block-btn__bar-wrap { width:100%; height:5px; background:rgba(255,255,255,.15); border-radius:999px; overflow:hidden; }
+    .block-btn__bar { height:100%; border-radius:999px; transition:width .5s ease; background:#4daa6a; }
+
+    .block-btn__avail { font-size:0.64rem; color:rgba(255,255,255,.55); line-height:1; }
+
+    /* Modal alerta bloco lotado */
+    .aerial-alert {
+      position:fixed; inset:0; z-index:60;
+      display:grid; place-items:center;
+      background:rgba(4,10,5,.82); padding:1rem;
+      backdrop-filter:blur(5px);
+    }
+    .aerial-alert__box {
+      width:min(460px,100%);
+      background:var(--bg-mid);
+      border:1px solid var(--border); border-radius:20px;
+      padding:1.75rem 1.5rem;
+      box-shadow:0 24px 64px rgba(0,0,0,.65);
+      animation:fadeUp .3s ease both;
+      display:flex; flex-direction:column; gap:1rem;
+    }
+    .aerial-alert__title { font-family:'Playfair Display',Georgia,serif; font-size:1.2rem; color:var(--cream); margin:0; }
+    .aerial-alert__msg   { font-size:0.9rem; color:var(--muted); margin:0; line-height:1.55; }
+    .aerial-alert__sug   { font-size:0.88rem; color:var(--gold); font-weight:500; margin:0; }
+    .aerial-alert__actions { display:flex; gap:0.6rem; flex-wrap:wrap; }
+
+    @media(max-width:900px){ .events-grid{grid-template-columns:repeat(2,1fr);} }
+    @media(max-width:580px){
+      .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;}
+      .topbar-map{grid-template-columns:1fr 1fr; row-gap:0.4rem;}
+      .topbar-map .t-action{grid-column:1/-1;} .topbar-map .finish-btn{width:100%;}
+      .block-btn{padding:5px 8px; min-width:60px;}
+      .block-btn__name{font-size:0.68rem;}
+      .block-btn__avail{display:none;}
+    }
   </style>
 </head>
 <body data-page="competidor">
 
-  <!-- HOME -->
+  <!-- ══════════ HOME ══════════ -->
   <div id="homeScreen" class="home-screen">
     <div class="home-header">
       <img src="img/logo.png" alt="Baia Fácil" />
@@ -86,7 +172,7 @@
     </div>
   </div>
 
-  <!-- TELA DE RESERVA -->
+  <!-- ══════════ TELA DADOS + MAPA BAIAS ══════════ -->
   <div id="reservaScreen" hidden>
     <div class="topbar-intake" id="topbarIntake">
       <img src="img/logo_header.png" alt="Baia Fácil" />
@@ -113,6 +199,7 @@
     </header>
 
     <main class="app">
+      <!-- Formulário de dados -->
       <section id="reservationIntake" class="intake-card">
         <button class="intake-back" id="backToHome" type="button">← Voltar às provas</button>
         <p class="intake-event-tag" id="selectedEventLabel"></p>
@@ -134,9 +221,10 @@
         <button id="startReservationFlow" class="btn btn--primary" type="button">Continuar para o mapa →</button>
       </section>
 
+      <!-- Mapa de baias do bloco selecionado -->
       <section id="competitorMapSection" hidden>
         <div class="map-search-wrap">
-          <input id="mapSearchInput" type="number" min="1" max="100" placeholder="Ir para baia nº..." />
+          <input id="mapSearchInput" type="number" min="1" max="140" placeholder="Ir para baia nº..." />
           <button id="mapSearchBtn" class="btn" type="button">Localizar</button>
         </div>
         <p class="map-help">Toque em uma baia disponível para iniciar a pré-reserva de 5 minutos.</p>
@@ -154,19 +242,100 @@
     </main>
   </div>
 
-  <!-- Modal sequência -->
+  <!-- ══════════ TELA MAPA AÉREO ══════════ -->
+  <div id="aerialScreen" hidden>
+    <div class="aerial-topbar">
+      <img src="img/logo_header.png" alt="Baia Fácil" />
+      <div class="aerial-topbar__info">
+        <div class="aerial-topbar__event" id="aerialEventName">—</div>
+        <div class="aerial-topbar__sub" id="aerialCompetitorInfo">—</div>
+      </div>
+      <button class="aerial-topbar__back" id="aerialBackBtn" type="button">← Voltar aos dados</button>
+    </div>
+
+    <div class="aerial-body">
+      <h2 class="aerial-title">Escolha o bloco</h2>
+      <p class="aerial-subtitle">Clique no bloco onde deseja reservar sua baia</p>
+
+      <div class="aerial-map-wrap">
+        <!-- Foto aérea — salve a imagem como img/PISTA.png no repositório -->
+        <img src="img/PISTA.png" alt="Mapa aéreo do haras" />
+
+        <!--
+          Posições dos botões em % (top/left relativo à imagem).
+          Ajuste conforme necessário após ver no browser.
+          Bloco 1 = topo da fileira, Bloco 5 = base.
+        -->
+        <button class="block-btn" id="blockBtn1" data-block="1" type="button"
+                style="top:18%;left:28%;">
+          <span class="block-btn__name">Bloco 1</span>
+          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar1" style="width:100%"></div></div>
+          <span class="block-btn__avail" id="avail1">30 vagas</span>
+        </button>
+
+        <button class="block-btn" id="blockBtn2" data-block="2" type="button"
+                style="top:26%;left:22%;">
+          <span class="block-btn__name">Bloco 2</span>
+          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar2" style="width:100%"></div></div>
+          <span class="block-btn__avail" id="avail2">30 vagas</span>
+        </button>
+
+        <button class="block-btn" id="blockBtn3" data-block="3" type="button"
+                style="top:34%;left:16%;">
+          <span class="block-btn__name">Bloco 3</span>
+          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar3" style="width:100%"></div></div>
+          <span class="block-btn__avail" id="avail3">30 vagas</span>
+        </button>
+
+        <button class="block-btn" id="blockBtn4" data-block="4" type="button"
+                style="top:42%;left:10%;">
+          <span class="block-btn__name">Bloco 4</span>
+          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar4" style="width:100%"></div></div>
+          <span class="block-btn__avail" id="avail4">30 vagas</span>
+        </button>
+
+        <button class="block-btn" id="blockBtn5" data-block="5" type="button"
+                style="top:50%;left:4%;">
+          <span class="block-btn__name">Bloco 5</span>
+          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar5" style="width:100%"></div></div>
+          <span class="block-btn__avail" id="avail5">20 vagas</span>
+        </button>
+      </div>
+
+      <!-- Legenda de ocupação -->
+      <div class="legend" style="justify-content:center;">
+        <span><i class="dot" style="background:#4daa6a;border-color:#4daa6a;"></i>Disponível</span>
+        <span><i class="dot" style="background:#e8a030;border-color:#e8a030;"></i>Quase lotado</span>
+        <span><i class="dot" style="background:#e07070;border-color:#e07070;"></i>Sem vagas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: bloco lotado -->
+  <div id="aerialAlert" class="aerial-alert" hidden>
+    <div class="aerial-alert__box">
+      <h2 class="aerial-alert__title">⚠️ Bloco sem vagas</h2>
+      <p class="aerial-alert__msg"  id="aerialAlertMsg"></p>
+      <p class="aerial-alert__sug"  id="aerialAlertSug"></p>
+      <div class="aerial-alert__actions">
+        <button id="aerialAlertGoBtn"  class="btn btn--primary" type="button" hidden>Ir para o bloco disponível</button>
+        <button id="aerialAlertClose"  class="btn"              type="button">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modais de reserva -->
   <div id="sequenceModal" class="modal" hidden>
     <div class="modal__content">
       <h2>Aceitar sequência sugerida?</h2>
       <p id="sequenceList"></p>
       <div class="modal__actions">
         <button id="acceptSequence" class="btn btn--primary" type="button">Aceitar sequência</button>
-        <button id="rejectSequence" class="btn" type="button">Não, selecionar baia por baia</button>
+        <button id="rejectSequence" class="btn"              type="button">Não, selecionar baia por baia</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal comprovante -->
   <div id="receiptModal" class="modal" hidden>
     <div class="modal__content" style="max-width:600px;width:100%;text-align:center;">
       <div style="margin:0 auto 1rem;width:72px;height:72px;">
@@ -181,10 +350,9 @@
       <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:2rem;color:var(--gold);font-weight:700;margin:0 0 0.25rem;letter-spacing:0.04em;" id="receiptProtocol">—</h2>
       <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.5rem;">Guarde este número de protocolo</p>
       <div id="receiptContent" class="receipt-content" style="text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--border-sub);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;"></div>
-
       <div class="modal__actions" style="justify-content:center;">
         <button id="downloadReceipt" class="btn btn--primary" type="button">⬇ Download do comprovante</button>
-        <button id="closeReceipt" class="btn" type="button">Fechar</button>
+        <button id="closeReceipt"    class="btn"              type="button">Fechar</button>
       </div>
     </div>
   </div>
@@ -205,33 +373,34 @@
   <script src="js/competidor.js"></script>
 
   <script>
-  // Função global para atualizar badges dos cards com dados do Firebase
+  /* ════════════════════════════════════════════════════════
+     Badges da home
+  ════════════════════════════════════════════════════════ */
   window.refreshBadgesFromFirebase = function() {
     if (!window.FB) return;
     window.FB.getProvas().then(function(provas) {
       provas.forEach(function(prova) {
-        var badge = document.querySelector('[data-badge="' + prova.id + '"]');
+        var badge = document.querySelector('[data-badge="'+prova.id+'"]');
         if (!badge) return;
-        var av = (prova.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
-        var total = (prova.stalls || []).length || 100;
-        var pct = av / total;
+        var av    = (prova.stalls||[]).filter(function(s){ return s.status==='available'; }).length;
+        var total = (prova.stalls||[]).length || 140;
+        var pct   = av / total;
         var bg, color, dot;
-        if (pct > 0.5) { bg='rgba(77,170,106,.15)'; color='#4daa6a'; dot='#4daa6a'; }
+        if (pct > 0.5)      { bg='rgba(77,170,106,.15)'; color='#4daa6a'; dot='#4daa6a'; }
         else if (pct > 0.2) { bg='rgba(232,160,48,.15)'; color='#e8a030'; dot='#e8a030'; }
-        else { bg='rgba(220,80,80,.15)'; color='#e07070'; dot='#e07070'; }
-        badge.style.background = bg;
-        badge.style.color      = color;
-        badge.innerHTML =
-          '<span class="event-card__badge-dot" style="background:' + dot + ';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;"></span>' +
-          av + ' baia' + (av !== 1 ? 's' : '') + ' disponível' + (av !== 1 ? 'is' : '');
+        else                { bg='rgba(220,80,80,.15)';  color='#e07070'; dot='#e07070'; }
+        badge.style.background = bg; badge.style.color = color;
+        badge.innerHTML = '<span class="event-card__badge-dot" style="background:'+dot+
+          ';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;"></span>'+
+          av+' baia'+(av!==1?'s':'')+' disponível'+(av!==1?'is':'');
       });
     }).catch(function(e){ console.warn('badges:', e); });
   };
 
+  /* ════════════════════════════════════════════════════════
+     DOMContentLoaded
+  ════════════════════════════════════════════════════════ */
   document.addEventListener('DOMContentLoaded', function() {
-
-    var BASE_KEY   = 'baias_mvp_state_v2';
-    var TOTAL_BAIAS = 100;
 
     var EVENTS = [
       { id:1, name:'CSN Parque Equestre',         date:'28–30 Mar 2025', loc:'São Paulo, SP',      icon:'🏆' },
@@ -245,206 +414,254 @@
       { id:9, name:'Campeonato Mineiro de Saltos', date:'24–25 Mai 2025', loc:'Uberlândia, MG',     icon:'🏅' },
     ];
 
-    function getStats(evId) {
-      try {
-        var raw = localStorage.getItem(BASE_KEY + '_ev' + evId);
-        if (!raw) return { available: TOTAL_BAIAS };
-        var d = JSON.parse(raw);
-        var av = (d.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
-        return { available: av };
-      } catch(e) { return { available: TOTAL_BAIAS }; }
-    }
+    var BLOCOS = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
+      {id:1,label:'Bloco 1',stalls:30,start:1},
+      {id:2,label:'Bloco 2',stalls:30,start:31},
+      {id:3,label:'Bloco 3',stalls:30,start:61},
+      {id:4,label:'Bloco 4',stalls:30,start:91},
+      {id:5,label:'Bloco 5',stalls:20,start:121},
+    ];
 
-    function badgeStyle(av) {
-      if (av > 50) return { bg:'rgba(77,170,106,.15)', color:'#4daa6a', dot:'#4daa6a' };
-      if (av > 20) return { bg:'rgba(232,160,48,.15)',  color:'#e8a030', dot:'#e8a030' };
-      return           { bg:'rgba(220,80,80,.15)',  color:'#e07070', dot:'#e07070' };
-    }
-
-    // Renderiza cards
+    /* ── Cards da home ─────────────────────────────────── */
     var grid = document.getElementById('eventsGrid');
     EVENTS.forEach(function(ev) {
-      var stats = getStats(ev.id);
-      var bs    = badgeStyle(stats.available);
-      var btn   = document.createElement('button');
-      btn.className   = 'event-card';
-      btn.type        = 'button';
-      btn.dataset.evId = ev.id;
+      var btn = document.createElement('button');
+      btn.className = 'event-card'; btn.type = 'button'; btn.dataset.evId = ev.id;
       btn.innerHTML =
-        '<div class="event-card__icon">' + ev.icon + '</div>' +
-        '<div class="event-card__name">' + ev.name + '</div>' +
-        '<div class="event-card__date">' + ev.date + '</div>' +
-        '<div class="event-card__loc">📍 ' + ev.loc + '</div>' +
-        '<div class="event-card__badge" data-badge="' + ev.id + '" style="background:' + bs.bg + ';color:' + bs.color + ';">' +
-          '<span class="event-card__badge-dot" style="background:' + bs.dot + ';"></span> ' +
-          stats.available + ' baia' + (stats.available !== 1 ? 's' : '') + ' disponível' + (stats.available !== 1 ? 'is' : '') +
-        '</div>' +
-        '<span class="event-card__arrow">→</span>';
+        '<div class="event-card__icon">'+ev.icon+'</div>'+
+        '<div class="event-card__name">'+ev.name+'</div>'+
+        '<div class="event-card__date">'+ev.date+'</div>'+
+        '<div class="event-card__loc">📍 '+ev.loc+'</div>'+
+        '<div class="event-card__badge" data-badge="'+ev.id+
+          '" style="background:rgba(77,170,106,.15);color:#4daa6a;">'+
+          '<span class="event-card__badge-dot" style="background:#4daa6a;"></span> carregando...'+
+        '</div><span class="event-card__arrow">→</span>';
       btn.addEventListener('click', function(){ openEvent(ev); });
       grid.appendChild(btn);
     });
 
-    function refreshBadges() {
-      window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
-    }
-
     var _badgeInterval = setInterval(function() {
-      if (window.FB) {
-        clearInterval(_badgeInterval);
-        window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
-      }
+      if (window.FB) { clearInterval(_badgeInterval); window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase(); }
     }, 300);
 
-    // ── History API ───────────────────────────────────────────
-    history.replaceState({ screen: 'home' }, '', window.location.pathname);
-    history.pushState({ screen: 'home' }, '', window.location.pathname);
+    /* ── History API ───────────────────────────────────── */
+    history.replaceState({ screen:'home' }, '', window.location.pathname);
+    history.pushState(   { screen:'home' }, '', window.location.pathname);
 
-    window.addEventListener('popstate', function(e) {
-      var reservaAtiva = !document.getElementById('reservaScreen').hidden;
-      if (reservaAtiva) {
-        goHome();
-        history.pushState({ screen: 'home' }, '', window.location.pathname);
-      }
+    window.addEventListener('popstate', function() {
+      if (!document.getElementById('aerialScreen').hidden)  { voltarParaDados(); history.pushState({screen:'dados'},'',window.location.pathname); return; }
+      if (!document.getElementById('reservaScreen').hidden) { goHome();          history.pushState({screen:'home'},'',window.location.pathname); }
     });
 
+    /* ── Abrir evento → formulário de dados ────────────── */
     async function openEvent(ev) {
-      history.pushState({ screen: 'reserva', evId: ev.id, evName: ev.name }, '', '#prova-' + ev.id);
-
-      // CORREÇÃO: salvar o evento selecionado em window._selectedEvent para uso na topbar
+      history.pushState({ screen:'dados', evId:ev.id }, '', '#prova-'+ev.id);
       window._selectedEvent = ev;
-
       document.getElementById('selectedEventLabel').textContent = ev.name;
-      document.getElementById('homeScreen').hidden    = true;
-      document.getElementById('reservaScreen').hidden = false;
-      document.getElementById('topbarIntake').hidden  = false;
-      document.getElementById('topbarMap').hidden     = true;
+      showScreen('reserva');
 
-      if (typeof window.entrarProva === 'function') {
-        await window.entrarProva(ev.id, ev.name);
-      }
-
-      if (typeof window._entrarEvento === 'function') {
-        window._entrarEvento(ev.name);
-      }
+      if (typeof window.entrarProva === 'function') await window.entrarProva(ev.id, ev.name);
+      if (typeof window._entrarEvento === 'function') window._entrarEvento(ev.name);
     }
 
-    function goHome() {
-      if (window.BAIA_STATE) {
-        // CORREÇÃO: usar window.updateState (exposto por competidor.js) em vez da referência direta
-        // que causava ReferenceError pois updateState é escopo fechado de competidor.js
-        if (typeof window.updateState === 'function' && window.BAIA_STATE.selectedStalls && window.BAIA_STATE.selectedStalls.length > 0) {
-          var toRelease = window.BAIA_STATE.selectedStalls.slice();
-          window.updateState(function(next) {
-            toRelease.forEach(function(num) {
-              var stall = next.stalls.find(function(s){ return s.number === num; });
-              if (stall && (stall.status === 'selected' || stall.status === 'blocked')) {
-                stall.status = 'available';
-                stall.holderName = ''; stall.contactPhone = '';
-                stall.requestedStalls = 0; stall.reservedAt = '';
-              }
-            });
-          });
-        }
-        var comp = window.BAIA_STATE.competitor;
-        if (comp && comp.timerId) {
-          clearInterval(comp.timerId);
-          comp.timerId = null;
-        }
-        if (comp) {
-          comp.holderName = ''; comp.requestedStalls = 0; comp.contactPhone = '';
-          comp.selectedStalls = []; comp.suggestedSequence = [];
-          comp.mode = null; comp.remainingSeconds = (window.BAIA_CONFIG && window.BAIA_CONFIG.HOLD_DURATION_SECONDS) || 300; comp.receipt = null;
-        }
-        window.BAIA_STATE.selectedStalls = [];
-        window.BAIA_STATE.competitorCredits = 0;
-        window.BAIA_STATE.timer.isActive = false;
-        window.BAIA_STATE.reservation.status = 'inactive';
-      }
-
-      var intakeHolder   = document.getElementById('intakeHolder');
-      var intakeQuantity = document.getElementById('intakeQuantity');
-      var intakePhone    = document.getElementById('intakePhone');
-      var intakeError    = document.getElementById('intakeError');
-      var intakeSection  = document.getElementById('reservationIntake');
-      var mapSection     = document.getElementById('competitorMapSection');
-      var topbarIntake   = document.getElementById('topbarIntake');
-      var topbarMap      = document.getElementById('topbarMap');
-      if (intakeHolder)   intakeHolder.value   = '';
-      if (intakeQuantity) intakeQuantity.value = '';
-      if (intakePhone)    intakePhone.value    = '';
-      if (intakeError)    intakeError.textContent = '';
-      if (intakeSection)  intakeSection.hidden = false;
-      if (mapSection)     mapSection.hidden    = true;
-      if (topbarIntake)   topbarIntake.hidden  = false;
-      if (topbarMap)      topbarMap.hidden     = true;
-
-      var receiptModal  = document.getElementById('receiptModal');
-      var sequenceModal = document.getElementById('sequenceModal');
-      var finishBtn     = document.getElementById('finishReservation');
-      if (receiptModal)  receiptModal.hidden  = true;
-      if (sequenceModal) sequenceModal.hidden = true;
-      if (finishBtn)     finishBtn.disabled   = true;
-
-      if (typeof window.pararListenerCompetidor === 'function') {
-        window.pararListenerCompetidor();
-      }
-
-      if (window.BAIA_STATE) {
-        window.BAIA_STATE._mapCacheDirty = true;
-      }
-
-      // CORREÇÃO: limpar referência ao evento selecionado
-      window._selectedEvent = null;
-
-      document.getElementById('reservaScreen').hidden = true;
-      document.getElementById('homeScreen').hidden    = false;
-      refreshBadges();
-    }
-
-    document.getElementById('backToHome').addEventListener('click', function() {
-      goHome();
-    });
-
-    // Troca topbar ao avançar para o mapa
+    /* ── Formulário enviado → mapa aéreo ───────────────── */
     document.getElementById('startReservationFlow').addEventListener('click', function() {
       setTimeout(function() {
-        var mapSection = document.getElementById('competitorMapSection');
-        if (mapSection && !mapSection.hidden) {
-          document.getElementById('topbarIntake').hidden = true;
-          document.getElementById('topbarMap').hidden    = false;
-
-          // CORREÇÃO: usar window._selectedEvent (agora corretamente atribuído em openEvent)
-          // para preencher o nome do evento na topbar do mapa
-          var evEl       = document.getElementById('eventName');
-          var nameEl     = document.getElementById('competitorName');
-          var creditsEl  = document.getElementById('stallCredits');
-          var timerEl    = document.getElementById('timer');
-          var state      = window.BAIA_STATE && window.BAIA_STATE.competitor;
-
-          if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name;
-          if (nameEl && state)    nameEl.textContent    = state.holderName || '';
-          if (creditsEl && state) creditsEl.textContent = state.requestedStalls || '0';
-          if (timerEl)            timerEl.textContent   = '--:--';
-        }
-      }, 60);
+        // competidor.js esconde o intake e mostra o mapa quando válido
+        // se o intake ainda está visível, dados inválidos — não avança
+        if (!document.getElementById('reservationIntake').hidden) return;
+        // Se competidor.js já mostrou o mapa de baias (filtro de bloco ativo), não redireciona
+        if (!document.getElementById('competitorMapSection').hidden) return;
+        // Ir para mapa aéreo
+        abrirMapaAereo();
+      }, 80);
     });
 
-    // Busca de baia no mapa
+    function abrirMapaAereo() {
+      var ev    = window._selectedEvent;
+      var state = window.BAIA_STATE && window.BAIA_STATE.competitor;
+      document.getElementById('aerialEventName').textContent      = ev ? ev.name : '—';
+      document.getElementById('aerialCompetitorInfo').textContent = state
+        ? state.holderName + ' · ' + state.requestedStalls + ' baia(s)'
+        : '—';
+      atualizarBlocos();
+      showScreen('aerial');
+    }
+
+    /* ── Clique num bloco ──────────────────────────────── */
+    BLOCOS.forEach(function(bloco) {
+      var btn = document.getElementById('blockBtn'+bloco.id);
+      if (!btn) return;
+      btn.addEventListener('click', function() {
+        if (btn.classList.contains('full')) { mostrarAlertaLotado(bloco); return; }
+        abrirBloco(bloco);
+      });
+    });
+
+    function abrirBloco(bloco) {
+      window._blocoAtivo = bloco;
+      showScreen('mapa');
+      document.getElementById('topbarIntake').hidden = true;
+      document.getElementById('topbarMap').hidden    = false;
+
+      var evEl      = document.getElementById('eventName');
+      var nameEl    = document.getElementById('competitorName');
+      var creditsEl = document.getElementById('stallCredits');
+      var timerEl   = document.getElementById('timer');
+      var state     = window.BAIA_STATE && window.BAIA_STATE.competitor;
+      if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name + ' · ' + bloco.label;
+      if (nameEl    && state) nameEl.textContent    = state.holderName || '';
+      if (creditsEl && state) creditsEl.textContent = String(state.requestedStalls || 0);
+      if (timerEl) timerEl.textContent = '--:--';
+
+      if (typeof window._filtrarBloco === 'function') window._filtrarBloco(bloco);
+    }
+
+    /* ── Alerta bloco lotado ───────────────────────────── */
+    function mostrarAlertaLotado(bloco) {
+      var state = window.BAIA_STATE && window.BAIA_STATE.competitor;
+      var qtd   = state ? (state.requestedStalls || 1) : 1;
+      var stalls= window.BAIA_STATE && window.BAIA_STATE.stalls || [];
+      var msg   = document.getElementById('aerialAlertMsg');
+      var sug   = document.getElementById('aerialAlertSug');
+      var goBtn = document.getElementById('aerialAlertGoBtn');
+
+      msg.textContent = 'O '+bloco.label+' não tem vagas suficientes para '+qtd+' baia(s).';
+
+      var alternativo = null;
+      BLOCOS.forEach(function(b) {
+        if (b.id === bloco.id || alternativo) return;
+        var disp = stalls.filter(function(s){ return s.block===b.id && s.status==='available'; }).length;
+        if (disp >= qtd) alternativo = b;
+      });
+
+      if (alternativo) {
+        sug.textContent = '✓ '+alternativo.label+' tem vagas disponíveis.';
+        goBtn.hidden = false;
+        goBtn.onclick = function() { document.getElementById('aerialAlert').hidden=true; abrirBloco(alternativo); };
+      } else {
+        sug.textContent = 'No momento, nenhum bloco tem vagas suficientes para '+qtd+' baia(s).';
+        goBtn.hidden = true;
+      }
+      document.getElementById('aerialAlert').hidden = false;
+    }
+
+    document.getElementById('aerialAlertClose').addEventListener('click', function() {
+      document.getElementById('aerialAlert').hidden = true;
+    });
+
+    /* ── Atualizar indicadores de ocupação dos blocos ───── */
+    function atualizarBlocos() {
+      var stalls = (window.BAIA_STATE && window.BAIA_STATE.stalls) || [];
+      var state  = window.BAIA_STATE && window.BAIA_STATE.competitor;
+      var qtd    = state ? (state.requestedStalls || 1) : 1;
+
+      BLOCOS.forEach(function(bloco) {
+        var btn   = document.getElementById('blockBtn'+bloco.id);
+        var bar   = document.getElementById('bar'+bloco.id);
+        var avail = document.getElementById('avail'+bloco.id);
+        if (!btn) return;
+
+        var disp = stalls.length > 0
+          ? stalls.filter(function(s){ return s.block===bloco.id && s.status==='available'; }).length
+          : bloco.stalls; // fallback antes de carregar dados
+
+        var pct    = disp / bloco.stalls;
+        var isFull = disp < qtd;
+
+        btn.classList.remove('full','quase');
+        if (isFull) {
+          btn.classList.add('full');
+          if (bar) bar.style.background = '#e07070';
+        } else if (pct < 0.35) {
+          btn.classList.add('quase');
+          if (bar) bar.style.background = '#e8a030';
+        } else {
+          if (bar) bar.style.background = '#4daa6a';
+        }
+        if (bar)   bar.style.width = Math.round(pct*100)+'%';
+        if (avail) avail.textContent = disp+' vaga'+(disp!==1?'s':'');
+      });
+    }
+    window._atualizarBlocos = atualizarBlocos;
+
+    /* ── Voltar do mapa aéreo → dados ──────────────────── */
+    function voltarParaDados() {
+      showScreen('reserva');
+      document.getElementById('topbarIntake').hidden = false;
+      document.getElementById('topbarMap').hidden    = true;
+    }
+    document.getElementById('aerialBackBtn').addEventListener('click', voltarParaDados);
+
+    /* ── Voltar dos dados → home ────────────────────────── */
+    document.getElementById('backToHome').addEventListener('click', function() { goHome(); });
+
+    /* ── Busca de baia no mapa ──────────────────────────── */
     var mapSearchBtn   = document.getElementById('mapSearchBtn');
     var mapSearchInput = document.getElementById('mapSearchInput');
     if (mapSearchBtn) {
       mapSearchBtn.addEventListener('click', function() {
         var n = Number(mapSearchInput.value);
-        if (!n || n < 1 || n > 100) return;
-        var target = document.querySelector('[data-stall-number="' + n + '"]');
+        if (!n||n<1||n>140) return;
+        var target = document.querySelector('[data-stall-number="'+n+'"]');
         if (!target) return;
         target.scrollIntoView({ behavior:'smooth', block:'center' });
-        target.classList.remove('stall--highlight');
-        void target.offsetWidth;
+        target.classList.remove('stall--highlight'); void target.offsetWidth;
         target.classList.add('stall--highlight');
         setTimeout(function(){ target.classList.remove('stall--highlight'); }, 3500);
       });
       mapSearchInput.addEventListener('keydown', function(e){ if(e.key==='Enter') mapSearchBtn.click(); });
+    }
+
+    /* ── goHome ─────────────────────────────────────────── */
+    function goHome() {
+      if (window.BAIA_STATE) {
+        if (typeof window.updateState==='function' && window.BAIA_STATE.selectedStalls && window.BAIA_STATE.selectedStalls.length>0) {
+          var toRelease = window.BAIA_STATE.selectedStalls.slice();
+          window.updateState(function(next) {
+            toRelease.forEach(function(num) {
+              var s = next.stalls.find(function(x){ return x.number===num; });
+              if (s && (s.status==='selected'||s.status==='blocked')) {
+                s.status='available'; s.holderName=''; s.contactPhone=''; s.requestedStalls=0; s.reservedAt='';
+              }
+            });
+          });
+        }
+        var comp = window.BAIA_STATE.competitor;
+        if (comp && comp.timerId) { clearInterval(comp.timerId); comp.timerId=null; }
+        if (comp) { comp.holderName=''; comp.requestedStalls=0; comp.contactPhone=''; comp.selectedStalls=[]; comp.suggestedSequence=[]; comp.mode=null; comp.remainingSeconds=300; comp.receipt=null; }
+        window.BAIA_STATE.selectedStalls=[]; window.BAIA_STATE.competitorCredits=0;
+        window.BAIA_STATE.timer.isActive=false; window.BAIA_STATE.reservation.status='inactive';
+      }
+      ['intakeHolder','intakeQuantity','intakePhone'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+      var ie = document.getElementById('intakeError'); if(ie) ie.textContent='';
+      document.getElementById('reservationIntake').hidden    = false;
+      document.getElementById('competitorMapSection').hidden = true;
+      document.getElementById('topbarIntake').hidden = false;
+      document.getElementById('topbarMap').hidden    = true;
+      ['receiptModal','sequenceModal'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
+      var fb=document.getElementById('finishReservation'); if(fb) fb.disabled=true;
+      document.getElementById('aerialAlert').hidden = true;
+      if (typeof window.pararListenerCompetidor==='function') window.pararListenerCompetidor();
+      window._selectedEvent=null; window._blocoAtivo=null;
+      showScreen('home');
+      window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
+    }
+
+    /* ── Helper: trocar telas ───────────────────────────── */
+    function showScreen(name) {
+      document.getElementById('homeScreen').hidden    = name!=='home';
+      document.getElementById('aerialScreen').hidden  = name!=='aerial';
+      // reservaScreen cobre tanto 'reserva' (intake) quanto 'mapa' (baias)
+      document.getElementById('reservaScreen').hidden = (name!=='reserva' && name!=='mapa');
+      if (name==='reserva') {
+        document.getElementById('reservationIntake').hidden    = false;
+        document.getElementById('competitorMapSection').hidden = true;
+      }
+      if (name==='mapa') {
+        document.getElementById('reservationIntake').hidden    = true;
+        document.getElementById('competitorMapSection').hidden = false;
+      }
     }
 
   }); // fim DOMContentLoaded
