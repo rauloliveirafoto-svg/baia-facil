@@ -1,10 +1,10 @@
-/* ── Organizador: sempre 2 linhas (15 colunas) ── */
+/* Organizador: sempre 2 linhas de 15 */
 #organizerStallMap .stalls-row,
 #manualStallMap .stalls-row {
-  grid-template-columns: repeat(15, minmax(36px, 1fr));
+  grid-template-columns: repeat(15, minmax(36px, 1fr)) !important;
 }
 
-/* ── Competidor: 2 colunas verticais ── */
+/* Competidor: 2 colunas verticais */
 .stalls-two-cols {
   display: flex;
   flex-direction: row;
