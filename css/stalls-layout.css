@@ -1,4 +1,10 @@
-/* Layout 2 colunas verticais — exclusivo para o mapa do competidor */
+/* ── Organizador: sempre 2 linhas (15 colunas) ── */
+#organizerStallMap .stalls-row,
+#manualStallMap .stalls-row {
+  grid-template-columns: repeat(15, minmax(36px, 1fr));
+}
+
+/* ── Competidor: 2 colunas verticais ── */
 .stalls-two-cols {
   display: flex;
   flex-direction: row;
