@@ -8,7 +8,6 @@
       actions,
     } = deps;
 
-
     function hasAvailableCredits() {
       const requested = Number(state.requestedStalls) || 0;
       const configuredCredits = Number(global.BAIA_STATE.competitorCredits) || requested;
@@ -44,12 +43,12 @@
 
         if (state.selectedStalls.length === 0) {
           actions.clearCurrentSelection();
-          if(ui.feedbackEl) ui.feedbackEl.textContent = 'Seleção cancelada.';
+          if (ui.feedbackEl) ui.feedbackEl.textContent = 'Seleção cancelada.';
           return;
         }
       } else {
         if (state.selectedStalls.length >= state.requestedStalls) {
-          if(ui.feedbackEl) ui.feedbackEl.textContent = `Limite de ${state.requestedStalls} baias atingido.`;
+          if (ui.feedbackEl) ui.feedbackEl.textContent = `Limite de ${state.requestedStalls} baias atingido.`;
           return;
         }
 
@@ -63,15 +62,16 @@
         });
       }
 
-      if(ui.feedbackEl) ui.feedbackEl.textContent = `Seleção manual em andamento (${state.selectedStalls.length}/${state.requestedStalls}).`;
-      actions.refreshCompetitorMap();
+      if (ui.feedbackEl) ui.feedbackEl.textContent = `Seleção manual em andamento (${state.selectedStalls.length}/${state.requestedStalls}).`;
+      // CORREÇÃO: era actions.refreshCompetitorMap() — função inexistente; correto é actions.refreshMap()
+      actions.refreshMap();
     }
 
     function handleStallClick(stallNumber) {
       if (ui.mapSection.hidden || ui.sequenceModal.hidden === false) return;
 
       if (!hasAvailableCredits()) {
-        if(ui.feedbackEl) ui.feedbackEl.textContent = 'Informe a quantidade de baias antes de selecionar.';
+        if (ui.feedbackEl) ui.feedbackEl.textContent = 'Informe a quantidade de baias antes de selecionar.';
         return;
       }
 
@@ -95,9 +95,12 @@
 
         ui.sequenceList.textContent = `Baia inicial: ${helpers.formatStall(stallNumber)} | Sequência sugerida: ${state.suggestedSequence.map(helpers.formatStall).join(', ') || 'Nenhuma'}`;
         ui.sequenceModal.hidden = false;
-        ui.finishButton.disabled = false;
+        // Manter botão desabilitado enquanto modal de sequência está aberto
+        // Será habilitado após acceptSequence() ou rejectSequence()
+        ui.finishButton.disabled = true;
         actions.startTimer();
-        actions.refreshCompetitorMap();
+        // CORREÇÃO: era actions.refreshCompetitorMap() — função inexistente; correto é actions.refreshMap()
+        actions.refreshMap();
         return;
       }
 
@@ -109,6 +112,7 @@
     function acceptSequence() {
       state.mode = 'sequence';
       ui.sequenceModal.hidden = true;
+      ui.finishButton.disabled = false;
 
       actions.updateState((next) => {
         state.suggestedSequence.forEach((number) => {
@@ -117,21 +121,25 @@
         });
       });
 
-      if(ui.feedbackEl) ui.feedbackEl.textContent = 'Sequência aceita. Finalize para confirmar a reserva.';
-      actions.refreshCompetitorMap();
+      if (ui.feedbackEl) ui.feedbackEl.textContent = 'Sequência aceita. Finalize para confirmar a reserva.';
+      // CORREÇÃO: era actions.refreshCompetitorMap() — função inexistente; correto é actions.refreshMap()
+      actions.refreshMap();
     }
 
     function rejectSequence() {
       state.mode = 'manual';
       state.suggestedSequence = [];
       ui.sequenceModal.hidden = true;
-      if(ui.feedbackEl) ui.feedbackEl.textContent = `Sequência recusada. Selecione manualmente (${state.selectedStalls.length}/${state.requestedStalls}).`;
+      ui.finishButton.disabled = false;
+      if (ui.feedbackEl) ui.feedbackEl.textContent = `Sequência recusada. Selecione manualmente (${state.selectedStalls.length}/${state.requestedStalls}).`;
     }
 
     return {
       handleStallClick,
       acceptSequence,
       rejectSequence,
+      // Permite atualizar o total de baias quando o bloco muda
+      setTotalStalls: function(n) { constants.totalStalls = n; },
     };
   }
 

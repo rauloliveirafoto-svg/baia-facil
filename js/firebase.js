@@ -11,7 +11,10 @@
     appId:             '1:884178519628:web:de4343fc588e2cb18416e9',
   };
 
-  firebase.initializeApp(cfg);
+  // CORREÇÃO: guarda contra dupla inicialização (ex: seed.html carregando este arquivo)
+  if (!firebase.apps.length) {
+    firebase.initializeApp(cfg);
+  }
   var db = firebase.firestore();
 
   function ref(evId) { return db.collection('provas').doc(String(evId)); }
@@ -54,12 +57,27 @@
       if (!snap.exists) throw new Error('Prova não encontrada');
       var data   = snap.data();
       var stalls = data.stalls || [];
+      // Aceitar baias em status 'available', 'selected' ou 'blocked':
+      // - 'available': baia livre
+      // - 'selected' / 'blocked': o próprio competidor marcou durante a sessão de 5 min
+      // Rejeitar apenas 'reserved' e 'maintenance' (ocupadas por outro ou fora de uso)
       var conflito = numeros.filter(function(n) {
         var s = stalls.find(function(x) { return x.number === n; });
-        return !s || (s.status !== 'available' && s.status !== 'selected');
+        if (!s) return true;
+        return s.status === 'reserved' || s.status === 'maintenance';
       });
       if (conflito.length > 0) { resultado = { ok: false, conflito: conflito }; return; }
       var now = new Date().toISOString();
+
+      // Limpar TODAS as baias selected/blocked antes de reservar
+      // (inclui baias do suggestedSequence que não foram confirmadas)
+      stalls.forEach(function(s) {
+        if (s.status === 'selected' || s.status === 'blocked') {
+          s.status = 'available'; s.holderName = ''; s.contactPhone = ''; s.requestedStalls = 0; s.reservedAt = '';
+        }
+      });
+
+      // Agora reservar apenas as baias confirmadas
       numeros.forEach(function(n) {
         var s = stalls.find(function(x) { return x.number === n; });
         if (!s) return;
