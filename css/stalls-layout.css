@@ -1,39 +1,35 @@
 /* ── Layout de baias em 2 colunas verticais ──────────────────
-   Substitui .stalls-row (grid horizontal) pelo novo layout
-   de duas colunas lado a lado, como baias físicas reais.
+   Aplicado APENAS na tela do competidor (dentro de #competitorMapSection)
+   O mapa do organizador continua no layout horizontal original.
 ──────────────────────────────────────────────────────────── */
 
-.stalls-two-cols {
+#competitorMapSection .stalls-two-cols {
   display: flex;
   flex-direction: row;
-  gap: 1.5rem;
+  gap: 2rem;
   justify-content: center;
 }
 
-.stalls-col {
+#competitorMapSection .stalls-col {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
   flex: 1;
-  max-width: 120px;
+  max-width: 130px;
 }
 
-/* Baias verticais: mais largas que altas */
-.stalls-col .stall {
+#competitorMapSection .stalls-col .stall {
   width: 100%;
-  min-height: 40px;
+  min-height: 42px;
   font-size: 0.78rem;
 }
 
-/* Linha separadora entre as duas colunas (corredor central) */
-.stalls-two-cols::after {
-  content: '';
-  display: none; /* decorativo — ativar se quiser linha central */
+/* Esconder o .stalls-row antigo dentro do competidor (não usado mais) */
+#competitorMapSection .stalls-row {
+  display: none;
 }
 
-/* Responsivo: em telas muito pequenas, empilha as colunas */
-@media (max-width: 340px) {
-  .stalls-two-cols { flex-direction: column; }
-  .stalls-col { max-width: 100%; flex-direction: row; flex-wrap: wrap; }
-  .stalls-col .stall { flex: 1 1 60px; }
+@media (max-width: 400px) {
+  #competitorMapSection .stalls-two-cols { gap: 1rem; }
+  #competitorMapSection .stalls-col { max-width: 100px; }
 }
