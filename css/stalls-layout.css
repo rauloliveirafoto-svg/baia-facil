@@ -1,9 +1,10 @@
-/* Layout 2 colunas verticais — competidor */
+/* Layout 2 colunas verticais — exclusivo para o mapa do competidor */
 .stalls-two-cols {
   display: flex;
   flex-direction: row;
   gap: 2rem;
   justify-content: center;
+  padding: 0.25rem 0;
 }
 
 .stalls-col {
@@ -11,51 +12,15 @@
   flex-direction: column;
   gap: 0.45rem;
   flex: 1;
-  max-width: 130px;
+  max-width: 140px;
 }
 
 .stalls-col .stall {
   width: 100%;
-  min-height: 42px;
-  font-size: 0.78rem;
+  min-height: 44px;
 }
 
-/* Organizador: sobrescreve de volta para grid horizontal */
-#organizerStallMap .stalls-two-cols,
-#manualStallMap .stalls-two-cols {
-  display: block;
-}
-
-#organizerStallMap .stalls-col,
-#manualStallMap .stalls-col {
-  display: contents;
-}
-
-#organizerStallMap .block,
-#manualStallMap .block {
-  display: block;
-}
-
-#organizerStallMap .stalls-col .stall,
-#manualStallMap .stalls-col .stall {
-  width: auto;
-  min-height: 42px;
-}
-
-/* Recria o grid horizontal para o organizador */
-#organizerStallMap .stalls-two-cols,
-#manualStallMap .stalls-two-cols {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(40px, 1fr));
-  gap: 0.45rem;
-}
-
-#organizerStallMap .stalls-col,
-#manualStallMap .stalls-col {
-  display: contents;
-}
-
-@media (max-width: 400px) {
+@media (max-width: 420px) {
   .stalls-two-cols { gap: 1rem; }
-  .stalls-col { max-width: 100px; }
+  .stalls-col { max-width: 110px; }
 }
