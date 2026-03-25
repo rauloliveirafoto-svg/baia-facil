@@ -109,20 +109,27 @@
         btnText.textContent = 'Verificando...';
 
         setTimeout(async function() {
-          var result = await BAIA_AUTH.login(user, pass);
-          if (result) {
-            btnText.textContent = '✓ Acesso autorizado';
-            // Passa sessão via hash como fallback para file://
-            var token = btoa(JSON.stringify(result));
-            setTimeout(function() {
-              window.location.href = 'organizador.html#auth=' + token;
-            }, 400);
-          } else {
-            loginError.textContent = 'Usuário ou senha incorretos. Tente novamente.';
-            passInput.value = '';
+          try {
+            var result = await Promise.resolve(BAIA_AUTH.login(user, pass));
+            if (result) {
+              btnText.textContent = '✓ Acesso autorizado';
+              // Passa sessão via hash como fallback para file://
+              var token = btoa(JSON.stringify(result));
+              setTimeout(function() {
+                window.location.href = 'organizador.html#auth=' + token;
+              }, 400);
+            } else {
+              loginError.textContent = 'Usuário ou senha incorretos. Tente novamente.';
+              passInput.value = '';
+              btn.disabled = false;
+              btnText.textContent = 'Entrar no painel';
+              passInput.focus();
+            }
+          } catch(err) {
+            console.error('[login]', err);
+            loginError.textContent = 'Não foi possível realizar login agora. Tente novamente.';
             btn.disabled = false;
             btnText.textContent = 'Entrar no painel';
-            passInput.focus();
           }
         }, 500);
       });
