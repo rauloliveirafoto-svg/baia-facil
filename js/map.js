@@ -19,20 +19,30 @@
     }));
   }
 
-  // Gera as baias em 2 colunas verticais dentro de um elemento pai.
-  // Coluna A = baias ímpares (1ª, 3ª, 5ª...), Coluna B = baias pares (2ª, 4ª, 6ª...)
-  // Resultado visual: duas fileiras lado a lado, como baias reais montadas frente a frente.
+  // Layout HORIZONTAL — grid de linhas (usado pelo organizador)
+  function buildRowLayout(parent, template, start, total, onStallClick) {
+    const row = document.createElement('div');
+    row.className = 'stalls-row';
+    for (let i = 0; i < total; i++) {
+      const stallNumber = start + i;
+      const btn = template.content.firstElementChild.cloneNode(true);
+      btn.dataset.stallNumber = stallNumber;
+      btn.querySelector('.stall__number').textContent = String(stallNumber).padStart(3, '0');
+      btn.addEventListener('click', () => onStallClick(stallNumber));
+      row.appendChild(btn);
+    }
+    parent.appendChild(row);
+  }
+
+  // Layout VERTICAL — 2 colunas lado a lado (usado pelo competidor)
   function buildTwoCols(parent, template, start, total, onStallClick) {
     const wrap = document.createElement('div');
     wrap.className = 'stalls-two-cols';
-
     const colA = document.createElement('div');
     colA.className = 'stalls-col';
     const colB = document.createElement('div');
     colB.className = 'stalls-col';
-
     const half = Math.ceil(total / 2);
-
     for (let i = 0; i < total; i++) {
       const stallNumber = start + i;
       const btn = template.content.firstElementChild.cloneNode(true);
@@ -42,31 +52,25 @@
       if (i < half) colA.appendChild(btn);
       else          colB.appendChild(btn);
     }
-
     wrap.appendChild(colA);
     wrap.appendChild(colB);
     parent.appendChild(wrap);
   }
 
-  // Constrói o mapa completo (todos os blocos) — usado pelo organizador
+  // Mapa completo em GRID HORIZONTAL — organizador
   function buildStallMap({ mapElement, template, onStallClick }) {
-    if (!mapElement || !template) { console.warn('[buildStallMap] mapElement ou template ausente'); return; }
+    if (!mapElement || !template) { console.warn('[buildStallMap] ausente'); return; }
     const layout = getBlocksLayout();
     mapElement.innerHTML = '';
-
     layout.forEach((block, blockIndex) => {
       const blockEl = document.createElement('section');
       blockEl.className = 'block';
-
       const title = document.createElement('h2');
       title.className = 'block__title';
       title.textContent = block.label || ('Bloco ' + block.id);
       blockEl.appendChild(title);
-
-      buildTwoCols(blockEl, template, block.start, block.stalls, onStallClick);
-
+      buildRowLayout(blockEl, template, block.start, block.stalls, onStallClick);
       mapElement.appendChild(blockEl);
-
       if (blockIndex < layout.length - 1) {
         const corridor = document.createElement('div');
         corridor.className = 'corridor';
@@ -76,21 +80,17 @@
     });
   }
 
-  // Constrói o mapa de baias de um único bloco (competidor após selecionar no mapa aéreo)
+  // Mapa de um único bloco em 2 COLUNAS VERTICAIS — competidor
   function buildStallMapBloco({ mapElement, template, bloco, onStallClick }) {
-    if (!mapElement || !template) { console.warn('[buildStallMapBloco] mapElement ou template ausente'); return; }
+    if (!mapElement || !template) { console.warn('[buildStallMapBloco] ausente'); return; }
     mapElement.innerHTML = '';
-
     const blockEl = document.createElement('section');
     blockEl.className = 'block';
-
     const title = document.createElement('h2');
     title.className = 'block__title';
     title.textContent = bloco.label || ('Bloco ' + bloco.id);
     blockEl.appendChild(title);
-
     buildTwoCols(blockEl, template, bloco.start, bloco.stalls, onStallClick);
-
     mapElement.appendChild(blockEl);
   }
 
