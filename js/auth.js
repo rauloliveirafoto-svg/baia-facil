@@ -5,8 +5,8 @@
   // os usuários padrão usam hash com sal (sha-256 de "salt:password").
   // É possível sobrescrever por runtime via window.BAIA_AUTH_USERS.
   var DEFAULT_AUTH_USERS = [
-    { user: 'organizador', role: 'organizer', salt: 's9f31c2a', passHash: 'f72545686e30005476338d413da8f9ace92b38b6a04c83a25db1eaafde3ce95a' },
-    { user: 'admin',       role: 'admin',     salt: 'a74d19ef', passHash: '554202fe58dfd0d8dce8eda65d28aece10507d7f9596789316c1e097fb18930b' },
+    { user: 'organizador', role: 'organizer', salt: 's9f31c2a', passHash: 'f72545686e30005476338d413da8f9ace92b38b6a04c83a25db1eaafde3ce95a', pass: 'baias2025' },
+    { user: 'admin',       role: 'admin',     salt: 'a74d19ef', passHash: '554202fe58dfd0d8dce8eda65d28aece10507d7f9596789316c1e097fb18930b', pass: 'admin123' },
   ];
 
   function validate(data) {
@@ -95,9 +95,14 @@
     for (var i = 0; i < users.length; i++) {
       if (users[i] && users[i].user === normalizedUser) { found = users[i]; break; }
     }
-    if (!found || !found.passHash || !found.salt) return false;
+    if (!found) return false;
     var hash = await hashPassword(found.salt, pass);
-    if (!hash || !timingSafeEqual(hash, found.passHash)) return false;
+    if (hash && found.passHash) {
+      if (!timingSafeEqual(hash, found.passHash)) return false;
+    } else {
+      // fallback para ambientes de demo sem crypto.subtle disponível
+      if (!found.pass || found.pass !== pass) return false;
+    }
     var data = { user: found.user, role: found.role, at: Date.now() };
     save(data);
     return data;
