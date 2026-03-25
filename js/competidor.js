@@ -29,6 +29,9 @@ function updateState(fn) {
   if (_evId) window.FB.salvar(_evId, _cache);
 }
 
+// CORREÇÃO: expor updateState globalmente para que index.html possa chamar ao voltar para home
+window.updateState = updateState;
+
 // ── Chamado pelo index.html ao entrar numa prova ──────────────
 window.entrarProva = async function(evId, evNome) {
   _evId   = String(evId);
@@ -44,6 +47,9 @@ window.iniciarListenerCompetidor = function(onUpdate) {
   if (_unsub) { _unsub(); _unsub = null; }
   if (!_evId) return;
   _unsub = window.FB.escutar(_evId, function(data) {
+    // CORREÇÃO: só aceitar dados do Firebase se o cache já foi populado (evitar race condition)
+    // O listener pode disparar antes de entrarProva terminar; ignorar se _cache ainda é null
+    if (!_cache) return;
     _cache = data;
     window.BAIA_STATE.stalls = data.stalls || [];
     if (onUpdate) onUpdate();
@@ -105,18 +111,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var btnPorNumero = new Map();
   var lastRender   = new Map();
+  var _blocoFiltro = null; // bloco ativo selecionado no mapa aéreo
 
-  // ── Construir mapa uma única vez ──────────────────────────
-  window.BAIA_MAP.buildStallMap({
-    mapElement: mapEl,
-    template:   tplEl,
-    onStallClick: function(n) { ctrlSelecao.handleStallClick(n); },
-  });
-  mapEl.querySelectorAll('.stall').forEach(function(b) {
-    btnPorNumero.set(Number(b.dataset.stallNumber), b);
-  });
+  // ── Filtrar por bloco (chamado pelo index.html ao clicar num bloco) ──
+  window._filtrarBloco = function(bloco) {
+    _blocoFiltro = bloco;
+    lastRender = new Map(); // forçar re-render completo
+
+    // Reconstruir o mapa apenas com as baias do bloco
+    mapEl.innerHTML = '';
+    btnPorNumero.clear();
+
+    var blocoConfig = {
+      id: bloco.id,
+      label: bloco.label || ('Bloco ' + bloco.id),
+      stalls: bloco.stalls,
+      start: bloco.start,
+    };
+
+    window.BAIA_MAP.buildStallMapBloco({
+      mapElement: mapEl,
+      template:   tplEl,
+      bloco:      blocoConfig,
+      onStallClick: function(n) { ctrlSelecao.handleStallClick(n); },
+    });
+
+    mapEl.querySelectorAll('.stall').forEach(function(b) {
+      btnPorNumero.set(Number(b.dataset.stallNumber), b);
+    });
+
+    // Atualizar total de baias no controlador
+    ctrlSelecao.setTotalStalls(bloco.stalls);
+
+    refreshMap();
+  };
 
   // ── Controlador de seleção ────────────────────────────────
+  // CORREÇÃO: actions agora inclui refreshMap (nome correto) em vez de refreshCompetitorMap
   var ctrlSelecao = window.BAIA_SELECTION.createSelectionController({
     state:     state,
     constants: { totalStalls: 100 },
@@ -155,13 +186,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     state.holderName = nome; state.requestedStalls = qtd; state.contactPhone = tel;
     window.BAIA_STATE.competitorCredits = qtd;
-    if (nomeEl)    nomeEl.textContent    = nome;
-    if (creditsEl) creditsEl.textContent = String(qtd);
-    if (feedbackEl) feedbackEl.textContent = 'Selecione as baias no mapa.';
 
-    mapSection.hidden    = false;
+    // Esconder o intake para sinalizar ao index.html que a validação passou.
+    // O mapa de baias (mapSection) é aberto apenas após o competidor
+    // selecionar um bloco no mapa aéreo — via window._filtrarBloco().
     intakeSection.hidden = true;
-    refreshMap();
   });
 
   finishBtn.addEventListener('click', finalizar);
@@ -324,7 +353,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function setTimerLabel() {
     if (!timerEl) return;
-    if (!state.selectedStalls||!state.selectedStalls.length||!state.timerId) { timerEl.textContent='--:--'; return; }
+    // CORREÇÃO: checar timerId E que há baias efetivamente em uso (selectedStalls OU suggestedSequence)
+    // No modo 'sequence', selectedStalls tem só a baia inicial; suggestedSequence tem as demais
+    var totalEmUso = (state.selectedStalls||[]).length + (state.suggestedSequence||[]).length;
+    if (!totalEmUso || !state.timerId) { timerEl.textContent='--:--'; return; }
     timerEl.textContent = String(Math.floor(state.remainingSeconds/60)).padStart(2,'0')+':'+String(state.remainingSeconds%60).padStart(2,'0');
   }
 
@@ -332,7 +364,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var storage = getState();
     if (!storage||!storage.stalls) return;
     var minhas = new Set(state.selectedStalls||[]);
-    storage.stalls.forEach(function(stall) {
+
+    // Filtrar apenas as baias do bloco ativo
+    var stallsVisiveis = _blocoFiltro
+      ? storage.stalls.filter(function(s){ return s.block === _blocoFiltro.id; })
+      : storage.stalls;
+
+    stallsVisiveis.forEach(function(stall) {
       var btn = btnPorNumero.get(stall.number);
       if (!btn) return;
       var sig = stall.status + (minhas.has(stall.number)?'_minha':'');
@@ -347,5 +385,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (stall.status==='reserved'||stall.status==='maintenance') { btn.classList.add('stall--reserved'); btn.disabled=true; }
       lastRender.set(stall.number, sig);
     });
+
+    // Atualizar indicadores do mapa aéreo sempre que o cache mudar
+    if (typeof window._atualizarBlocos === 'function') window._atualizarBlocos();
   }
 });
