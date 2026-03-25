@@ -79,11 +79,6 @@
 
     <script src="js/auth.js"></script>
     <script>
-      // Redireciona se já estiver autenticado
-      if (BAIA_AUTH.isAuthenticated()) {
-        window.location.replace('organizador.html');
-      }
-
       const form = document.getElementById('loginForm');
       const userInput = document.getElementById('loginUser');
       const passInput = document.getElementById('loginPass');
