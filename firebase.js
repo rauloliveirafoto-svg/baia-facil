@@ -57,11 +57,14 @@
       if (!snap.exists) throw new Error('Prova não encontrada');
       var data   = snap.data();
       var stalls = data.stalls || [];
-      // CORREÇÃO: aceitar apenas status 'available' — 'selected' pertence a outro competidor
-      // que ainda não finalizou; permitir sobrescrita causaria conflito de reserva
+      // Aceitar baias em status 'available', 'selected' ou 'blocked':
+      // - 'available': baia livre
+      // - 'selected' / 'blocked': o próprio competidor marcou durante a sessão de 5 min
+      // Rejeitar apenas 'reserved' e 'maintenance' (ocupadas por outro ou fora de uso)
       var conflito = numeros.filter(function(n) {
         var s = stalls.find(function(x) { return x.number === n; });
-        return !s || s.status !== 'available';
+        if (!s) return true;
+        return s.status === 'reserved' || s.status === 'maintenance';
       });
       if (conflito.length > 0) { resultado = { ok: false, conflito: conflito }; return; }
       var now = new Date().toISOString();
