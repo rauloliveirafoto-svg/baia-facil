@@ -36,7 +36,7 @@
               class="field__input"
               id="loginUser"
               type="text"
-              placeholder="organizador"
+              placeholder="Seu usuário"
               autocomplete="username"
               required
             />
@@ -79,11 +79,6 @@
 
     <script src="js/auth.js"></script>
     <script>
-      // Redireciona se já estiver autenticado
-      if (BAIA_AUTH.isAuthenticated()) {
-        window.location.replace('organizador.html');
-      }
-
       const form = document.getElementById('loginForm');
       const userInput = document.getElementById('loginUser');
       const passInput = document.getElementById('loginPass');
@@ -96,7 +91,7 @@
         togglePass.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
       });
 
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         loginError.textContent = '';
 
@@ -113,8 +108,8 @@
         btn.disabled = true;
         btnText.textContent = 'Verificando...';
 
-        setTimeout(function() {
-          var result = BAIA_AUTH.login(user, pass);
+        setTimeout(async function() {
+          var result = await BAIA_AUTH.login(user, pass);
           if (result) {
             btnText.textContent = '✓ Acesso autorizado';
             // Passa sessão via hash como fallback para file://

@@ -10,6 +10,7 @@ var _unsub   = null;
 
 // ── Helpers ───────────────────────────────────────────────────
 function fmt(n)           { return String(n).padStart(3,'0'); }
+function escHtml(s)       { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function maskTel(v)       { var d=v.replace(/\D/g,'').slice(0,11); if(d.length<=2)return d; if(d.length<=6)return'('+d.slice(0,2)+') '+d.slice(2); if(d.length<=10)return'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6); return'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7); }
 function telValido(v)     { return v.replace(/\D/g,'').length>=8; }
 function protocolo()      { var n=new Date(); return 'BF-'+String(n.getFullYear()).slice(-2)+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'-'+String(Math.floor(Math.random()*9000)+1000); }
@@ -219,6 +220,8 @@ document.addEventListener('DOMContentLoaded', function() {
       res = await window.FB.reservarAtomico(_evId, numeros, state.holderName, state.contactPhone, state.requestedStalls);
     } catch(e) {
       console.error('[finalizar]', e);
+      // Fallback para versão de demonstração:
+      // se a confirmação remota falhar, mantém fluxo local para não interromper apresentação.
       updateState(function(next) {
         numeros.forEach(function(n) {
           var s = next.stalls.find(function(x){return x.number===n;});
@@ -228,14 +231,16 @@ document.addEventListener('DOMContentLoaded', function() {
           s.reservedAt=now.toISOString();
         });
       });
-      res = { ok:true, data:getState() };
+      res = { ok:true, data:getState(), source:'local-fallback' };
     }
 
     if (!res.ok) {
-      var conf = res.conflito.map(fmt).join(', ');
-      if (feedbackEl) feedbackEl.textContent = 'Baia(s) '+conf+' já reservada(s). Selecione outras.';
-      state.selectedStalls = state.selectedStalls.filter(function(n){return res.conflito.indexOf(n)<0;});
-      state.suggestedSequence = state.suggestedSequence.filter(function(n){return res.conflito.indexOf(n)<0;});
+      var conf = (res.conflito || []).map(fmt).join(', ');
+      if (feedbackEl) feedbackEl.textContent = conf
+        ? ('Baia(s) '+conf+' já reservada(s). Selecione outras.')
+        : 'Não foi possível confirmar a reserva agora. Verifique sua conexão e tente novamente.';
+      state.selectedStalls = state.selectedStalls.filter(function(n){return (res.conflito || []).indexOf(n)<0;});
+      state.suggestedSequence = state.suggestedSequence.filter(function(n){return (res.conflito || []).indexOf(n)<0;});
       window.BAIA_STATE.selectedStalls = state.selectedStalls;
       if (state.selectedStalls.length===0) { state.mode=null; finishBtn.disabled=true; seqModal.hidden=true; stopTimer(); }
       else { finishBtn.disabled=false; }
@@ -267,8 +272,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!state.receipt) return;
     if (receiptProtocol) receiptProtocol.textContent = state.receipt.protocolo;
     if (receiptContent) receiptContent.innerHTML =
-      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Evento:</strong> '+state.receipt.evento+'</p>'+
-      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Titular:</strong> '+state.receipt.titular+'</p>'+
+      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Evento:</strong> '+escHtml(state.receipt.evento)+'</p>'+
+      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Titular:</strong> '+escHtml(state.receipt.titular)+'</p>'+
       '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Baia(s):</strong> '+state.receipt.baias.map(fmt).join(', ')+'</p>'+
       '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Data e hora:</strong> '+state.receipt.timestamp.toLocaleString('pt-BR')+'</p>'+
       '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Status:</strong> <span class="receipt-status">'+state.receipt.status+'</span></p>';
@@ -291,8 +296,8 @@ document.addEventListener('DOMContentLoaded', function() {
       '<div class="hdr">Baia Fácil — Reservas Equestres</div>'+
       '<div class="proto"><div class="proto-label">Protocolo</div><div class="proto-code">'+r.protocolo+'</div></div>'+
       '<div class="body">'+
-      '<div class="row"><strong>Evento</strong><span>'+r.evento+'</span></div>'+
-      '<div class="row"><strong>Titular</strong><span>'+r.titular+'</span></div>'+
+      '<div class="row"><strong>Evento</strong><span>'+escHtml(r.evento)+'</span></div>'+
+      '<div class="row"><strong>Titular</strong><span>'+escHtml(r.titular)+'</span></div>'+
       '<div class="row"><strong>Baia(s)</strong><span>'+r.baias.map(fmt).join(', ')+'</span></div>'+
       '<div class="row"><strong>Data/Hora</strong><span>'+r.timestamp.toLocaleString('pt-BR')+'</span></div>'+
       '<div class="row"><strong>Status</strong><span class="status">'+r.status+'</span></div>'+

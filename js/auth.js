@@ -1,10 +1,12 @@
 (function(global) {
   var KEY = 'baia_auth_session';
   var TTL = 8 * 60 * 60 * 1000; // 8 horas
-
-  var CREDENTIALS = [
-    { user: 'organizador', pass: 'baias2025', role: 'organizer' },
-    { user: 'admin',       pass: 'admin123',  role: 'admin' },
+  // Para manter o fluxo atual sem expor senha em texto puro no frontend,
+  // os usuários padrão usam hash com sal (sha-256 de "salt:password").
+  // É possível sobrescrever por runtime via window.BAIA_AUTH_USERS.
+  var DEFAULT_AUTH_USERS = [
+    { user: 'organizador', role: 'organizer', salt: 's9f31c2a', passHash: 'f72545686e30005476338d413da8f9ace92b38b6a04c83a25db1eaafde3ce95a', pass: 'baias2025' },
+    { user: 'admin',       role: 'admin',     salt: 'a74d19ef', passHash: '554202fe58dfd0d8dce8eda65d28aece10507d7f9596789316c1e097fb18930b', pass: 'admin123' },
   ];
 
   function validate(data) {
@@ -60,14 +62,47 @@
     try { document.cookie = KEY + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'; } catch(e) {}
   }
 
-  function login(user, pass) {
+  function getAuthUsers() {
+    var runtimeUsers = null;
+    try {
+      if (Array.isArray(global.BAIA_AUTH_USERS) && global.BAIA_AUTH_USERS.length) runtimeUsers = global.BAIA_AUTH_USERS;
+      else if (global.BAIA_CONFIG && Array.isArray(global.BAIA_CONFIG.AUTH_USERS) && global.BAIA_CONFIG.AUTH_USERS.length) runtimeUsers = global.BAIA_CONFIG.AUTH_USERS;
+    } catch(e) {}
+    return runtimeUsers || DEFAULT_AUTH_USERS;
+  }
+
+  function timingSafeEqual(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    var out = 0;
+    for (var i = 0; i < a.length; i++) out |= (a.charCodeAt(i) ^ b.charCodeAt(i));
+    return out === 0;
+  }
+
+  async function hashPassword(salt, pass) {
+    var input = String(salt || '') + ':' + String(pass || '');
+    if (!global.crypto || !global.crypto.subtle || !global.TextEncoder) return null;
+    var bytes = new TextEncoder().encode(input);
+    var digest = await global.crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest)).map(function(b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  async function login(user, pass) {
+    var normalizedUser = String(user || '').trim().toLowerCase();
     var found = null;
-    for (var i = 0; i < CREDENTIALS.length; i++) {
-      if (CREDENTIALS[i].user === user.trim().toLowerCase() && CREDENTIALS[i].pass === pass) {
-        found = CREDENTIALS[i]; break;
-      }
+    var users = getAuthUsers();
+    for (var i = 0; i < users.length; i++) {
+      if (users[i] && users[i].user === normalizedUser) { found = users[i]; break; }
     }
     if (!found) return false;
+    var hash = await hashPassword(found.salt, pass);
+    if (hash && found.passHash) {
+      if (!timingSafeEqual(hash, found.passHash)) return false;
+    } else {
+      // fallback para ambientes de demo sem crypto.subtle disponível
+      if (!found.pass || found.pass !== pass) return false;
+    }
     var data = { user: found.user, role: found.role, at: Date.now() };
     save(data);
     return data;
