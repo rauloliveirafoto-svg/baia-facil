@@ -186,13 +186,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     state.holderName = nome; state.requestedStalls = qtd; state.contactPhone = tel;
     window.BAIA_STATE.competitorCredits = qtd;
-    if (nomeEl)    nomeEl.textContent    = nome;
-    if (creditsEl) creditsEl.textContent = String(qtd);
-    if (feedbackEl) feedbackEl.textContent = 'Selecione as baias no mapa.';
 
-    mapSection.hidden    = false;
+    // Esconder o intake para sinalizar ao index.html que a validação passou.
+    // O mapa de baias (mapSection) é aberto apenas após o competidor
+    // selecionar um bloco no mapa aéreo — via window._filtrarBloco().
     intakeSection.hidden = true;
-    refreshMap();
   });
 
   finishBtn.addEventListener('click', finalizar);
