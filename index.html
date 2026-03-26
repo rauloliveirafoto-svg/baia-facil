@@ -78,7 +78,7 @@
     .aerial-title { font-family:'Playfair Display',Georgia,serif; font-size:1.1rem; color:var(--cream); text-align:center; margin:0; }
     .aerial-subtitle { font-size:0.84rem; color:var(--muted); text-align:center; margin:0; }
 
-    /* Foto aérea com botões sobrepostos */
+    /* Foto aérea com SVG overlay */
     .aerial-map-wrap {
       position:relative; width:100%; max-width:960px;
       border-radius:16px; overflow:hidden;
@@ -86,6 +86,43 @@
       box-shadow:0 8px 40px rgba(0,0,0,.5);
     }
     .aerial-map-wrap img { width:100%; height:auto; display:block; }
+
+    /* SVG cobre exatamente a imagem */
+    .aerial-svg {
+      position:absolute; top:0; left:0;
+      width:100%; height:100%;
+      pointer-events:none;
+    }
+
+    /* Polígonos dos pavilhões */
+    .pav-poly {
+      fill: rgba(77,170,106,0.15);
+      stroke: #4daa6a;
+      stroke-width: 2;
+      cursor: pointer;
+      pointer-events: all;
+      transition: fill .2s;
+    }
+    .pavilhao:hover .pav-poly { fill: rgba(77,170,106,0.4); }
+    .pavilhao.full  .pav-poly { fill: rgba(220,80,80,0.15);  stroke: #e07070; }
+    .pavilhao.quase .pav-poly { fill: rgba(232,160,48,0.15); stroke: #e8a030; }
+    .pavilhao.full:hover  .pav-poly { fill: rgba(220,80,80,0.35); }
+    .pavilhao.quase:hover .pav-poly { fill: rgba(232,160,48,0.35); }
+
+    /* Labels dentro dos pavilhões */
+    .pav-label {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      fill: #e8dfc8;
+      pointer-events: none;
+      text-shadow: 0 1px 3px rgba(0,0,0,.8);
+      paint-order: stroke fill;
+      stroke: rgba(0,0,0,0.6);
+      stroke-width: 3px;
+      stroke-linejoin: round;
+    }
+    .pavilhao { cursor: pointer; pointer-events: all; }
 
     /* Dots de ocupação sobre cada pavilhão */
     .block-dot {
@@ -262,31 +299,39 @@
       <p class="aerial-subtitle">Clique no bloco onde deseja reservar sua baia</p>
 
       <div class="aerial-map-wrap">
-        <img src="img/PISTA.png" alt="Mapa aéreo do haras" id="aerialMapImg" usemap="#blocos-map" />
+        <img src="img/PISTA.png" alt="Mapa aéreo do haras" id="aerialMapImg" />
 
-        <!-- Image map — coordenadas baseadas na imagem 1456x816px -->
-        <!-- Os polígonos cobrem cada pavilhão branco exatamente -->
-        <map name="blocos-map">
-          <area data-block="1" shape="poly" coords="378,103,456,118,432,338,354,323" alt="Bloco 1" href="#" />
-          <area data-block="2" shape="poly" coords="300,120,378,135,354,355,276,340" alt="Bloco 2" href="#" />
-          <area data-block="3" shape="poly" coords="222,138,300,153,276,373,198,358" alt="Bloco 3" href="#" />
-          <area data-block="4" shape="poly" coords="144,156,222,171,198,391,120,376" alt="Bloco 4" href="#" />
-          <area data-block="5" shape="poly" coords="80,175,144,188,120,355,56,342" alt="Bloco 5" href="#" />
-        </map>
+        <!-- SVG overlay com viewBox = dimensões reais da imagem (1390x926).
+             Escala automaticamente em qualquer tamanho de tela. -->
+        <svg class="aerial-svg" viewBox="0 0 1390 926" xmlns="http://www.w3.org/2000/svg">
+          <g class="pavilhao" id="pav1" data-block="1">
+            <polygon points="378,103 456,118 432,338 354,323" class="pav-poly" id="poly1"/>
+            <text x="405" y="308" text-anchor="middle" class="pav-label">Bloco 1</text>
+          </g>
+          <g class="pavilhao" id="pav2" data-block="2">
+            <polygon points="300,120 378,135 354,355 276,340" class="pav-poly" id="poly2"/>
+            <text x="327" y="325" text-anchor="middle" class="pav-label">Bloco 2</text>
+          </g>
+          <g class="pavilhao" id="pav3" data-block="3">
+            <polygon points="222,138 300,153 276,373 198,358" class="pav-poly" id="poly3"/>
+            <text x="249" y="344" text-anchor="middle" class="pav-label">Bloco 3</text>
+          </g>
+          <g class="pavilhao" id="pav4" data-block="4">
+            <polygon points="144,156 222,171 198,391 120,376" class="pav-poly" id="poly4"/>
+            <text x="171" y="362" text-anchor="middle" class="pav-label">Bloco 4</text>
+          </g>
+          <g class="pavilhao" id="pav5" data-block="5">
+            <polygon points="80,175 144,188 120,355 56,342" class="pav-poly" id="poly5"/>
+            <text x="100" y="325" text-anchor="middle" class="pav-label">Bloco 5</text>
+          </g>
+        </svg>
 
-        <!-- Tooltip que aparece ao passar o mouse sobre cada bloco -->
+        <!-- Tooltip -->
         <div class="block-tooltip" id="blockTooltip" hidden>
           <span class="block-tooltip__name" id="tooltipName"></span>
           <div class="block-btn__bar-wrap" style="width:80px;"><div class="block-btn__bar" id="tooltipBar"></div></div>
           <span class="block-tooltip__avail" id="tooltipAvail"></span>
         </div>
-
-        <!-- Indicadores fixos pequenos sobre cada pavilhão (só dot de cor) -->
-        <div class="block-dot" id="dot1" data-block="1" style="top:36.5%;left:29.1%;"></div>
-        <div class="block-dot" id="dot2" data-block="2" style="top:38.3%;left:23.5%;"></div>
-        <div class="block-dot" id="dot3" data-block="3" style="top:40.3%;left:17.9%;"></div>
-        <div class="block-dot" id="dot4" data-block="4" style="top:42.2%;left:12.3%;"></div>
-        <div class="block-dot" id="dot5" data-block="5" style="top:38.3%;left:7.2%;"></div>
       </div>
 
       <!-- Legenda de ocupação -->
@@ -475,34 +520,21 @@
       showScreen('aerial');
     }
 
-    /* ── Clique num bloco — via image map areas e dots ─── */
-    function setupBlocoClick(el, bloco) {
-      if (!el) return;
-      el.addEventListener('click', function(e) {
-        e.preventDefault();
-        var dot = document.getElementById('dot'+bloco.id);
-        if (dot && dot.classList.contains('full')) { mostrarAlertaLotado(bloco); return; }
-        abrirBloco(bloco);
-      });
-    }
-
-    BLOCOS.forEach(function(bloco) {
-      // Conectar area do image map
-      var area = document.querySelector('area[data-block="'+bloco.id+'"]');
-      setupBlocoClick(area, bloco);
-      // Conectar dot
-      var dot = document.getElementById('dot'+bloco.id);
-      setupBlocoClick(dot, bloco);
-    });
-
-    /* ── Tooltip ao hover nos dots ──────────────────────── */
+    /* ── Clique e hover nos pavilhões SVG ──────────────── */
     var tooltip = document.getElementById('blockTooltip');
     var mapWrap = document.querySelector('.aerial-map-wrap');
 
     BLOCOS.forEach(function(bloco) {
-      var dot = document.getElementById('dot'+bloco.id);
-      if (!dot) return;
-      dot.addEventListener('mouseenter', function(e) {
+      var pav = document.getElementById('pav'+bloco.id);
+      if (!pav) return;
+
+      pav.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (pav.classList.contains('full')) { mostrarAlertaLotado(bloco); return; }
+        abrirBloco(bloco);
+      });
+
+      pav.addEventListener('mouseenter', function(e) {
         var stalls = (window.BAIA_STATE && window.BAIA_STATE.stalls) || [];
         var disp = stalls.length > 0
           ? stalls.filter(function(s){ return s.block===bloco.id && s.status==='available'; }).length
@@ -512,37 +544,19 @@
         var bar = document.getElementById('tooltipBar');
         bar.style.width = Math.round(disp/bloco.stalls*100)+'%';
         bar.style.background = disp < 1 ? '#e07070' : disp/bloco.stalls < 0.35 ? '#e8a030' : '#4daa6a';
-        // Posicionar tooltip perto do dot
-        var dotRect = dot.getBoundingClientRect();
+        // Posicionar tooltip no canto superior direito do pavilhão
+        var pavRect = pav.getBoundingClientRect();
         var wrapRect = mapWrap.getBoundingClientRect();
-        var tx = dotRect.left - wrapRect.left + 16;
-        var ty = dotRect.top  - wrapRect.top  - 10;
-        // Evitar sair pela direita
-        if (tx + 110 > wrapRect.width) tx = dotRect.left - wrapRect.left - 100;
+        var tx = pavRect.right - wrapRect.left + 8;
+        var ty = pavRect.top   - wrapRect.top;
+        if (tx + 110 > wrapRect.width) tx = pavRect.left - wrapRect.left - 110;
         tooltip.style.left = tx + 'px';
         tooltip.style.top  = ty + 'px';
         tooltip.hidden = false;
       });
-      dot.addEventListener('mouseleave', function() { tooltip.hidden = true; });
-    });
 
-    // Tornar areas do image map responsivas (image map usa coords absolutas, precisa escalar)
-    function rescaleMap() {
-      var img = document.getElementById('aerialMapImg');
-      if (!img || !img.naturalWidth) return;
-      var scale = img.offsetWidth / img.naturalWidth;
-      document.querySelectorAll('area[data-block]').forEach(function(area) {
-        var orig = area.getAttribute('data-orig-coords') || area.getAttribute('coords');
-        area.setAttribute('data-orig-coords', orig);
-        var scaled = orig.split(',').map(function(v, i) {
-          return Math.round(Number(v) * scale);
-        }).join(',');
-        area.setAttribute('coords', scaled);
-      });
-    }
-    document.getElementById('aerialMapImg').addEventListener('load', rescaleMap);
-    window.addEventListener('resize', rescaleMap);
-    setTimeout(rescaleMap, 300);
+      pav.addEventListener('mouseleave', function() { tooltip.hidden = true; });
+    });
 
     function abrirBloco(bloco) {
       window._blocoAtivo = bloco;
@@ -596,15 +610,15 @@
       document.getElementById('aerialAlert').hidden = true;
     });
 
-    /* ── Atualizar dots de ocupação dos blocos ──────────── */
+    /* ── Atualizar cores dos pavilhões SVG por ocupação ─── */
     function atualizarBlocos() {
       var stalls = (window.BAIA_STATE && window.BAIA_STATE.stalls) || [];
       var state  = window.BAIA_STATE && window.BAIA_STATE.competitor;
       var qtd    = state ? (state.requestedStalls || 1) : 1;
 
       BLOCOS.forEach(function(bloco) {
-        var dot = document.getElementById('dot'+bloco.id);
-        if (!dot) return;
+        var pav = document.getElementById('pav'+bloco.id);
+        if (!pav) return;
 
         var disp = stalls.length > 0
           ? stalls.filter(function(s){ return s.block===bloco.id && s.status==='available'; }).length
@@ -613,17 +627,9 @@
         var pct    = disp / bloco.stalls;
         var isFull = disp < qtd;
 
-        dot.classList.remove('full','quase');
-        if (isFull) {
-          dot.classList.add('full');
-          dot.style.background = '#e07070';
-        } else if (pct < 0.35) {
-          dot.classList.add('quase');
-          dot.style.background = '#e8a030';
-        } else {
-          dot.style.background = '#4daa6a';
-        }
-        dot.title = bloco.label + ' — ' + disp + ' vaga' + (disp!==1?'s':'');
+        pav.classList.remove('full','quase');
+        if (isFull)       pav.classList.add('full');
+        else if (pct < 0.35) pav.classList.add('quase');
       });
     }
     window._atualizarBlocos = atualizarBlocos;
