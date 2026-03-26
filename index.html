@@ -87,36 +87,39 @@
     }
     .aerial-map-wrap img { width:100%; height:auto; display:block; }
 
-    /* Botão de bloco sobreposto — compacto */
-    .block-btn {
-      position:absolute;
-      display:flex; flex-direction:column; align-items:center; gap:3px;
-      background:rgba(6,15,8,0.82);
-      border:1.5px solid var(--gold);
-      border-radius:8px;
-      padding:5px 8px;
-      cursor:pointer;
-      font-family:'DM Sans',sans-serif;
-      transition:background .18s, transform .15s, box-shadow .18s;
-      backdrop-filter:blur(4px);
-      min-width:58px; text-align:center;
+    /* Dots de ocupação sobre cada pavilhão */
+    .block-dot {
+      position: absolute;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #4daa6a;
+      border: 2px solid rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 0 6px rgba(0,0,0,.5);
     }
-    .block-btn:hover:not(.full) {
-      background:rgba(201,168,76,0.18);
-      transform:scale(1.05);
-      box-shadow:0 3px 14px rgba(201,168,76,.35);
+    .block-dot:hover { transform: scale(1.4); box-shadow: 0 0 10px rgba(201,168,76,.6); }
+    .block-dot.full  { background: #e07070; }
+    .block-dot.quase { background: #e8a030; }
+
+    /* Tooltip que aparece ao hover */
+    .block-tooltip {
+      position: absolute;
+      background: rgba(6,15,8,0.92);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 6px 10px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      display: flex; flex-direction: column; gap: 3px;
+      min-width: 90px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.5);
+      z-index: 10;
     }
-    .block-btn.full  { border-color:var(--danger); cursor:not-allowed; }
-    .block-btn.quase { border-color:var(--warning); }
-
-    .block-btn__name { font-size:0.65rem; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:0.05em; line-height:1; }
-    .block-btn.full  .block-btn__name { color:#e07070; }
-    .block-btn.quase .block-btn__name { color:var(--warning); }
-
-    .block-btn__bar-wrap { width:100%; height:4px; background:rgba(255,255,255,.15); border-radius:999px; overflow:hidden; }
-    .block-btn__bar { height:100%; border-radius:999px; transition:width .5s ease; background:#4daa6a; }
-
-    .block-btn__avail { font-size:0.58rem; color:rgba(255,255,255,.5); line-height:1; }
+    .block-tooltip__name  { font-size: 0.7rem; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .05em; }
+    .block-tooltip__avail { font-size: 0.62rem; color: rgba(255,255,255,.55); }
+    .block-btn__bar-wrap  { width: 100%; height: 4px; background: rgba(255,255,255,.15); border-radius: 999px; overflow: hidden; }
+    .block-btn__bar       { height: 100%; border-radius: 999px; transition: width .5s ease; background: #4daa6a; }
 
     /* Modal alerta bloco lotado */
     .aerial-alert {
@@ -259,48 +262,31 @@
       <p class="aerial-subtitle">Clique no bloco onde deseja reservar sua baia</p>
 
       <div class="aerial-map-wrap">
-        <!-- Foto aérea — salve a imagem como img/PISTA.png no repositório -->
-        <img src="img/PISTA.png" alt="Mapa aéreo do haras" />
+        <img src="img/PISTA.png" alt="Mapa aéreo do haras" id="aerialMapImg" usemap="#blocos-map" />
 
-        <!--
-          Posições dos botões em % (top/left relativo à imagem).
-          Ajuste conforme necessário após ver no browser.
-          Bloco 1 = topo da fileira, Bloco 5 = base.
-        -->
-        <button class="block-btn" id="blockBtn1" data-block="1" type="button"
-                style="top:15%;left:30%;">
-          <span class="block-btn__name">Bloco 1</span>
-          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar1" style="width:100%"></div></div>
-          <span class="block-btn__avail" id="avail1">30 vagas</span>
-        </button>
+        <!-- Image map — coordenadas baseadas na imagem 1456x816px -->
+        <!-- Os polígonos cobrem cada pavilhão branco exatamente -->
+        <map name="blocos-map">
+          <area data-block="1" shape="poly" coords="355,155,430,140,445,290,370,305" alt="Bloco 1" href="#" />
+          <area data-block="2" shape="poly" coords="320,175,355,165,370,310,335,320" alt="Bloco 2" href="#" />
+          <area data-block="3" shape="poly" coords="285,195,320,185,335,325,300,335" alt="Bloco 3" href="#" />
+          <area data-block="4" shape="poly" coords="250,215,285,205,300,340,265,350" alt="Bloco 4" href="#" />
+          <area data-block="5" shape="poly" coords="215,235,250,225,265,330,230,340" alt="Bloco 5" href="#" />
+        </map>
 
-        <button class="block-btn" id="blockBtn2" data-block="2" type="button"
-                style="top:22%;left:25%;">
-          <span class="block-btn__name">Bloco 2</span>
-          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar2" style="width:100%"></div></div>
-          <span class="block-btn__avail" id="avail2">30 vagas</span>
-        </button>
+        <!-- Tooltip que aparece ao passar o mouse sobre cada bloco -->
+        <div class="block-tooltip" id="blockTooltip" hidden>
+          <span class="block-tooltip__name" id="tooltipName"></span>
+          <div class="block-btn__bar-wrap" style="width:80px;"><div class="block-btn__bar" id="tooltipBar"></div></div>
+          <span class="block-tooltip__avail" id="tooltipAvail"></span>
+        </div>
 
-        <button class="block-btn" id="blockBtn3" data-block="3" type="button"
-                style="top:30%;left:19%;">
-          <span class="block-btn__name">Bloco 3</span>
-          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar3" style="width:100%"></div></div>
-          <span class="block-btn__avail" id="avail3">30 vagas</span>
-        </button>
-
-        <button class="block-btn" id="blockBtn4" data-block="4" type="button"
-                style="top:38%;left:13%;">
-          <span class="block-btn__name">Bloco 4</span>
-          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar4" style="width:100%"></div></div>
-          <span class="block-btn__avail" id="avail4">30 vagas</span>
-        </button>
-
-        <button class="block-btn" id="blockBtn5" data-block="5" type="button"
-                style="top:46%;left:7%;">
-          <span class="block-btn__name">Bloco 5</span>
-          <div class="block-btn__bar-wrap"><div class="block-btn__bar" id="bar5" style="width:100%"></div></div>
-          <span class="block-btn__avail" id="avail5">20 vagas</span>
-        </button>
+        <!-- Indicadores fixos pequenos sobre cada pavilhão (só dot de cor) -->
+        <div class="block-dot" id="dot1" data-block="1" style="top:23%;left:26%;"></div>
+        <div class="block-dot" id="dot2" data-block="2" style="top:27%;left:23%;"></div>
+        <div class="block-dot" id="dot3" data-block="3" style="top:31%;left:20%;"></div>
+        <div class="block-dot" id="dot4" data-block="4" style="top:35%;left:17%;"></div>
+        <div class="block-dot" id="dot5" data-block="5" style="top:39%;left:14%;"></div>
       </div>
 
       <!-- Legenda de ocupação -->
@@ -489,15 +475,74 @@
       showScreen('aerial');
     }
 
-    /* ── Clique num bloco ──────────────────────────────── */
-    BLOCOS.forEach(function(bloco) {
-      var btn = document.getElementById('blockBtn'+bloco.id);
-      if (!btn) return;
-      btn.addEventListener('click', function() {
-        if (btn.classList.contains('full')) { mostrarAlertaLotado(bloco); return; }
+    /* ── Clique num bloco — via image map areas e dots ─── */
+    function setupBlocoClick(el, bloco) {
+      if (!el) return;
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        var dot = document.getElementById('dot'+bloco.id);
+        if (dot && dot.classList.contains('full')) { mostrarAlertaLotado(bloco); return; }
         abrirBloco(bloco);
       });
+    }
+
+    BLOCOS.forEach(function(bloco) {
+      // Conectar area do image map
+      var area = document.querySelector('area[data-block="'+bloco.id+'"]');
+      setupBlocoClick(area, bloco);
+      // Conectar dot
+      var dot = document.getElementById('dot'+bloco.id);
+      setupBlocoClick(dot, bloco);
     });
+
+    /* ── Tooltip ao hover nos dots ──────────────────────── */
+    var tooltip = document.getElementById('blockTooltip');
+    var mapWrap = document.querySelector('.aerial-map-wrap');
+
+    BLOCOS.forEach(function(bloco) {
+      var dot = document.getElementById('dot'+bloco.id);
+      if (!dot) return;
+      dot.addEventListener('mouseenter', function(e) {
+        var stalls = (window.BAIA_STATE && window.BAIA_STATE.stalls) || [];
+        var disp = stalls.length > 0
+          ? stalls.filter(function(s){ return s.block===bloco.id && s.status==='available'; }).length
+          : bloco.stalls;
+        document.getElementById('tooltipName').textContent  = bloco.label;
+        document.getElementById('tooltipAvail').textContent = disp + ' vaga' + (disp!==1?'s':'');
+        var bar = document.getElementById('tooltipBar');
+        bar.style.width = Math.round(disp/bloco.stalls*100)+'%';
+        bar.style.background = disp < 1 ? '#e07070' : disp/bloco.stalls < 0.35 ? '#e8a030' : '#4daa6a';
+        // Posicionar tooltip perto do dot
+        var dotRect = dot.getBoundingClientRect();
+        var wrapRect = mapWrap.getBoundingClientRect();
+        var tx = dotRect.left - wrapRect.left + 16;
+        var ty = dotRect.top  - wrapRect.top  - 10;
+        // Evitar sair pela direita
+        if (tx + 110 > wrapRect.width) tx = dotRect.left - wrapRect.left - 100;
+        tooltip.style.left = tx + 'px';
+        tooltip.style.top  = ty + 'px';
+        tooltip.hidden = false;
+      });
+      dot.addEventListener('mouseleave', function() { tooltip.hidden = true; });
+    });
+
+    // Tornar areas do image map responsivas (image map usa coords absolutas, precisa escalar)
+    function rescaleMap() {
+      var img = document.getElementById('aerialMapImg');
+      if (!img || !img.naturalWidth) return;
+      var scale = img.offsetWidth / img.naturalWidth;
+      document.querySelectorAll('area[data-block]').forEach(function(area) {
+        var orig = area.getAttribute('data-orig-coords') || area.getAttribute('coords');
+        area.setAttribute('data-orig-coords', orig);
+        var scaled = orig.split(',').map(function(v, i) {
+          return Math.round(Number(v) * scale);
+        }).join(',');
+        area.setAttribute('coords', scaled);
+      });
+    }
+    document.getElementById('aerialMapImg').addEventListener('load', rescaleMap);
+    window.addEventListener('resize', rescaleMap);
+    setTimeout(rescaleMap, 300);
 
     function abrirBloco(bloco) {
       window._blocoAtivo = bloco;
@@ -551,37 +596,34 @@
       document.getElementById('aerialAlert').hidden = true;
     });
 
-    /* ── Atualizar indicadores de ocupação dos blocos ───── */
+    /* ── Atualizar dots de ocupação dos blocos ──────────── */
     function atualizarBlocos() {
       var stalls = (window.BAIA_STATE && window.BAIA_STATE.stalls) || [];
       var state  = window.BAIA_STATE && window.BAIA_STATE.competitor;
       var qtd    = state ? (state.requestedStalls || 1) : 1;
 
       BLOCOS.forEach(function(bloco) {
-        var btn   = document.getElementById('blockBtn'+bloco.id);
-        var bar   = document.getElementById('bar'+bloco.id);
-        var avail = document.getElementById('avail'+bloco.id);
-        if (!btn) return;
+        var dot = document.getElementById('dot'+bloco.id);
+        if (!dot) return;
 
         var disp = stalls.length > 0
           ? stalls.filter(function(s){ return s.block===bloco.id && s.status==='available'; }).length
-          : bloco.stalls; // fallback antes de carregar dados
+          : bloco.stalls;
 
         var pct    = disp / bloco.stalls;
         var isFull = disp < qtd;
 
-        btn.classList.remove('full','quase');
+        dot.classList.remove('full','quase');
         if (isFull) {
-          btn.classList.add('full');
-          if (bar) bar.style.background = '#e07070';
+          dot.classList.add('full');
+          dot.style.background = '#e07070';
         } else if (pct < 0.35) {
-          btn.classList.add('quase');
-          if (bar) bar.style.background = '#e8a030';
+          dot.classList.add('quase');
+          dot.style.background = '#e8a030';
         } else {
-          if (bar) bar.style.background = '#4daa6a';
+          dot.style.background = '#4daa6a';
         }
-        if (bar)   bar.style.width = Math.round(pct*100)+'%';
-        if (avail) avail.textContent = disp+' vaga'+(disp!==1?'s':'');
+        dot.title = bloco.label + ' — ' + disp + ' vaga' + (disp!==1?'s':'');
       });
     }
     window._atualizarBlocos = atualizarBlocos;
