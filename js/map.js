@@ -81,9 +81,9 @@
   }
 
   // Mapa de um único bloco em 2 COLUNAS VERTICAIS — competidor
-  function buildStallMapBloco({ mapElement, template, bloco, onStallClick }) {
+  function buildStallMapBloco({ mapElement, template, bloco, onStallClick, append }) {
     if (!mapElement || !template) { console.warn('[buildStallMapBloco] ausente'); return; }
-    mapElement.innerHTML = '';
+    if (!append) mapElement.innerHTML = '';
     const blockEl = document.createElement('section');
     blockEl.className = 'block';
     const title = document.createElement('h2');
@@ -94,9 +94,37 @@
     mapElement.appendChild(blockEl);
   }
 
+  // Constrói todos os blocos em layout VERTICAL (2 colunas) — competidor tela completa
+  function buildStallMapVertical({ mapElement, template, onStallClick }) {
+    if (!mapElement || !template) { console.warn('[buildStallMapVertical] ausente'); return; }
+    const layout = getBlocksLayout();
+    mapElement.innerHTML = '';
+
+    layout.forEach((block, blockIndex) => {
+      const blockEl = document.createElement('section');
+      blockEl.className = 'block';
+
+      const title = document.createElement('h2');
+      title.className = 'block__title';
+      title.textContent = block.label || ('Bloco ' + block.id);
+      blockEl.appendChild(title);
+
+      buildTwoCols(blockEl, template, block.start, block.stalls, onStallClick);
+      mapElement.appendChild(blockEl);
+
+      if (blockIndex < layout.length - 1) {
+        const corridor = document.createElement('div');
+        corridor.className = 'corridor';
+        corridor.textContent = 'Corredor de circulação';
+        mapElement.appendChild(corridor);
+      }
+    });
+  }
+
   global.BAIA_MAP = {
     getBlocksLayout,
     buildStallMap,
     buildStallMapBloco,
+    buildStallMapVertical,
   };
 })(window);
