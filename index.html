@@ -543,7 +543,10 @@
       if (creditsEl && state) creditsEl.textContent = String(state.requestedStalls || 0);
       if (timerEl) timerEl.textContent = '--:--';
 
-      if (typeof window._mostrarTodosBlocos === 'function') window._mostrarTodosBlocos();
+      // Pequeno delay para garantir que a tela está visível antes de construir o mapa
+      setTimeout(function() {
+        if (typeof window._mostrarTodosBlocos === 'function') window._mostrarTodosBlocos();
+      }, 50);
     }
 
     function atualizarBlocos() {} // mantido para compatibilidade
