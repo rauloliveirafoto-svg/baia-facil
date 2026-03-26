@@ -78,51 +78,29 @@
     .aerial-title { font-family:'Playfair Display',Georgia,serif; font-size:1.1rem; color:var(--cream); text-align:center; margin:0; }
     .aerial-subtitle { font-size:0.84rem; color:var(--muted); text-align:center; margin:0; }
 
-    /* Foto aérea com SVG overlay */
+    /* Mapa do evento */
     .aerial-map-wrap {
       position:relative; width:100%; max-width:960px;
       border-radius:16px; overflow:hidden;
       border:1px solid var(--border);
       box-shadow:0 8px 40px rgba(0,0,0,.5);
     }
-    .aerial-map-wrap img { width:100%; height:auto; display:block; }
-
-    /* SVG cobre exatamente a imagem */
-    .aerial-svg {
-      position:absolute; top:0; left:0;
-      width:100%; height:100%;
-      pointer-events:none;
+    .aerial-map-iframe {
+      width:100%; height:500px;
+      border:none; display:block;
     }
-
-    /* Polígonos dos pavilhões */
-    .pav-poly {
-      fill: rgba(77,170,106,0.15);
-      stroke: #4daa6a;
-      stroke-width: 2;
-      cursor: pointer;
-      pointer-events: all;
-      transition: fill .2s;
+    .aerial-map-header {
+      position:absolute; top:0; left:0; right:0;
+      padding:0.75rem 1.25rem;
+      background:linear-gradient(to bottom, rgba(6,15,8,0.82) 0%, transparent 100%);
+      z-index:2; pointer-events:none;
     }
-    .pavilhao:hover .pav-poly { fill: rgba(77,170,106,0.4); }
-    .pavilhao.full  .pav-poly { fill: rgba(220,80,80,0.15);  stroke: #e07070; }
-    .pavilhao.quase .pav-poly { fill: rgba(232,160,48,0.15); stroke: #e8a030; }
-    .pavilhao.full:hover  .pav-poly { fill: rgba(220,80,80,0.35); }
-    .pavilhao.quase:hover .pav-poly { fill: rgba(232,160,48,0.35); }
-
-    /* Labels dentro dos pavilhões */
-    .pav-label {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      fill: #e8dfc8;
-      pointer-events: none;
-      text-shadow: 0 1px 3px rgba(0,0,0,.8);
-      paint-order: stroke fill;
-      stroke: rgba(0,0,0,0.6);
-      stroke-width: 3px;
-      stroke-linejoin: round;
+    .aerial-map-title {
+      font-family:'Playfair Display',Georgia,serif;
+      font-size:1.2rem; color:var(--cream); font-weight:700; margin:0;
+      text-shadow:0 2px 8px rgba(0,0,0,.8);
     }
-    .pavilhao { cursor: pointer; pointer-events: all; }
+    @media(max-width:600px) { .aerial-map-iframe { height:340px; } }
 
     /* Dots de ocupação sobre cada pavilhão */
     .block-dot {
@@ -295,51 +273,22 @@
     </div>
 
     <div class="aerial-body">
-      <h2 class="aerial-title">Escolha o bloco</h2>
-      <p class="aerial-subtitle">Clique no bloco onde deseja reservar sua baia</p>
-
       <div class="aerial-map-wrap">
-        <img src="img/PISTA.png" alt="Mapa aéreo do haras" id="aerialMapImg" />
-
-        <!-- SVG overlay com viewBox = dimensões reais da imagem (1390x926).
-             Escala automaticamente em qualquer tamanho de tela. -->
-        <svg class="aerial-svg" viewBox="0 0 1390 926" xmlns="http://www.w3.org/2000/svg">
-          <g class="pavilhao" id="pav1" data-block="1">
-            <polygon points="378,103 456,118 432,338 354,323" class="pav-poly" id="poly1"/>
-            <text x="405" y="308" text-anchor="middle" class="pav-label">Bloco 1</text>
-          </g>
-          <g class="pavilhao" id="pav2" data-block="2">
-            <polygon points="300,120 378,135 354,355 276,340" class="pav-poly" id="poly2"/>
-            <text x="327" y="325" text-anchor="middle" class="pav-label">Bloco 2</text>
-          </g>
-          <g class="pavilhao" id="pav3" data-block="3">
-            <polygon points="222,138 300,153 276,373 198,358" class="pav-poly" id="poly3"/>
-            <text x="249" y="344" text-anchor="middle" class="pav-label">Bloco 3</text>
-          </g>
-          <g class="pavilhao" id="pav4" data-block="4">
-            <polygon points="144,156 222,171 198,391 120,376" class="pav-poly" id="poly4"/>
-            <text x="171" y="362" text-anchor="middle" class="pav-label">Bloco 4</text>
-          </g>
-          <g class="pavilhao" id="pav5" data-block="5">
-            <polygon points="80,175 144,188 120,355 56,342" class="pav-poly" id="poly5"/>
-            <text x="100" y="325" text-anchor="middle" class="pav-label">Bloco 5</text>
-          </g>
-        </svg>
-
-        <!-- Tooltip -->
-        <div class="block-tooltip" id="blockTooltip" hidden>
-          <span class="block-tooltip__name" id="tooltipName"></span>
-          <div class="block-btn__bar-wrap" style="width:80px;"><div class="block-btn__bar" id="tooltipBar"></div></div>
-          <span class="block-tooltip__avail" id="tooltipAvail"></span>
+        <div class="aerial-map-header">
+          <h2 class="aerial-map-title">Mapa do evento</h2>
         </div>
+        <iframe
+          class="aerial-map-iframe"
+          src="https://maps.google.com/maps?q=-22.357261,-51.574683&t=k&z=19&output=embed"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title="Mapa do evento">
+        </iframe>
       </div>
-
-      <!-- Legenda de ocupação -->
-      <div class="legend" style="justify-content:center;">
-        <span><i class="dot" style="background:#4daa6a;border-color:#4daa6a;"></i>Disponível</span>
-        <span><i class="dot" style="background:#e8a030;border-color:#e8a030;"></i>Quase lotado</span>
-        <span><i class="dot" style="background:#e07070;border-color:#e07070;"></i>Sem vagas</span>
-      </div>
+      <button id="aerialAdvanceBtn" class="btn btn--primary" style="font-size:1rem;padding:0.85rem 2rem;" type="button">
+        Avançar para reservas →
+      </button>
     </div>
   </div>
 
@@ -520,42 +469,9 @@
       showScreen('aerial');
     }
 
-    /* ── Clique e hover nos pavilhões SVG ──────────────── */
-    var tooltip = document.getElementById('blockTooltip');
-    var mapWrap = document.querySelector('.aerial-map-wrap');
-
-    BLOCOS.forEach(function(bloco) {
-      var pav = document.getElementById('pav'+bloco.id);
-      if (!pav) return;
-
-      pav.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (pav.classList.contains('full')) { mostrarAlertaLotado(bloco); return; }
-        abrirBloco(bloco);
-      });
-
-      pav.addEventListener('mouseenter', function(e) {
-        var stalls = (window.BAIA_STATE && window.BAIA_STATE.stalls) || [];
-        var disp = stalls.length > 0
-          ? stalls.filter(function(s){ return s.block===bloco.id && s.status==='available'; }).length
-          : bloco.stalls;
-        document.getElementById('tooltipName').textContent  = bloco.label;
-        document.getElementById('tooltipAvail').textContent = disp + ' vaga' + (disp!==1?'s':'');
-        var bar = document.getElementById('tooltipBar');
-        bar.style.width = Math.round(disp/bloco.stalls*100)+'%';
-        bar.style.background = disp < 1 ? '#e07070' : disp/bloco.stalls < 0.35 ? '#e8a030' : '#4daa6a';
-        // Posicionar tooltip no canto superior direito do pavilhão
-        var pavRect = pav.getBoundingClientRect();
-        var wrapRect = mapWrap.getBoundingClientRect();
-        var tx = pavRect.right - wrapRect.left + 8;
-        var ty = pavRect.top   - wrapRect.top;
-        if (tx + 110 > wrapRect.width) tx = pavRect.left - wrapRect.left - 110;
-        tooltip.style.left = tx + 'px';
-        tooltip.style.top  = ty + 'px';
-        tooltip.hidden = false;
-      });
-
-      pav.addEventListener('mouseleave', function() { tooltip.hidden = true; });
+    /* ── Botão avançar para reservas ───────────────────── */
+    document.getElementById('aerialAdvanceBtn').addEventListener('click', function() {
+      abrirSelecaoBlocos();
     });
 
     function abrirBloco(bloco) {
@@ -610,28 +526,27 @@
       document.getElementById('aerialAlert').hidden = true;
     });
 
-    /* ── Atualizar cores dos pavilhões SVG por ocupação ─── */
-    function atualizarBlocos() {
-      var stalls = (window.BAIA_STATE && window.BAIA_STATE.stalls) || [];
-      var state  = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      var qtd    = state ? (state.requestedStalls || 1) : 1;
+    /* ── Avançar para seleção de blocos ────────────────── */
+    function abrirSelecaoBlocos() {
+      // Mostrar todos os blocos no mapa e deixar competidor escolher
+      showScreen('mapa');
+      document.getElementById('topbarIntake').hidden = true;
+      document.getElementById('topbarMap').hidden    = false;
 
-      BLOCOS.forEach(function(bloco) {
-        var pav = document.getElementById('pav'+bloco.id);
-        if (!pav) return;
+      var evEl      = document.getElementById('eventName');
+      var nameEl    = document.getElementById('competitorName');
+      var creditsEl = document.getElementById('stallCredits');
+      var timerEl   = document.getElementById('timer');
+      var state     = window.BAIA_STATE && window.BAIA_STATE.competitor;
+      if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name;
+      if (nameEl    && state) nameEl.textContent    = state.holderName || '';
+      if (creditsEl && state) creditsEl.textContent = String(state.requestedStalls || 0);
+      if (timerEl) timerEl.textContent = '--:--';
 
-        var disp = stalls.length > 0
-          ? stalls.filter(function(s){ return s.block===bloco.id && s.status==='available'; }).length
-          : bloco.stalls;
-
-        var pct    = disp / bloco.stalls;
-        var isFull = disp < qtd;
-
-        pav.classList.remove('full','quase');
-        if (isFull)       pav.classList.add('full');
-        else if (pct < 0.35) pav.classList.add('quase');
-      });
+      if (typeof window._mostrarTodosBlocos === 'function') window._mostrarTodosBlocos();
     }
+
+    function atualizarBlocos() {} // mantido para compatibilidade
     window._atualizarBlocos = atualizarBlocos;
 
     /* ── Voltar do mapa aéreo → dados ──────────────────── */
