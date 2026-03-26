@@ -113,6 +113,49 @@ document.addEventListener('DOMContentLoaded', function() {
   var lastRender   = new Map();
   var _blocoFiltro = null; // bloco ativo selecionado no mapa aéreo
 
+  // ── Mostrar todos os blocos (chamado ao avançar do mapa aéreo) ──
+  window._mostrarTodosBlocos = function() {
+    _blocoFiltro = null;
+    lastRender = new Map();
+    mapEl.innerHTML = '';
+    btnPorNumero.clear();
+
+    // Construir mapa completo com todos os blocos em layout vertical
+    var blocos = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
+      {id:1,label:'Bloco 1',stalls:30,start:1},
+      {id:2,label:'Bloco 2',stalls:30,start:31},
+      {id:3,label:'Bloco 3',stalls:30,start:61},
+      {id:4,label:'Bloco 4',stalls:30,start:91},
+      {id:5,label:'Bloco 5',stalls:20,start:121},
+    ];
+
+    blocos.forEach(function(bloco, idx) {
+      window.BAIA_MAP.buildStallMapBloco({
+        mapElement: mapEl,
+        template:   tplEl,
+        bloco:      bloco,
+        onStallClick: function(n) { ctrlSelecao.handleStallClick(n); },
+        append: true,
+      });
+
+      if (idx < blocos.length - 1) {
+        var corridor = document.createElement('div');
+        corridor.className = 'corridor';
+        corridor.textContent = 'Corredor de circulação';
+        mapEl.appendChild(corridor);
+      }
+    });
+
+    mapEl.querySelectorAll('.stall').forEach(function(b) {
+      btnPorNumero.set(Number(b.dataset.stallNumber), b);
+    });
+
+    ctrlSelecao.setTotalStalls(140);
+    // Garantir que o mapSection está visível antes de renderizar
+    if (mapSection) mapSection.hidden = false;
+    refreshMap();
+  };
+
   // ── Filtrar por bloco (chamado pelo index.html ao clicar num bloco) ──
   window._filtrarBloco = function(bloco) {
     _blocoFiltro = bloco;
