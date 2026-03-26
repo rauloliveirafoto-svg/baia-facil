@@ -94,15 +94,23 @@
     mapElement.appendChild(blockEl);
   }
 
-  // Constrói todos os blocos em layout VERTICAL (2 colunas) — competidor tela completa
+  // Constrói todos os blocos LADO A LADO numa grade horizontal
+  // Cada bloco tem 2 colunas verticais de baias (quadradas)
+  // Corredor vertical entre os blocos
   function buildStallMapVertical({ mapElement, template, onStallClick }) {
     if (!mapElement || !template) { console.warn('[buildStallMapVertical] ausente'); return; }
     const layout = getBlocksLayout();
     mapElement.innerHTML = '';
 
+    // Container principal — todos os blocos na horizontal
+    const grid = document.createElement('div');
+    grid.className = 'stalls-grid-horizontal';
+    mapElement.appendChild(grid);
+
     layout.forEach((block, blockIndex) => {
-      const blockEl = document.createElement('section');
-      blockEl.className = 'block';
+      // Bloco
+      const blockEl = document.createElement('div');
+      blockEl.className = 'block block--vertical';
 
       const title = document.createElement('h2');
       title.className = 'block__title';
@@ -110,13 +118,14 @@
       blockEl.appendChild(title);
 
       buildTwoCols(blockEl, template, block.start, block.stalls, onStallClick);
-      mapElement.appendChild(blockEl);
+      grid.appendChild(blockEl);
 
+      // Corredor vertical entre blocos
       if (blockIndex < layout.length - 1) {
         const corridor = document.createElement('div');
-        corridor.className = 'corridor';
-        corridor.textContent = 'Corredor de circulação';
-        mapElement.appendChild(corridor);
+        corridor.className = 'corridor corridor--vertical';
+        corridor.innerHTML = '<span>Corredor</span>';
+        grid.appendChild(corridor);
       }
     });
   }
