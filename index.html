@@ -825,8 +825,10 @@
 
   <script>
     window.addEventListener('load', function() {
-      if (document.getElementById('reservaScreen').hidden) {
-        document.getElementById('homeScreen').hidden = false;
+      var hs = document.getElementById('homeScreen');
+      var rs = document.getElementById('reservaScreen');
+      if (rs.hidden && hs.hidden) {
+        hs.hidden = false;
       }
     });
   </script>
