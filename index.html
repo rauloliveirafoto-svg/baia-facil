@@ -6,467 +6,96 @@
   <title>Baia Fácil | Reservas Equestres</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
-    /* ══════════════════════════════════════════════════
-       VISUAL REDESIGN — HOME SCREEN ONLY
-       Toda a lógica original preservada
-    ══════════════════════════════════════════════════ */
-
-    /* ── Fundo atmosférico ───────────────────────────── */
+    /* ═══════════════════════════════════════════
+       REDESIGN VISUAL — só CSS, zero lógica
+    ═══════════════════════════════════════════ */
     body::before {
       background:
-        radial-gradient(ellipse 90% 70% at 15% 110%, rgba(30,90,38,0.28) 0%, transparent 55%),
+        radial-gradient(ellipse 90% 70% at 15% 110%, rgba(30,90,38,0.25) 0%, transparent 55%),
         radial-gradient(ellipse 60% 50% at 85% -10%, rgba(201,168,76,0.10) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 80% at 50% 60%, rgba(4,9,10,0.92) 0%, transparent 100%),
         linear-gradient(175deg, #04090a 0%, #06110c 40%, #081408 100%);
     }
-
-    /* Grid sutil tipo ripas de arena */
-    body::after {
-      background-image:
-        repeating-linear-gradient(
-          90deg,
-          transparent 0px,
-          transparent 79px,
-          rgba(201,168,76,0.015) 79px,
-          rgba(201,168,76,0.015) 80px
-        );
-      mask-image: radial-gradient(ellipse 80% 100% at 50% 100%, rgba(0,0,0,0.5) 0%, transparent 70%);
-      opacity: 1;
-    }
-
-    /* Arcos decorativos (arena) */
-    .bg-arc {
-      position: fixed;
-      bottom: -40vw; left: 50%; transform: translateX(-50%);
-      width: 160vw; height: 80vw;
-      border: 1px solid rgba(201,168,76,0.035);
-      border-radius: 50%;
-      pointer-events: none; z-index: 0;
-    }
-    .bg-arc-2 {
-      bottom: -55vw;
-      width: 200vw; height: 100vw;
-      border-color: rgba(201,168,76,0.02);
-    }
-
-    /* ── HOME SCREEN ─────────────────────────────────── */
-    .home-screen {
-      min-height: 100dvh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    /* ── HERO HEADER ─────────────────────────────────── */
+    .home-screen { min-height:100dvh; display:flex; flex-direction:column; align-items:center; }
     .home-header {
-      width: 100%;
-      padding: 3.5rem 1.5rem 3rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      text-align: center;
-      border-bottom: none;
+      width:100%; padding:3.5rem 1.5rem 3rem;
+      display:flex; flex-direction:column; align-items:center;
+      position:relative; text-align:center; border-bottom:none;
     }
-
-    /* Linha separadora dourada com fade */
     .home-header::after {
-      content: '';
-      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-      width: min(600px, 80%);
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.4) 30%, rgba(201,168,76,0.65) 50%, rgba(201,168,76,0.4) 70%, transparent);
+      content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+      width:min(580px,80%); height:1px;
+      background:linear-gradient(90deg,transparent,rgba(201,168,76,0.55) 30%,rgba(201,168,76,0.75) 50%,rgba(201,168,76,0.55) 70%,transparent);
     }
-
-    /* Halo atrás da logo */
-    .hero-logo-wrap {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 2rem;
-    }
-
-    .hero-logo-wrap::before {
-      content: '';
-      position: absolute;
-      top: 50%; left: 50%; transform: translate(-50%,-50%);
-      width: 260px; height: 260px;
-      background: radial-gradient(ellipse, rgba(201,168,76,0.12) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .home-header img {
-      height: 140px; width: auto;
-      mix-blend-mode: lighten;
-      filter: brightness(1.08) saturate(1.05);
-      position: relative; z-index: 1;
-      display: block;
-      animation: heroFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) both;
-    }
-
-    @keyframes heroFadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Ornamento dourado */
-    .hero-ornament {
-      display: flex; align-items: center; gap: 0.75rem;
-      margin-bottom: 0.85rem;
-      animation: heroFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both;
-    }
-
-    .hero-ornament__line {
-      width: 52px; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.55));
-    }
-    .hero-ornament__line--r {
-      background: linear-gradient(90deg, rgba(201,168,76,0.55), transparent);
-    }
-
-    .hero-ornament__diamond {
-      width: 5px; height: 5px;
-      background: var(--gold);
-      transform: rotate(45deg);
-      opacity: 0.85;
-    }
-
-    .hero-eyebrow {
-      font-size: 0.67rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.22em;
-      color: var(--gold);
-      margin: 0;
-    }
-
-    .hero-title {
-      font-family: 'DM Serif Display', 'Playfair Display', Georgia, serif;
-      font-size: clamp(1.7rem, 4vw, 2.5rem);
-      font-weight: 400;
-      color: var(--cream);
-      line-height: 1.15;
-      margin: 0 0 0.5rem;
-      letter-spacing: -0.01em;
-      animation: heroFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s both;
-    }
-
-    .hero-title em {
-      font-style: italic;
-      color: var(--gold-light);
-    }
-
-    .home-header__sub {
-      font-size: 0.85rem;
-      color: var(--muted);
-      font-weight: 300;
-      letter-spacing: 0.05em;
-      margin: 0;
-      animation: heroFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) 0.22s both;
-    }
-
-    /* ── BODY ────────────────────────────────────────── */
-    .home-body {
-      flex: 1; width: 100%;
-      max-width: 1160px;
-      padding: 2.5rem 1.25rem 4rem;
-      display: flex; flex-direction: column;
-      gap: 1.5rem;
-      position: relative; z-index: 1;
-    }
-
-    .section-header {
-      display: flex; align-items: flex-end;
-      justify-content: space-between;
-      flex-wrap: wrap; gap: 0.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(201,168,76,0.1);
-      animation: heroFadeIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both;
-    }
-
-    .home-section-title {
-      font-family: 'DM Serif Display', 'Playfair Display', Georgia, serif;
-      font-size: 1.2rem;
-      color: var(--cream);
-      font-weight: 400;
-      margin: 0;
-    }
-
-    .section-count {
-      font-size: 0.73rem;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      font-weight: 500;
-      text-transform: uppercase;
-      white-space: nowrap;
-    }
-
-    /* ── EVENTS GRID ─────────────────────────────────── */
-    .events-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-    }
-
-    /* ── EVENT CARD ──────────────────────────────────── */
+    .home-header img { height:140px; width:auto; mix-blend-mode:lighten; filter:brightness(1.08); position:relative; z-index:1; display:block; margin-bottom:1.75rem; }
+    .home-header__sub { font-size:0.84rem; color:var(--muted); font-weight:300; letter-spacing:0.06em; margin:0; }
+    .hero-ornament { display:flex; align-items:center; gap:0.7rem; margin-bottom:0.75rem; }
+    .hero-ornament__line { width:48px; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.55)); }
+    .hero-ornament__line--r { background:linear-gradient(90deg,rgba(201,168,76,0.55),transparent); }
+    .hero-ornament__diamond { width:5px; height:5px; background:var(--gold); transform:rotate(45deg); opacity:0.85; }
+    .hero-eyebrow { font-size:0.66rem; font-weight:600; text-transform:uppercase; letter-spacing:0.22em; color:var(--gold); margin:0; }
+    .hero-title { font-family:'Playfair Display',Georgia,serif; font-size:clamp(1.7rem,4vw,2.5rem); font-weight:700; color:var(--cream); line-height:1.15; margin:0 0 0.5rem; }
+    .hero-title em { font-style:italic; color:var(--gold-light); }
+    .home-body { flex:1; width:100%; max-width:1160px; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:1.5rem; position:relative; z-index:1; }
+    .section-header { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; padding-bottom:1rem; border-bottom:1px solid rgba(201,168,76,0.1); }
+    .home-section-title { font-family:'Playfair Display',Georgia,serif; font-size:1.2rem; color:var(--cream); font-weight:700; margin:0; }
+    .home-section-sub { display:none; }
+    .section-count { font-size:0.72rem; color:var(--muted); letter-spacing:0.08em; font-weight:500; text-transform:uppercase; white-space:nowrap; }
+    .events-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
     .event-card {
-      background: rgba(10,24,14,0.75);
-      border: 1px solid rgba(201,168,76,0.14);
-      border-radius: 18px;
-      padding: 0;
-      cursor: pointer;
-      text-align: left;
-      display: flex; flex-direction: column;
-      position: relative; overflow: hidden;
-      transition:
-        transform 0.22s cubic-bezier(0.22,1,0.36,1),
-        box-shadow 0.22s ease,
-        border-color 0.22s ease;
-      font-family: 'DM Sans', sans-serif;
-      backdrop-filter: blur(18px);
-      animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
+      background:rgba(10,24,14,0.75); border:1px solid rgba(201,168,76,0.14);
+      border-radius:18px; padding:0; cursor:pointer; text-align:left;
+      display:flex; flex-direction:column; position:relative; overflow:hidden;
+      transition:transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease, border-color 0.22s ease;
+      font-family:'DM Sans',sans-serif; backdrop-filter:blur(16px);
     }
-
-    .event-card:nth-child(1) { animation-delay: 0.32s; }
-    .event-card:nth-child(2) { animation-delay: 0.36s; }
-    .event-card:nth-child(3) { animation-delay: 0.40s; }
-    .event-card:nth-child(4) { animation-delay: 0.44s; }
-    .event-card:nth-child(5) { animation-delay: 0.48s; }
-    .event-card:nth-child(6) { animation-delay: 0.52s; }
-    .event-card:nth-child(7) { animation-delay: 0.56s; }
-    .event-card:nth-child(8) { animation-delay: 0.60s; }
-    .event-card:nth-child(9) { animation-delay: 0.64s; }
-
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(18px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Barra dourada topo */
-    .event-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold) 40%, var(--gold-light) 60%, transparent);
-      opacity: 0;
-      transition: opacity 0.25s ease;
-    }
-
-    /* Glow interno */
-    .event-card::after {
-      content: '';
-      position: absolute; inset: 0;
-      border-radius: inherit;
-      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 60%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-
-    .event-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(201,168,76,0.42);
-      box-shadow:
-        0 14px 44px rgba(0,0,0,0.55),
-        0 0 0 1px rgba(201,168,76,0.07),
-        inset 0 1px 0 rgba(255,255,255,0.04);
-    }
-
-    .event-card:hover::before { opacity: 1; }
-    .event-card:hover::after  { opacity: 1; }
-    .event-card:active { transform: translateY(-2px); }
-
-    /* Card header */
-    .card-header {
-      padding: 1.35rem 1.35rem 0.9rem;
-      display: flex; gap: 0.85rem; align-items: flex-start;
-      flex: 1;
-    }
-
-    .card-icon {
-      font-size: 1.8rem; line-height: 1;
-      flex-shrink: 0; margin-top: 0.05rem;
-      filter: drop-shadow(0 2px 6px rgba(201,168,76,0.2));
-    }
-
-    .card-meta { flex: 1; min-width: 0; }
-
-    .card-name {
-      font-family: 'DM Serif Display', 'Playfair Display', Georgia, serif;
-      font-size: 1rem; font-weight: 400;
-      color: var(--cream); line-height: 1.22;
-      margin: 0 0 0.45rem; letter-spacing: -0.005em;
-    }
-
-    .card-date-loc {
-      display: flex; flex-direction: column; gap: 0.2rem;
-    }
-
-    .card-date {
-      font-size: 0.73rem; color: var(--gold-light);
-      font-weight: 500; letter-spacing: 0.04em;
-    }
-
-    .card-loc {
-      font-size: 0.72rem; color: var(--muted);
-      display: flex; align-items: center; gap: 0.3rem;
-    }
-
-    .card-loc-dot {
-      width: 3px; height: 3px;
-      border-radius: 50%; background: var(--muted); flex-shrink: 0;
-    }
-
-    /* Card footer */
-    .card-footer {
-      padding: 0.7rem 1.35rem 1.1rem;
-      display: flex; align-items: center;
-      justify-content: space-between;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      gap: 0.5rem; flex-wrap: wrap;
-    }
-
-    .card-badge {
-      display: inline-flex; align-items: center; gap: 0.35rem;
-      font-size: 0.7rem; font-weight: 600;
-      padding: 0.22rem 0.6rem; border-radius: 999px; flex-shrink: 0;
-    }
-
-    .card-badge__dot {
-      width: 5px; height: 5px;
-      border-radius: 50%; flex-shrink: 0;
-    }
-
-    .card-cta {
-      font-size: 0.72rem; font-weight: 600;
-      color: var(--gold); letter-spacing: 0.04em;
-      display: flex; align-items: center; gap: 0.3rem;
-      opacity: 0; transform: translateX(-4px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      text-transform: uppercase;
-    }
-
-    .card-cta-arrow {
-      display: inline-block;
-      transition: transform 0.2s ease;
-    }
-
-    .event-card:hover .card-cta { opacity: 1; transform: translateX(0); }
-    .event-card:hover .card-cta-arrow { transform: translateX(3px); }
-
-    /* ── ORGANIZER BUTTON ────────────────────────────── */
-    .organizer-wrap {
-      display: flex; justify-content: center;
-      padding-top: 0.5rem;
-      animation: heroFadeIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.7s both;
-    }
-
-    .organizer-btn {
-      display: inline-flex; align-items: center; gap: 0.55rem;
-      padding: 0.7rem 1.5rem;
-      background: transparent;
-      border: 1px solid rgba(201,168,76,0.18);
-      border-radius: 999px;
-      color: var(--muted);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.82rem; font-weight: 500;
-      cursor: pointer; text-decoration: none;
-      letter-spacing: 0.02em;
-      transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
-    }
-
-    .organizer-btn:hover {
-      border-color: rgba(201,168,76,0.5);
-      color: var(--gold-light);
-      background: rgba(201,168,76,0.05);
-      box-shadow: 0 0 20px rgba(201,168,76,0.06);
-    }
-
-    /* ── WORDMARK ─────────────────────────────────────── */
-    .home-wordmark {
-      width: 100%; text-align: center;
-      padding: 1rem 1rem 2rem;
-      position: relative; z-index: 1;
-    }
-
-    .home-wordmark p {
-      font-size: 0.67rem;
-      color: rgba(106,138,110,0.4);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-
-    /* ── RESPONSIVE ──────────────────────────────────── */
-    @media (max-width: 960px) {
-      .events-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (max-width: 580px) {
-      .events-grid { grid-template-columns: 1fr; }
-      .home-header img { height: 100px; }
-      .home-header { padding: 2.5rem 1.25rem 2.25rem; }
-      .card-cta { opacity: 1; transform: none; }
-      .card-footer { flex-direction: column; align-items: flex-start; }
-    }
-
-    /* Tela de reserva — topbars originais */
-    .topbar-intake {
-      display: flex; justify-content: center; align-items: center;
-      padding: 0.7rem 1.25rem;
-      background: rgba(6,15,8,0.94);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 4px 24px rgba(0,0,0,.4);
-    }
-    .topbar-intake img { height: 46px; width: auto; mix-blend-mode: lighten; filter: brightness(1.05); }
-    .topbar-map {
-      display: grid;
-      grid-template-columns: auto 1fr 1fr 1fr auto;
-      align-items: center; gap: 0.5rem;
-      padding: 0.55rem 1.25rem;
-      background: rgba(6,15,8,0.94);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 4px 24px rgba(0,0,0,.4);
-      position: sticky; top: 0; z-index: 30;
-    }
-    .topbar-map .t-logo img { height: 36px; width: auto; mix-blend-mode: lighten; }
-    .topbar-map .t-item { display: flex; flex-direction: column; gap: 0.1rem; padding: 0 0.5rem; border-left: 1px solid var(--border-sub); }
-    .topbar-map .t-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 500; }
-    .topbar-map .t-val { font-size: 0.88rem; color: var(--cream); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .topbar-map .t-timer .t-val { color: var(--warning); font-weight: 700; }
-    .topbar-map .t-action { justify-self: end; }
-    .topbar-map .finish-btn { padding: 0.75rem 1.6rem; font-size: 1rem; min-width: 0; border-radius: 12px; white-space: nowrap; }
-    .map-feedback-strip { grid-column: 1/-1; font-size: 0.82rem; color: var(--success); padding: 0 0.5rem; }
-    .intake-back { background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.84rem; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.35rem; transition: color .2s; margin-bottom: 0.15rem; }
-    .intake-back:hover { color: var(--gold-light); }
-    .intake-event-tag { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); margin: 0 0 0.15rem; }
-    .wz-icon { width: 20px; height: 20px; flex-shrink: 0; }
-    .map-search-wrap { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center; }
-    .map-search-wrap input { flex: 1; max-width: 160px; }
-    #reservaScreen { display: flex; flex-direction: column; min-height: 100dvh; }
-    @media(max-width:900px){.topbar-map{grid-template-columns:auto 1fr 1fr auto;}}
-    @media(max-width:580px){.topbar-map{grid-template-columns:1fr 1fr;row-gap:0.4rem;}.topbar-map .t-logo{display:none;}.topbar-map .t-action{grid-column:1/-1;}.topbar-map .finish-btn{width:100%;}}
+    .event-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent); opacity:0; transition:opacity 0.25s ease; }
+    .event-card:hover { transform:translateY(-4px); border-color:rgba(201,168,76,0.42); box-shadow:0 14px 44px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.04); }
+    .event-card:hover::before { opacity:1; }
+    .event-card:active { transform:translateY(-2px); }
+    .card-header { padding:1.3rem 1.3rem 0.85rem; display:flex; gap:0.85rem; align-items:flex-start; flex:1; }
+    .card-icon { font-size:1.8rem; line-height:1; flex-shrink:0; margin-top:0.05rem; }
+    .card-meta { flex:1; min-width:0; }
+    .card-name { font-family:'Playfair Display',Georgia,serif; font-size:1rem; font-weight:700; color:var(--cream); line-height:1.22; margin:0 0 0.4rem; }
+    .card-date { font-size:0.73rem; color:var(--gold-light); font-weight:500; letter-spacing:0.04em; display:block; margin-bottom:0.2rem; }
+    .card-loc  { font-size:0.72rem; color:var(--muted); display:flex; align-items:center; gap:0.3rem; }
+    .card-loc-dot { width:3px; height:3px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+    .card-footer { padding:0.65rem 1.3rem 1rem; display:flex; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); gap:0.5rem; flex-wrap:wrap; }
+    .card-badge { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.7rem; font-weight:600; padding:0.2rem 0.55rem; border-radius:999px; flex-shrink:0; }
+    .card-badge__dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .card-cta { font-size:0.7rem; font-weight:600; color:var(--gold); letter-spacing:0.04em; text-transform:uppercase; display:flex; align-items:center; gap:0.25rem; opacity:0; transform:translateX(-4px); transition:opacity 0.2s ease,transform 0.2s ease; }
+    .event-card:hover .card-cta { opacity:1; transform:translateX(0); }
+    .organizer-wrap { display:flex; justify-content:center; padding-top:0.5rem; }
+    .organizer-btn { display:inline-flex; align-items:center; gap:0.55rem; padding:0.7rem 1.5rem; background:transparent; border:1px solid rgba(201,168,76,0.18); border-radius:999px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; cursor:pointer; text-decoration:none; letter-spacing:0.02em; transition:border-color 0.2s,color 0.2s,background 0.2s; }
+    .organizer-btn:hover { border-color:rgba(201,168,76,0.5); color:var(--gold-light); background:rgba(201,168,76,0.05); }
+    .topbar-intake { display:flex; justify-content:center; align-items:center; padding:0.7rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); }
+    .topbar-intake img { height:46px; width:auto; mix-blend-mode:lighten; filter:brightness(1.05); }
+    .topbar-map { display:grid; grid-template-columns:auto 1fr 1fr 1fr auto; align-items:center; gap:0.5rem; padding:0.55rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); position:sticky; top:0; z-index:30; }
+    .topbar-map .t-item { display:flex; flex-direction:column; gap:0.1rem; padding:0 0.5rem; border-left:1px solid var(--border-sub); }
+    .topbar-map .t-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); font-weight:500; }
+    .topbar-map .t-val { font-size:0.88rem; color:var(--cream); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .topbar-map .t-timer .t-val { color:var(--warning); font-weight:700; }
+    .topbar-map .t-action { justify-self:end; }
+    .topbar-map .finish-btn { padding:0.75rem 1.6rem; font-size:1rem; min-width:0; border-radius:12px; white-space:nowrap; }
+    .map-feedback-strip { grid-column:1/-1; font-size:0.82rem; color:var(--success); padding:0 0.5rem; }
+    .intake-back { background:none; border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.84rem; cursor:pointer; padding:0; display:flex; align-items:center; gap:0.35rem; transition:color .2s; margin-bottom:0.15rem; }
+    .intake-back:hover { color:var(--gold-light); }
+    .intake-event-tag { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin:0 0 0.15rem; }
+    .map-search-wrap { display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center; }
+    .map-search-wrap input { flex:1; max-width:160px; }
+    #reservaScreen { display:flex; flex-direction:column; min-height:100dvh; }
+    @media(max-width:900px){ .events-grid{grid-template-columns:repeat(2,1fr);} .topbar-map{grid-template-columns:auto 1fr 1fr auto;} }
+    @media(max-width:580px){ .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;} .topbar-map{grid-template-columns:1fr 1fr;row-gap:0.4rem;} .topbar-map .t-logo{display:none;} .topbar-map .t-action{grid-column:1/-1;} .topbar-map .finish-btn{width:100%;} .card-cta{opacity:1;transform:none;} }
   </style>
 </head>
 <body data-page="competidor">
 
-  <!-- Arcos decorativos de fundo -->
-  <div class="bg-arc"></div>
-  <div class="bg-arc bg-arc-2"></div>
-
-  <!-- ══════════════════════════════════════════════════
-       HOME SCREEN
-  ══════════════════════════════════════════════════ -->
+  <!-- HOME -->
   <div id="homeScreen" class="home-screen">
-
-    <!-- HERO HEADER -->
     <div class="home-header">
-      <div class="hero-logo-wrap">
-        <img src="img/logo.png" alt="Baia Fácil" />
-      </div>
+      <img src="img/logo.png" alt="Baia Fácil" />
       <div class="hero-ornament">
         <div class="hero-ornament__line"></div>
         <div class="hero-ornament__diamond"></div>
@@ -477,16 +106,12 @@
       <h1 class="hero-title">Escolha seu <em>evento</em></h1>
       <p class="home-header__sub">Selecione a prova e reserve suas baias em minutos</p>
     </div>
-
-    <!-- BODY -->
     <div class="home-body">
       <div class="section-header">
         <h2 class="home-section-title">Provas disponíveis</h2>
         <span class="section-count">9 eventos · temporada 2025</span>
       </div>
-
       <div class="events-grid" id="eventsGrid"></div>
-
       <div class="organizer-wrap">
         <a href="login.html" class="organizer-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -494,15 +119,9 @@
         </a>
       </div>
     </div>
-
-    <div class="home-wordmark">
-      <p>Baia Fácil · Plataforma de reservas para eventos equestres</p>
-    </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════
-       TELA DE RESERVA — estrutura original 100% intacta
-  ══════════════════════════════════════════════════ -->
+  <!-- TELA DE RESERVA -->
   <div id="reservaScreen" hidden>
     <div class="topbar-intake" id="topbarIntake">
       <img src="img/logo_header.png" alt="Baia Fácil" />
@@ -611,7 +230,7 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- App scripts — caminhos originais preservados -->
+  <!-- App -->
   <script src="js/config.js"></script>
   <script src="js/state.js"></script>
   <script src="js/map.js"></script>
@@ -620,23 +239,19 @@
   <script src="js/competidor.js"></script>
 
   <script>
-  /* ══════════════════════════════════════════════════
-     HOME SCREEN LOGIC — original 100% preservada
-  ══════════════════════════════════════════════════ */
-
   window.refreshBadgesFromFirebase = function() {
     if (!window.FB) return;
     window.FB.getProvas().then(function(provas) {
       provas.forEach(function(prova) {
         var badge = document.querySelector('[data-badge="' + prova.id + '"]');
         if (!badge) return;
-        var av    = (prova.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
+        var av = (prova.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
         var total = (prova.stalls || []).length || 100;
-        var pct   = av / total;
+        var pct = av / total;
         var bg, color, dot;
-        if (pct > 0.5)      { bg='rgba(77,170,106,.15)'; color='#4daa6a'; dot='#4daa6a'; }
+        if (pct > 0.5) { bg='rgba(77,170,106,.15)'; color='#4daa6a'; dot='#4daa6a'; }
         else if (pct > 0.2) { bg='rgba(232,160,48,.15)'; color='#e8a030'; dot='#e8a030'; }
-        else                { bg='rgba(220,80,80,.15)';  color='#e07070'; dot='#e07070'; }
+        else { bg='rgba(220,80,80,.15)'; color='#e07070'; dot='#e07070'; }
         badge.style.background = bg;
         badge.style.color      = color;
         var dotEl = badge.querySelector('.card-badge__dot');
@@ -648,7 +263,6 @@
   };
 
   document.addEventListener('DOMContentLoaded', function() {
-
     var BASE_KEY    = 'baias_mvp_state_v2';
     var TOTAL_BAIAS = 100;
 
@@ -668,7 +282,7 @@
       try {
         var raw = localStorage.getItem(BASE_KEY + '_ev' + evId);
         if (!raw) return { available: TOTAL_BAIAS };
-        var d  = JSON.parse(raw);
+        var d = JSON.parse(raw);
         var av = (d.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
         return { available: av };
       } catch(e) { return { available: TOTAL_BAIAS }; }
@@ -676,11 +290,10 @@
 
     function badgeStyle(av) {
       if (av > 50) return { bg:'rgba(77,170,106,.15)', color:'#4daa6a', dot:'#4daa6a' };
-      if (av > 20) return { bg:'rgba(232,160,48,.15)', color:'#e8a030', dot:'#e8a030' };
+      if (av > 20) return { bg:'rgba(232,160,48,.15)',  color:'#e8a030', dot:'#e8a030' };
       return           { bg:'rgba(220,80,80,.15)',  color:'#e07070', dot:'#e07070' };
     }
 
-    /* Renderiza cards */
     var grid = document.getElementById('eventsGrid');
     EVENTS.forEach(function(ev) {
       var stats = getStats(ev.id);
@@ -705,7 +318,7 @@
             '<span class="card-badge__dot" style="background:' + bs.dot + ';"></span>' +
             '<span class="badge-text">' + stats.available + ' baia' + (stats.available !== 1 ? 's' : '') + ' disponível' + (stats.available !== 1 ? 'is' : '') + '</span>' +
           '</div>' +
-          '<span class="card-cta">Reservar <span class="card-cta-arrow">→</span></span>' +
+          '<span class="card-cta">Reservar →</span>' +
         '</div>';
       btn.addEventListener('click', function(){ openEvent(ev); });
       grid.appendChild(btn);
@@ -719,12 +332,12 @@
       if (window.FB) { clearInterval(_badgeInterval); refreshBadges(); }
     }, 300);
 
-    /* History API */
     history.replaceState({ screen: 'home' }, '', window.location.pathname);
     history.pushState({ screen: 'home' }, '', window.location.pathname);
 
     window.addEventListener('popstate', function(e) {
-      if (!document.getElementById('reservaScreen').hidden) {
+      var reservaAtiva = !document.getElementById('reservaScreen').hidden;
+      if (reservaAtiva) {
         goHome();
         history.pushState({ screen: 'home' }, '', window.location.pathname);
       }
@@ -743,18 +356,16 @@
 
     function goHome() {
       if (window.BAIA_STATE) {
-        if (window.BAIA_STATE.selectedStalls && window.BAIA_STATE.selectedStalls.length > 0) {
+        if (typeof updateState === 'function' && window.BAIA_STATE.selectedStalls && window.BAIA_STATE.selectedStalls.length > 0) {
           var toRelease = window.BAIA_STATE.selectedStalls.slice();
-          if (typeof updateState === 'function') {
-            updateState(function(next) {
-              toRelease.forEach(function(num) {
-                var stall = next.stalls.find(function(s){ return s.number === num; });
-                if (stall && (stall.status === 'selected' || stall.status === 'blocked')) {
-                  stall.status = 'available'; stall.holderName = ''; stall.contactPhone = ''; stall.requestedStalls = 0; stall.reservedAt = '';
-                }
-              });
+          updateState(function(next) {
+            toRelease.forEach(function(num) {
+              var stall = next.stalls.find(function(s){ return s.number === num; });
+              if (stall && (stall.status === 'selected' || stall.status === 'blocked')) {
+                stall.status = 'available'; stall.holderName = ''; stall.contactPhone = ''; stall.requestedStalls = 0; stall.reservedAt = '';
+              }
             });
-          }
+          });
         }
         var comp = window.BAIA_STATE.competitor;
         if (comp && comp.timerId) { clearInterval(comp.timerId); comp.timerId = null; }
@@ -766,16 +377,28 @@
         window.BAIA_STATE.selectedStalls = []; window.BAIA_STATE.competitorCredits = 0;
         window.BAIA_STATE.timer.isActive = false; window.BAIA_STATE.reservation.status = 'inactive';
       }
-      var fields = ['intakeHolder','intakeQuantity','intakePhone'];
-      fields.forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-      var intakeError = document.getElementById('intakeError'); if(intakeError) intakeError.textContent='';
-      var intakeSection  = document.getElementById('reservationIntake');  if(intakeSection)  intakeSection.hidden  = false;
-      var mapSection     = document.getElementById('competitorMapSection'); if(mapSection)    mapSection.hidden     = true;
-      var topbarIntake   = document.getElementById('topbarIntake');        if(topbarIntake)   topbarIntake.hidden   = false;
-      var topbarMap      = document.getElementById('topbarMap');           if(topbarMap)      topbarMap.hidden      = true;
-      var receiptModal   = document.getElementById('receiptModal');        if(receiptModal)   receiptModal.hidden   = true;
-      var sequenceModal  = document.getElementById('sequenceModal');       if(sequenceModal)  sequenceModal.hidden  = true;
-      var finishBtn      = document.getElementById('finishReservation');   if(finishBtn)      finishBtn.disabled    = true;
+      var intakeHolder   = document.getElementById('intakeHolder');
+      var intakeQuantity = document.getElementById('intakeQuantity');
+      var intakePhone    = document.getElementById('intakePhone');
+      var intakeError    = document.getElementById('intakeError');
+      var intakeSection  = document.getElementById('reservationIntake');
+      var mapSection     = document.getElementById('competitorMapSection');
+      var topbarIntake   = document.getElementById('topbarIntake');
+      var topbarMap      = document.getElementById('topbarMap');
+      if (intakeHolder)   intakeHolder.value      = '';
+      if (intakeQuantity) intakeQuantity.value    = '';
+      if (intakePhone)    intakePhone.value       = '';
+      if (intakeError)    intakeError.textContent = '';
+      if (intakeSection)  intakeSection.hidden    = false;
+      if (mapSection)     mapSection.hidden       = true;
+      if (topbarIntake)   topbarIntake.hidden     = false;
+      if (topbarMap)      topbarMap.hidden        = true;
+      var receiptModal  = document.getElementById('receiptModal');
+      var sequenceModal = document.getElementById('sequenceModal');
+      var finishBtn     = document.getElementById('finishReservation');
+      if (receiptModal)  receiptModal.hidden  = true;
+      if (sequenceModal) sequenceModal.hidden = true;
+      if (finishBtn)     finishBtn.disabled   = true;
       if (typeof window.pararListenerCompetidor === 'function') window.pararListenerCompetidor();
       if (window.BAIA_STATE) window.BAIA_STATE._mapCacheDirty = true;
       document.getElementById('reservaScreen').hidden = true;
@@ -783,7 +406,7 @@
       refreshBadges();
     }
 
-    document.getElementById('backToHome').addEventListener('click', goHome);
+    document.getElementById('backToHome').addEventListener('click', function() { goHome(); });
 
     document.getElementById('startReservationFlow').addEventListener('click', function() {
       setTimeout(function() {
@@ -813,7 +436,8 @@
         var target = document.querySelector('[data-stall-number="' + n + '"]');
         if (!target) return;
         target.scrollIntoView({ behavior:'smooth', block:'center' });
-        target.classList.remove('stall--highlight'); void target.offsetWidth;
+        target.classList.remove('stall--highlight');
+        void target.offsetWidth;
         target.classList.add('stall--highlight');
         setTimeout(function(){ target.classList.remove('stall--highlight'); }, 3500);
       });
@@ -821,16 +445,6 @@
     }
 
   }); // fim DOMContentLoaded
-  </script>
-
-  <script>
-    window.addEventListener('load', function() {
-      var hs = document.getElementById('homeScreen');
-      var rs = document.getElementById('reservaScreen');
-      if (rs.hidden && hs.hidden) {
-        hs.hidden = false;
-      }
-    });
   </script>
 </body>
 </html>
