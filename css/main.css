@@ -78,7 +78,6 @@ body::after {
 
 .topbar__logo img {
   height: 44px; width: auto;
-  /* logo tem fundo branco — escondemos com mix-blend-mode no tema escuro */
   border-radius: 6px;
 }
 
@@ -386,12 +385,8 @@ body::after {
 }
 
 /* ── BUSCA DE BAIA NO MAPA ───────────────────────── */
-.map-search-wrap {
-  display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center;
-}
-.map-search-wrap input {
-  flex: 1; max-width: 160px;
-}
+.map-search-wrap { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center; }
+.map-search-wrap input { flex: 1; max-width: 160px; }
 .stall--highlight {
   animation: stallPulse 1.2s ease 3;
   border-color: var(--gold) !important;
@@ -415,37 +410,16 @@ body::after {
 /* ── IMPRESSÃO ───────────────────────────────────── */
 @media print {
   body { background: #fff !important; color: #000 !important; }
-
-  .org-topbar,
-  .panel__title ~ .filters-row,
-  .ctrl-col > .panel:last-child,
-  .btn,
-  .logout-btn,
-  #stallDetailPanel,
-  #noSelectionHint { display: none !important; }
-
+  .org-topbar, .panel__title ~ .filters-row, .ctrl-col > .panel:last-child, .btn, .logout-btn, #stallDetailPanel, #noSelectionHint { display: none !important; }
   .org-layout { grid-template-columns: 1fr !important; }
-
-  .panel {
-    background: #fff !important; border: 1px solid #ccc !important;
-    box-shadow: none !important; break-inside: avoid;
-  }
-
-  .stall {
-    border: 1px solid #999 !important;
-    color: #000 !important; font-size: 0.65rem !important;
-  }
-
+  .panel { background: #fff !important; border: 1px solid #ccc !important; box-shadow: none !important; break-inside: avoid; }
+  .stall { border: 1px solid #999 !important; color: #000 !important; font-size: 0.65rem !important; }
   .stall--org-available   { background: #e8f5e9 !important; }
   .stall--org-reserved    { background: #ffebee !important; }
   .stall--org-blocked     { background: #fff8e1 !important; }
   .stall--org-maintenance { background: #f5f5f5 !important; }
-
   .status-chip { border: 1px solid #ccc !important; color: #000 !important; background: #f5f5f5 !important; }
-
-  .reservation-table th,
-  .reservation-table td { color: #000 !important; border-bottom: 1px solid #ddd !important; }
-
+  .reservation-table th, .reservation-table td { color: #000 !important; border-bottom: 1px solid #ddd !important; }
   @page { margin: 1.5cm; size: A4 landscape; }
 }
 
@@ -455,4 +429,77 @@ body::after {
   color: #e8a030;
   cursor: not-allowed;
   opacity: 0.75;
+}
+
+/* ── MAPA VERTICAL DO COMPETIDOR ─────────────────── */
+.stalls-grid-horizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.block--vertical {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.stalls-two-cols {
+  display: flex;
+  flex-direction: row;
+  gap: 0.35rem;
+}
+
+.stalls-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.stalls-col .stall {
+  width: 52px;
+  min-height: 42px;
+}
+
+.corridor--vertical {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 32px;
+  align-self: stretch;
+  border: none;
+  border-left: 1px dashed var(--border);
+  border-right: 1px dashed var(--border);
+  border-radius: 0;
+  background: rgba(45,140,53,.03);
+  margin: 0 0.25rem;
+}
+
+.corridor--vertical span {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+@media (max-width: 700px) {
+  .stalls-grid-horizontal { flex-direction: column; }
+  .block--vertical { width: 100%; }
+  .stalls-two-cols { justify-content: center; }
+  .corridor--vertical {
+    flex-direction: row;
+    min-width: unset;
+    min-height: 28px;
+    width: 100%;
+    border: none;
+    border-top: 1px dashed var(--border);
+    border-bottom: 1px dashed var(--border);
+    margin: 0.25rem 0;
+  }
+  .corridor--vertical span { writing-mode: horizontal-tb; }
 }
