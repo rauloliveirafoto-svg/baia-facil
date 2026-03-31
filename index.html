@@ -505,7 +505,7 @@
   <!-- ══════════════════════════════════════════════════
        HOME SCREEN
   ══════════════════════════════════════════════════ -->
-  <div id="homeScreen" class="home-screen">
+  <div id="homeScreen" class="home-screen" style="display:none;">
 
     <!-- HERO -->
     <div class="home-hero">
@@ -804,6 +804,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('homeScreen').style.display = '';
 
     var BASE_KEY   = 'baias_mvp_state_v2';
     var TOTAL_BAIAS = 100;
@@ -902,7 +903,7 @@
     async function openEvent(ev) {
       history.pushState({ screen: 'reserva', evId: ev.id, evName: ev.name }, '', '#prova-' + ev.id);
       document.getElementById('selectedEventLabel').textContent = ev.name;
-      document.getElementById('homeScreen').hidden    = true;
+      document.getElementById('homeScreen').style.display = 'none';
       document.getElementById('reservaScreen').hidden = false;
       document.getElementById('topbarIntake').hidden  = false;
       document.getElementById('topbarMap').hidden     = true;
@@ -977,7 +978,7 @@
       if (window.BAIA_STATE) window.BAIA_STATE._mapCacheDirty = true;
 
       document.getElementById('reservaScreen').hidden = true;
-      document.getElementById('homeScreen').hidden    = false;
+      document.getElementById('homeScreen').style.display = '';
       refreshBadges();
     }
 
