@@ -203,7 +203,6 @@
   <script src="js/competidor.js"></script>
 
   <script>
-  // Função global para atualizar badges dos cards com dados do Firebase
   window.refreshBadgesFromFirebase = function() {
     if (!window.FB) return;
     window.FB.getProvas().then(function(provas) {
@@ -259,7 +258,6 @@
       return           { bg:'rgba(220,80,80,.15)',  color:'#e07070', dot:'#e07070' };
     }
 
-    // Renderiza cards
     var grid = document.getElementById('eventsGrid');
     EVENTS.forEach(function(ev) {
       var stats = getStats(ev.id);
@@ -287,10 +285,7 @@
     }
 
     var _badgeInterval = setInterval(function() {
-      if (window.FB) {
-        clearInterval(_badgeInterval);
-        window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
-      }
+      if (window.FB) { clearInterval(_badgeInterval); refreshBadges(); }
     }, 300);
 
     history.replaceState({ screen: 'home' }, '', window.location.pathname);
