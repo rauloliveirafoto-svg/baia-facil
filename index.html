@@ -60,6 +60,44 @@
 
     @media(max-width:900px) { .events-grid{grid-template-columns:repeat(2,1fr);} .topbar-map{grid-template-columns:auto 1fr 1fr auto;} }
     @media(max-width:580px) { .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;} .topbar-map{grid-template-columns:1fr 1fr; row-gap:0.4rem;} .topbar-map .t-logo{display:none;} .topbar-map .t-action{grid-column:1/-1;} .topbar-map .finish-btn{width:100%;} }
+
+    /* ── REFINAMENTO VISUAL ── */
+    body::before {
+      background:
+        radial-gradient(ellipse 70% 60% at 8% 95%, rgba(45,140,53,.18) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 45% at 92% 5%,  rgba(201,168,76,.10) 0%, transparent 50%),
+        radial-gradient(ellipse 80% 80% at 50% 50%, rgba(4,9,10,.6) 0%, transparent 100%);
+    }
+    .home-header {
+      padding: 2.75rem 1.25rem 1.75rem;
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+      background: linear-gradient(180deg, rgba(6,15,8,0.6) 0%, transparent 100%);
+    }
+    .home-header img {
+      filter: brightness(1.08) saturate(1.1) drop-shadow(0 4px 24px rgba(201,168,76,0.18));
+    }
+    .home-header__sub { font-size:0.8rem; letter-spacing:0.18em; color:rgba(122,158,126,0.75); }
+    .home-section-title { font-size:1.45rem; letter-spacing:-0.01em; }
+    .event-card {
+      background: rgba(13,43,16,0.72);
+      border: 1px solid rgba(201,168,76,0.18);
+      border-radius: 18px;
+      padding: 1.4rem 1.2rem 1.15rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+      transition: transform .2s cubic-bezier(0.22,1,0.36,1), box-shadow .2s ease, border-color .2s ease, background .2s ease;
+    }
+    .event-card:hover {
+      transform: translateY(-4px);
+      background: rgba(13,43,16,0.92);
+      border-color: rgba(201,168,76,0.48);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.08), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .event-card::before { height:2px; background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent); }
+    .event-card__name { font-size:1rem; line-height:1.2; }
+    .event-card__date { color:var(--gold-light); font-weight:600; }
+    .event-card__badge { padding:0.22rem 0.6rem; border-radius:999px; font-size:0.71rem; letter-spacing:0.02em; }
+    .organizer-btn { border-radius:999px; border-color:rgba(201,168,76,0.22); letter-spacing:0.03em; }
+    .organizer-btn:hover { border-color:rgba(201,168,76,0.55); box-shadow:0 0 16px rgba(201,168,76,0.07); }
   </style>
 </head>
 <body data-page="competidor">
