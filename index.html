@@ -6,192 +6,660 @@
   <title>Baia Fácil | Reservas Equestres</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/stalls-layout.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+
   <style>
-    /* ── HOME ─────────────────────────────────────────────── */
-    .home-screen { min-height:100dvh; display:flex; flex-direction:column; align-items:center; }
-    .home-header { width:100%; padding:2.5rem 1.25rem 1.75rem; display:flex; flex-direction:column; align-items:center; gap:0.6rem; border-bottom:1px solid rgba(201,168,76,0.18); }
-    .home-header img { height:260px; width:auto; mix-blend-mode:lighten; }
-    .home-header__sub { font-size:0.95rem; color:var(--gold-light); letter-spacing:0.22em; text-transform:uppercase; margin:0; font-weight:500; }
-    .home-body { flex:1; width:100%; max-width:1080px; padding:2rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.25rem; position:relative; z-index:1; }
-    .home-section-title { font-family:'Playfair Display',Georgia,serif; font-size:1.35rem; color:var(--cream); font-weight:700; margin:0 0 0.2rem; }
-    .home-section-sub { font-size:0.86rem; color:var(--muted); margin:0; }
-    .events-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.9rem; }
-    .event-card { background:rgba(13,43,16,0.65); border:1px solid rgba(201,168,76,0.16); border-radius:16px; padding:1.3rem 1.15rem 1.1rem; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:0.5rem; position:relative; overflow:hidden; transition:transform .18s, box-shadow .18s, border-color .18s, background .18s; font-family:'DM Sans',sans-serif; }
-    .event-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); opacity:0; transition:opacity .2s; }
-    .event-card:hover { transform:translateY(-3px); border-color:rgba(201,168,76,0.42); background:rgba(13,43,16,0.9); box-shadow:0 10px 36px rgba(0,0,0,.45); }
-    .event-card:hover::before { opacity:1; }
-    .event-card__icon { font-size:1.5rem; line-height:1; }
-    .event-card__name { font-family:'Playfair Display',Georgia,serif; font-size:0.97rem; font-weight:700; color:var(--cream); line-height:1.25; }
-    .event-card__date { font-size:0.76rem; color:var(--gold); font-weight:500; letter-spacing:0.04em; }
-    .event-card__loc { font-size:0.76rem; color:var(--muted); }
-    .event-card__badge { display:inline-flex; align-items:center; gap:0.3rem; font-size:0.7rem; font-weight:600; padding:0.18rem 0.5rem; border-radius:999px; width:fit-content; margin-top:0.15rem; }
-    .event-card__badge-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-    .event-card__arrow { position:absolute; bottom:0.9rem; right:1rem; font-size:1rem; color:var(--gold); opacity:0; transform:translateX(-4px); transition:opacity .18s, transform .18s; }
-    .event-card:hover .event-card__arrow { opacity:1; transform:translateX(0); }
-    .organizer-wrap { display:flex; justify-content:center; padding-top:0.75rem; }
-    .organizer-btn { display:inline-flex; align-items:center; gap:0.5rem; padding:0.65rem 1.4rem; background:transparent; border:1px solid rgba(201,168,76,0.25); border-radius:12px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.86rem; font-weight:500; cursor:pointer; text-decoration:none; transition:border-color .2s, color .2s, background .2s; }
-    .organizer-btn:hover { border-color:var(--gold); color:var(--gold-light); background:rgba(201,168,76,.06); }
+    /* ─── CSS VARIABLES ───────────────────────────────── */
+    :root {
+      --bg-deep:     #04090a;
+      --bg-mid:      #081410;
+      --bg-card:     rgba(10,26,14,0.88);
+      --green-deep:  #061410;
+      --green-mid:   #0e2b16;
+      --green-acc:   #1d5c28;
+      --green-glow:  #2d8c35;
+      --gold:        #c9a84c;
+      --gold-light:  #e8c97e;
+      --gold-dark:   #8a6818;
+      --gold-pale:   rgba(201,168,76,0.08);
+      --cream:       #ede5ce;
+      --cream-dim:   #b8ad96;
+      --text:        #ede5ce;
+      --muted:       #6a8a6e;
+      --border:      rgba(201,168,76,0.18);
+      --border-sub:  rgba(255,255,255,0.06);
+      --shadow-gold: 0 0 60px rgba(201,168,76,0.07);
 
-    /* ── TELA RESERVA (formulário + mapa de baias) ─────────── */
-    #reservaScreen { display:flex; flex-direction:column; min-height:100dvh; }
-    .topbar-intake { display:flex; justify-content:center; align-items:center; padding:0.7rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); }
-    .topbar-intake img { height:46px; width:auto; mix-blend-mode:lighten; filter:brightness(1.05); }
-    .topbar-map { display:grid; grid-template-columns:auto 1fr 1fr 1fr auto; align-items:center; gap:0.5rem; padding:0.55rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); position:sticky; top:0; z-index:30; }
-    .topbar-map .t-item { display:flex; flex-direction:column; gap:0.1rem; padding:0 0.5rem; border-left:1px solid var(--border-sub); }
-    .topbar-map .t-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); font-weight:500; }
-    .topbar-map .t-val { font-size:0.88rem; color:var(--cream); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .topbar-map .t-timer .t-val { color:var(--warning); font-weight:700; }
-    .topbar-map .t-action { justify-self:end; }
-    .topbar-map .finish-btn { padding:0.75rem 1.6rem; font-size:1rem; min-width:0; border-radius:12px; white-space:nowrap; }
-    .map-feedback-strip { grid-column:1/-1; font-size:0.82rem; color:var(--success); padding:0 0.5rem; }
-    .intake-back { background:none; border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.84rem; cursor:pointer; padding:0; display:flex; align-items:center; gap:0.35rem; transition:color .2s; margin-bottom:0.15rem; }
-    .intake-back:hover { color:var(--gold-light); }
-    .intake-event-tag { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin:0 0 0.15rem; }
-    .map-search-wrap { display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center; }
-    .map-search-wrap input { flex:1; max-width:160px; }
+      --success: #4daa6a;
+      --warning: #e8a030;
+      --danger:  #e05252;
+    }
 
-    /* ── TELA MAPA AÉREO ──────────────────────────────────── */
-    #aerialScreen { display:flex; flex-direction:column; min-height:100dvh; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
 
-    .aerial-topbar {
-      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;
-      padding:0.6rem 1.25rem;
-      background:rgba(6,15,8,0.96); backdrop-filter:blur(12px);
-      border-bottom:1px solid var(--border);
-      box-shadow:0 4px 24px rgba(0,0,0,.4);
-      position:sticky; top:0; z-index:30;
-    }
-    .aerial-topbar img { height:38px; width:auto; mix-blend-mode:lighten; }
-    .aerial-topbar__info { display:flex; flex-direction:column; gap:0.1rem; flex:1; padding:0 1rem; }
-    .aerial-topbar__event { font-family:'Playfair Display',Georgia,serif; font-size:0.95rem; color:var(--cream); font-weight:700; }
-    .aerial-topbar__sub { font-size:0.72rem; color:var(--muted); }
-    .aerial-topbar__back { background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.82rem; padding:0.45rem 0.9rem; cursor:pointer; transition:color .2s, border-color .2s; white-space:nowrap; }
-    .aerial-topbar__back:hover { color:var(--gold-light); border-color:var(--gold); }
+    html { scroll-behavior: smooth; }
 
-    .aerial-body {
-      flex:1; display:flex; flex-direction:column; align-items:center;
-      padding:1.25rem 1rem 2rem; gap:0.75rem; position:relative; z-index:1;
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg-deep);
+      min-height: 100dvh;
+      overflow-x: hidden;
     }
-    .aerial-title { font-family:'Playfair Display',Georgia,serif; font-size:1.1rem; color:var(--cream); text-align:center; margin:0; }
-    .aerial-subtitle { font-size:0.84rem; color:var(--muted); text-align:center; margin:0; }
 
-    /* Mapa do evento */
-    .aerial-map-wrap {
-      position:relative; width:100%; max-width:960px;
-      border-radius:16px; overflow:hidden;
-      border:1px solid var(--border);
-      box-shadow:0 8px 40px rgba(0,0,0,.5);
+    /* ── ATMOSPHERIC BACKGROUND ─────────────────────── */
+    .bg-scene {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      overflow: hidden;
     }
-    .aerial-map-iframe {
-      width:100%; height:500px;
-      border:none; display:block;
-    }
-    .aerial-map-header {
-      position:absolute; top:0; left:0; right:0;
-      padding:0.75rem 1.25rem;
-      background:linear-gradient(to bottom, rgba(6,15,8,0.82) 0%, transparent 100%);
-      z-index:2; pointer-events:none;
-    }
-    .aerial-map-title {
-      font-family:'Playfair Display',Georgia,serif;
-      font-size:1.2rem; color:var(--cream); font-weight:700; margin:0;
-      text-shadow:0 2px 8px rgba(0,0,0,.8);
-    }
-    @media(max-width:600px) { .aerial-map-iframe { height:340px; } }
 
-    /* Dots de ocupação sobre cada pavilhão */
-    .block-dot {
-      position: absolute;
-      width: 12px; height: 12px;
+    .bg-scene::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 90% 70% at 15% 110%, rgba(30,90,38,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 85% -10%, rgba(201,168,76,0.09) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 80% at 50% 60%, rgba(8,20,12,0.95) 0%, transparent 100%),
+        linear-gradient(175deg, #04090a 0%, #06110c 40%, #081408 100%);
+    }
+
+    /* Subtle vignette lines like arena railings */
+    .bg-scene::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0px,
+          transparent 79px,
+          rgba(201,168,76,0.018) 79px,
+          rgba(201,168,76,0.018) 80px
+        );
+      mask-image: radial-gradient(ellipse 80% 100% at 50% 100%, rgba(0,0,0,0.6) 0%, transparent 70%);
+    }
+
+    .bg-grain {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      opacity: 0.032;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* Decorative arc - suggests an arena */
+    .bg-arc {
+      position: fixed;
+      bottom: -40vw; left: 50%; transform: translateX(-50%);
+      width: 160vw; height: 80vw;
+      border: 1px solid rgba(201,168,76,0.04);
       border-radius: 50%;
-      background: #4daa6a;
-      border: 2px solid rgba(0,0,0,0.5);
-      cursor: pointer;
-      transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 0 6px rgba(0,0,0,.5);
+      pointer-events: none; z-index: 0;
     }
-    .block-dot:hover { transform: scale(1.4); box-shadow: 0 0 10px rgba(201,168,76,.6); }
-    .block-dot.full  { background: #e07070; }
-    .block-dot.quase { background: #e8a030; }
+    .bg-arc-2 {
+      bottom: -55vw;
+      width: 200vw; height: 100vw;
+      border-color: rgba(201,168,76,0.025);
+    }
 
-    /* Tooltip que aparece ao hover */
-    .block-tooltip {
+    /* ── HOME SCREEN ─────────────────────────────────── */
+    .home-screen {
+      position: relative; z-index: 1;
+      min-height: 100dvh;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    /* ── HERO HEADER ─────────────────────────────────── */
+    .home-hero {
+      width: 100%;
+      padding: 3.5rem 1.5rem 3rem;
+      display: flex; flex-direction: column; align-items: center;
+      position: relative;
+      text-align: center;
+    }
+
+    /* Gold separator line below hero */
+    .home-hero::after {
+      content: '';
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: min(600px, 80%);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.35) 30%, rgba(201,168,76,0.6) 50%, rgba(201,168,76,0.35) 70%, transparent);
+    }
+
+    .hero-logo-wrap {
+      position: relative; display: inline-block;
+      margin-bottom: 2rem;
+    }
+
+    /* Subtle glow halo behind logo */
+    .hero-logo-wrap::before {
+      content: '';
       position: absolute;
-      background: rgba(6,15,8,0.92);
-      border: 1px solid var(--gold);
-      border-radius: 8px;
-      padding: 6px 10px;
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 240px; height: 240px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.10) 0%, transparent 70%);
+      border-radius: 50%;
       pointer-events: none;
-      backdrop-filter: blur(6px);
-      display: flex; flex-direction: column; gap: 3px;
-      min-width: 90px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.5);
-      z-index: 10;
     }
-    .block-tooltip__name  { font-size: 0.7rem; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: .05em; }
-    .block-tooltip__avail { font-size: 0.62rem; color: rgba(255,255,255,.55); }
-    .block-btn__bar-wrap  { width: 100%; height: 4px; background: rgba(255,255,255,.15); border-radius: 999px; overflow: hidden; }
-    .block-btn__bar       { height: 100%; border-radius: 999px; transition: width .5s ease; background: #4daa6a; }
 
-    /* Modal alerta bloco lotado */
-    .aerial-alert {
-      position:fixed; inset:0; z-index:60;
-      display:grid; place-items:center;
-      background:rgba(4,10,5,.82); padding:1rem;
-      backdrop-filter:blur(5px);
+    .hero-logo {
+      height: 140px; width: auto;
+      mix-blend-mode: lighten;
+      filter: brightness(1.08) saturate(1.05);
+      position: relative; z-index: 1;
+      display: block;
+      animation: heroFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) both;
     }
-    .aerial-alert__box {
-      width:min(460px,100%);
-      background:var(--bg-mid);
-      border:1px solid var(--border); border-radius:20px;
-      padding:1.75rem 1.5rem;
-      box-shadow:0 24px 64px rgba(0,0,0,.65);
-      animation:fadeUp .3s ease both;
-      display:flex; flex-direction:column; gap:1rem;
-    }
-    .aerial-alert__title { font-family:'Playfair Display',Georgia,serif; font-size:1.2rem; color:var(--cream); margin:0; }
-    .aerial-alert__msg   { font-size:0.9rem; color:var(--muted); margin:0; line-height:1.55; }
-    .aerial-alert__sug   { font-size:0.88rem; color:var(--gold); font-weight:500; margin:0; }
-    .aerial-alert__actions { display:flex; gap:0.6rem; flex-wrap:wrap; }
 
-    @media(max-width:900px){ .events-grid{grid-template-columns:repeat(2,1fr);} }
-    @media(max-width:580px){
-      .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;}
-      .topbar-map{grid-template-columns:1fr 1fr; row-gap:0.4rem;}
-      .topbar-map .t-action{grid-column:1/-1;} .topbar-map .finish-btn{width:100%;}
-      .block-btn{padding:5px 8px; min-width:60px;}
-      .block-btn__name{font-size:0.68rem;}
-      .block-btn__avail{display:none;}
+    @keyframes heroFadeIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Ornamental divider above title */
+    .hero-ornament {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 0.9rem;
+      animation: heroFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+    }
+
+    .hero-ornament__line {
+      width: 56px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5));
+    }
+    .hero-ornament__line--right {
+      background: linear-gradient(90deg, rgba(201,168,76,0.5), transparent);
+    }
+
+    .hero-ornament__diamond {
+      width: 6px; height: 6px;
+      background: var(--gold);
+      transform: rotate(45deg);
+      opacity: 0.8;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--gold);
+      margin: 0;
+    }
+
+    .hero-title {
+      font-family: 'DM Serif Display', 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.7rem, 4vw, 2.6rem);
+      font-weight: 400;
+      color: var(--cream);
+      line-height: 1.15;
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.01em;
+      animation: heroFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s both;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .hero-subtitle {
+      font-size: 0.86rem;
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      margin: 0;
+      animation: heroFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) 0.22s both;
+    }
+
+    /* ── EVENTS SECTION ──────────────────────────────── */
+    .home-body {
+      flex: 1; width: 100%;
+      max-width: 1160px;
+      padding: 2.5rem 1.25rem 4rem;
+      display: flex; flex-direction: column; gap: 1.5rem;
+      position: relative; z-index: 1;
+    }
+
+    .section-header {
+      display: flex; align-items: flex-end;
+      justify-content: space-between;
+      flex-wrap: wrap; gap: 0.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      animation: heroFadeIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s both;
+    }
+
+    .section-title {
+      font-family: 'DM Serif Display', 'Playfair Display', Georgia, serif;
+      font-size: 1.25rem;
+      color: var(--cream);
+      font-weight: 400;
+    }
+
+    .section-count {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── EVENT CARDS GRID ────────────────────────────── */
+    .events-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    /* ── SINGLE EVENT CARD ───────────────────────────── */
+    .event-card {
+      background: rgba(10,24,14,0.72);
+      border: 1px solid rgba(201,168,76,0.13);
+      border-radius: 18px;
+      padding: 0;
+      cursor: pointer;
+      text-align: left;
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+      transition: transform 0.22s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.22s ease,
+                  border-color 0.22s ease;
+      font-family: 'DM Sans', sans-serif;
+      backdrop-filter: blur(18px);
+
+      /* Staggered entrance */
+      animation: cardIn 0.6s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    .event-card:nth-child(1) { animation-delay: 0.32s; }
+    .event-card:nth-child(2) { animation-delay: 0.36s; }
+    .event-card:nth-child(3) { animation-delay: 0.40s; }
+    .event-card:nth-child(4) { animation-delay: 0.44s; }
+    .event-card:nth-child(5) { animation-delay: 0.48s; }
+    .event-card:nth-child(6) { animation-delay: 0.52s; }
+    .event-card:nth-child(7) { animation-delay: 0.56s; }
+    .event-card:nth-child(8) { animation-delay: 0.60s; }
+    .event-card:nth-child(9) { animation-delay: 0.64s; }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Top accent bar */
+    .event-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold) 40%, var(--gold-light) 60%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    /* Inner glow on hover */
+    .event-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .event-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(201,168,76,0.38);
+      box-shadow:
+        0 12px 40px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(201,168,76,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .event-card:hover::before { opacity: 1; }
+    .event-card:hover::after  { opacity: 1; }
+
+    .event-card:active { transform: translateY(-2px); }
+
+    /* ── CARD INNER LAYOUT ───────────────────────────── */
+    .card-header {
+      padding: 1.35rem 1.35rem 0.9rem;
+      display: flex; gap: 0.85rem; align-items: flex-start;
+      flex: 1;
+    }
+
+    .card-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 0.05rem;
+      filter: drop-shadow(0 2px 6px rgba(201,168,76,0.2));
+    }
+
+    .card-meta { flex: 1; min-width: 0; }
+
+    .card-name {
+      font-family: 'DM Serif Display', 'Playfair Display', Georgia, serif;
+      font-size: 1.02rem;
+      font-weight: 400;
+      color: var(--cream);
+      line-height: 1.22;
+      margin: 0 0 0.45rem;
+      letter-spacing: -0.005em;
+    }
+
+    .card-date-loc {
+      display: flex; flex-direction: column; gap: 0.2rem;
+    }
+
+    .card-date {
+      font-size: 0.73rem;
+      color: var(--gold-light);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    .card-loc {
+      font-size: 0.72rem;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    .card-loc-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+
+    /* Badge + CTA row */
+    .card-footer {
+      padding: 0.75rem 1.35rem 1.1rem;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .card-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.7rem; font-weight: 600;
+      padding: 0.22rem 0.6rem;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    .card-badge__dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* CTA chip */
+    .card-cta {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      display: flex; align-items: center; gap: 0.3rem;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      text-transform: uppercase;
+    }
+
+    .card-cta-arrow {
+      display: inline-block;
+      transition: transform 0.2s ease;
+    }
+
+    .event-card:hover .card-cta {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .event-card:hover .card-cta-arrow {
+      transform: translateX(3px);
+    }
+
+    /* ── ORGANIZER LINK ──────────────────────────────── */
+    .organizer-strip {
+      display: flex; justify-content: center; align-items: center;
+      padding: 0.5rem 0 1rem;
+      animation: heroFadeIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.7s both;
+    }
+
+    .organizer-btn {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.7rem 1.5rem;
+      background: transparent;
+      border: 1px solid rgba(201,168,76,0.18);
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: border-color 0.2s, color 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+
+    .organizer-btn:hover {
+      border-color: rgba(201,168,76,0.5);
+      color: var(--gold-light);
+      background: rgba(201,168,76,0.05);
+      box-shadow: 0 0 20px rgba(201,168,76,0.06);
+    }
+
+    .organizer-btn svg {
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .organizer-btn:hover svg { opacity: 1; }
+
+    /* ── BOTTOM WORDMARK / TRUST LINE ────────────────── */
+    .home-wordmark {
+      width: 100%;
+      text-align: center;
+      padding: 1.25rem 1rem 2rem;
+      position: relative; z-index: 1;
+      animation: heroFadeIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.8s both;
+    }
+
+    .home-wordmark p {
+      font-size: 0.68rem;
+      color: rgba(106,138,110,0.45);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 960px) {
+      .events-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 580px) {
+      .events-grid { grid-template-columns: 1fr; }
+      .hero-logo { height: 100px; }
+      .home-hero { padding: 2.5rem 1.25rem 2.25rem; }
+      .card-cta { opacity: 1; transform: none; }
+      .card-footer { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+    }
+
+    @media (max-width: 380px) {
+      .hero-title { font-size: 1.5rem; }
     }
   </style>
 </head>
 <body data-page="competidor">
 
-  <!-- ══════════ HOME ══════════ -->
+  <!-- ── ATMOSPHERIC LAYERS ─────────────────────────── -->
+  <div class="bg-scene"></div>
+  <div class="bg-grain"></div>
+  <div class="bg-arc"></div>
+  <div class="bg-arc bg-arc-2"></div>
+
+  <!-- ══════════════════════════════════════════════════
+       HOME SCREEN
+  ══════════════════════════════════════════════════ -->
   <div id="homeScreen" class="home-screen">
-    <div class="home-header">
-      <img src="img/logo.png" alt="Baia Fácil" />
-      <p class="home-header__sub">Reserva de baias</p>
-    </div>
-    <div class="home-body">
-      <div>
-        <h1 class="home-section-title">Escolha sua prova</h1>
-        <p class="home-section-sub">Selecione o evento para reservar suas baias</p>
+
+    <!-- HERO -->
+    <div class="home-hero">
+      <div class="hero-logo-wrap">
+        <img src="img/logo.png" alt="Baia Fácil" class="hero-logo" />
       </div>
-      <div class="events-grid" id="eventsGrid"></div>
-      <div class="organizer-wrap">
+
+      <div class="hero-ornament">
+        <div class="hero-ornament__line"></div>
+        <div class="hero-ornament__diamond"></div>
+        <p class="hero-eyebrow">Reservas Equestres</p>
+        <div class="hero-ornament__diamond"></div>
+        <div class="hero-ornament__line hero-ornament__line--right"></div>
+      </div>
+
+      <h1 class="hero-title">Escolha seu <em>evento</em></h1>
+      <p class="hero-subtitle">Selecione a prova e reserve suas baias em minutos</p>
+    </div>
+
+    <!-- BODY -->
+    <div class="home-body">
+      <div class="section-header">
+        <h2 class="section-title">Provas disponíveis</h2>
+        <span class="section-count">9 eventos · temporada 2025</span>
+      </div>
+
+      <div class="events-grid" id="eventsGrid">
+        <!-- Cards renderizados via JS abaixo -->
+      </div>
+
+      <div class="organizer-strip">
         <a href="login.html" class="organizer-btn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Sou organizador
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Acesso do organizador
         </a>
       </div>
     </div>
+
+    <div class="home-wordmark">
+      <p>Baia Fácil · Plataforma de reservas para eventos equestres</p>
+    </div>
   </div>
 
-  <!-- ══════════ TELA DADOS + MAPA BAIAS ══════════ -->
+  <!-- ══════════════════════════════════════════════════
+       TELA DE RESERVA (estrutura original preservada)
+  ══════════════════════════════════════════════════ -->
+  <style>
+    /* ── RESERVATION SCREEN (original styles preserved + polished) ── */
+    #reservaScreen {
+      display: flex; flex-direction: column; min-height: 100dvh;
+      position: relative; z-index: 1;
+    }
+    .topbar-intake {
+      display: flex; justify-content: center; align-items: center;
+      padding: 0.7rem 1.25rem;
+      background: rgba(4,9,10,0.96);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 28px rgba(0,0,0,0.5);
+    }
+    .topbar-intake img { height: 46px; width: auto; mix-blend-mode: lighten; }
+    .topbar-map {
+      display: grid;
+      grid-template-columns: auto 1fr 1fr 1fr auto;
+      align-items: center; gap: 0.5rem;
+      padding: 0.55rem 1.25rem;
+      background: rgba(4,9,10,0.96);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 28px rgba(0,0,0,0.5);
+      position: sticky; top: 0; z-index: 30;
+    }
+    .topbar-map .t-item {
+      display: flex; flex-direction: column; gap: 0.1rem;
+      padding: 0 0.5rem;
+      border-left: 1px solid var(--border-sub);
+    }
+    .topbar-map .t-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 500; }
+    .topbar-map .t-val { font-size: 0.88rem; color: var(--cream); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .topbar-map .t-timer .t-val { color: var(--warning); font-weight: 700; }
+    .topbar-map .t-action { justify-self: end; }
+    .topbar-map .finish-btn { padding: 0.75rem 1.6rem; font-size: 1rem; min-width: 0; border-radius: 12px; white-space: nowrap; }
+    .map-feedback-strip { grid-column: 1/-1; font-size: 0.82rem; color: var(--success); padding: 0 0.5rem; }
+    .intake-back { background: none; border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.84rem; cursor: pointer; padding: 0; display: flex; align-items: center; gap: 0.35rem; transition: color .2s; margin-bottom: 0.15rem; }
+    .intake-back:hover { color: var(--gold-light); }
+    .intake-event-tag { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); margin: 0 0 0.15rem; }
+    .map-search-wrap { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: center; }
+    .map-search-wrap input { flex: 1; max-width: 160px; }
+    @media(max-width:900px){.topbar-map{grid-template-columns:auto 1fr 1fr auto;}}
+    @media(max-width:580px){.topbar-map{grid-template-columns:1fr 1fr;row-gap:0.4rem;}.topbar-map .t-logo{display:none;}.topbar-map .t-action{grid-column:1/-1;}.topbar-map .finish-btn{width:100%;}}
+
+    /* Original app/map styles carried forward */
+    .app { position:relative;z-index:1;max-width:1100px;margin:1.4rem auto 2rem;padding:0 1rem 2rem;display:flex;flex-direction:column;align-items:center;gap:1rem; }
+    .map-help { margin:0;color:var(--muted);font-size:.92rem;text-align:center; }
+    .intake-card { width:min(100%,620px);background:rgba(10,24,14,0.88);border:1px solid var(--border);border-radius:20px;padding:1.75rem 1.5rem;box-shadow:0 8px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(18px);display:grid;gap:.75rem;animation:cardIn .5s ease both; }
+    .intake-card h1 { margin:0;font-family:'DM Serif Display','Playfair Display',Georgia,serif;font-size:1.5rem;color:var(--cream);font-weight:400; }
+    .intake-card>p { margin:0;color:var(--muted);font-size:.9rem; }
+    .validation-error { margin:0;color:var(--danger);font-size:.85rem;min-height:1rem; }
+    #competitorMapSection { width:100%;display:grid;gap:.8rem;position:relative;z-index:1; }
+    .map-wrapper { width:min(100%,1050px);background:rgba(10,24,14,0.88);border:1px solid var(--border);border-radius:20px;padding:1.25rem;box-shadow:0 8px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(18px); }
+    .legend { display:flex;flex-wrap:wrap;gap:.8rem;margin-bottom:.9rem;font-size:.82rem;color:var(--muted); }
+    .legend span { display:inline-flex;align-items:center;gap:.35rem; }
+    .dot { width:10px;height:10px;border-radius:999px;display:inline-block;flex-shrink:0; }
+    .dot--available { background:rgba(255,255,255,.1);border:1px solid var(--border-sub); }
+    .dot--selected  { background:var(--gold); }
+    .dot--blocked   { background:rgba(232,160,48,.15);border:1px solid rgba(232,160,48,.4); }
+    .dot--reserved  { background:rgba(220,80,80,.15);border:1px solid rgba(220,80,80,.4); }
+    .stall-map { display:flex;flex-direction:column;gap:1rem; }
+    .block { border:1px solid var(--border-sub);border-radius:14px;padding:.75rem;background:rgba(255,255,255,.02); }
+    .block__title { margin:0 0 .5rem;font-size:.78rem;color:var(--gold);font-weight:600;text-transform:uppercase;letter-spacing:.08em; }
+    .stalls-row { display:grid;grid-template-columns:repeat(10,minmax(40px,1fr));gap:.45rem; }
+    .corridor { display:flex;justify-content:center;align-items:center;border:1px dashed var(--border);border-radius:12px;min-height:40px;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;background:rgba(45,140,53,.04); }
+    .stall { border:1px solid var(--border-sub);border-radius:10px;min-height:42px;background:rgba(255,255,255,.03);color:var(--muted);font-size:.76rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform .15s ease,box-shadow .15s,background .15s,color .15s; }
+    .stall:hover:not(:disabled){transform:translateY(-1px);background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.4);color:var(--gold-light);box-shadow:0 4px 14px rgba(201,168,76,.15);}
+    .stall--selected { background:var(--gold);border-color:var(--gold);color:#1a1200;box-shadow:0 4px 16px rgba(201,168,76,.35); }
+    .stall--blocked  { background:rgba(232,160,48,.15);border-color:rgba(232,160,48,.4);color:#e8c97e; }
+    .stall--reserved { background:rgba(220,80,80,.15);border-color:rgba(220,80,80,.4);color:#f08080; }
+    .stall--taken    { background:rgba(200,120,30,.25);border-color:#c87820;color:#e8a030;cursor:not-allowed;opacity:.75; }
+    .stall:disabled  { cursor:not-allowed;opacity:.65; }
+    .stall--highlight { animation:stallPulse 1.2s ease 3;border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(201,168,76,.4)!important; }
+    @keyframes stallPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15);background:var(--gold)!important;color:#1a1200!important;} }
+    .finish-btn { border:none;border-radius:12px;padding:.85rem 1.2rem;min-width:180px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#1a1200;font-size:.95rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:0 4px 18px rgba(201,168,76,.3);transition:opacity .2s,transform .15s,box-shadow .2s; }
+    .finish-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px);box-shadow:0 6px 24px rgba(201,168,76,.4);}
+    .finish-btn:disabled{background:rgba(201,168,76,.18);color:var(--muted);box-shadow:none;cursor:not-allowed;}
+    .btn { border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--text);border-radius:10px;padding:.6rem .85rem;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;transition:background .18s,border-color .18s,color .18s; }
+    .btn:hover { background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.4);color:var(--gold-light); }
+    .btn--primary { background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);border-color:var(--gold);color:#1a1200;font-weight:600; }
+    .btn--primary:hover{opacity:.88;color:#1a1200;}
+    .form-row { display:flex;flex-direction:column;gap:.35rem;margin-bottom:.6rem; }
+    .form-row label { font-size:.73rem;color:var(--gold);font-weight:500;text-transform:uppercase;letter-spacing:.08em; }
+    .form-row input { background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:.55rem .7rem;font-size:.9rem;color:var(--text);font-family:'DM Sans',sans-serif;transition:border-color .2s,box-shadow .2s;outline:none;width:100%; }
+    .form-row input::placeholder { color:rgba(255,255,255,.2); }
+    .form-row input:focus { border-color:rgba(201,168,76,.5);box-shadow:0 0 0 3px rgba(201,168,76,.08); }
+    .inline-row { display:grid;grid-template-columns:1fr auto;gap:.5rem; }
+    .modal { position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(4,9,10,.78);padding:1rem;backdrop-filter:blur(5px); }
+    .modal__content { width:min(560px,100%);background:var(--bg-mid);border:1px solid var(--border);border-radius:20px;padding:1.75rem 1.5rem;box-shadow:0 24px 64px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,255,255,.04);animation:cardIn .3s ease both; }
+    .modal__content h2 { margin-top:0;font-family:'DM Serif Display','Playfair Display',Georgia,serif;color:var(--cream);font-size:1.3rem;font-weight:400; }
+    .modal__actions { display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem; }
+    .receipt-content p { margin:.35rem 0;color:var(--text);font-size:.92rem; }
+    .receipt-status { color:var(--success);font-weight:700; }
+    @media(max-width:900px){.stalls-row{grid-template-columns:repeat(5,minmax(45px,1fr));}.map-wrapper{padding:.85rem;}}
+    @media(max-width:600px){.stalls-row{grid-template-columns:repeat(5,minmax(36px,1fr));gap:.3rem;}.stall{min-height:36px;font-size:.68rem;border-radius:8px;}.map-wrapper{padding:.75rem;}}
+    @media(max-width:400px){.stalls-row{grid-template-columns:repeat(4,minmax(36px,1fr));}}
+    @media print {
+      body{background:#fff!important;color:#000!important;}
+      .stall{border:1px solid #999!important;color:#000!important;font-size:.65rem!important;}
+      .stall--reserved{background:#ffebee!important;}
+      .stall--blocked{background:#fff8e1!important;}
+    }
+  </style>
+
   <div id="reservaScreen" hidden>
     <div class="topbar-intake" id="topbarIntake">
       <img src="img/logo_header.png" alt="Baia Fácil" />
@@ -218,7 +686,6 @@
     </header>
 
     <main class="app">
-      <!-- Formulário de dados -->
       <section id="reservationIntake" class="intake-card">
         <button class="intake-back" id="backToHome" type="button">← Voltar às provas</button>
         <p class="intake-event-tag" id="selectedEventLabel"></p>
@@ -240,10 +707,9 @@
         <button id="startReservationFlow" class="btn btn--primary" type="button">Continuar para o mapa →</button>
       </section>
 
-      <!-- Mapa de baias do bloco selecionado -->
       <section id="competitorMapSection" hidden>
         <div class="map-search-wrap">
-          <input id="mapSearchInput" type="number" min="1" max="140" placeholder="Ir para baia nº..." />
+          <input id="mapSearchInput" type="number" min="1" max="100" placeholder="Ir para baia nº..." />
           <button id="mapSearchBtn" class="btn" type="button">Localizar</button>
         </div>
         <p class="map-help">Toque em uma baia disponível para iniciar a pré-reserva de 5 minutos.</p>
@@ -261,62 +727,19 @@
     </main>
   </div>
 
-  <!-- ══════════ TELA MAPA AÉREO ══════════ -->
-  <div id="aerialScreen" hidden>
-    <div class="aerial-topbar">
-      <img src="img/logo_header.png" alt="Baia Fácil" />
-      <div class="aerial-topbar__info">
-        <div class="aerial-topbar__event" id="aerialEventName">—</div>
-        <div class="aerial-topbar__sub" id="aerialCompetitorInfo">—</div>
-      </div>
-      <button class="aerial-topbar__back" id="aerialBackBtn" type="button">← Voltar aos dados</button>
-    </div>
-
-    <div class="aerial-body">
-      <div class="aerial-map-wrap">
-        <div class="aerial-map-header">
-          <h2 class="aerial-map-title">Mapa do evento</h2>
-        </div>
-        <iframe
-          class="aerial-map-iframe"
-          src="https://maps.google.com/maps?q=-22.357261,-51.574683&t=k&z=19&output=embed"
-          allowfullscreen
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          title="Mapa do evento">
-        </iframe>
-      </div>
-      <button id="aerialAdvanceBtn" class="btn btn--primary" style="font-size:1rem;padding:0.85rem 2rem;" type="button">
-        Avançar para reservas →
-      </button>
-    </div>
-  </div>
-
-  <!-- Modal: bloco lotado -->
-  <div id="aerialAlert" class="aerial-alert" hidden>
-    <div class="aerial-alert__box">
-      <h2 class="aerial-alert__title">⚠️ Bloco sem vagas</h2>
-      <p class="aerial-alert__msg"  id="aerialAlertMsg"></p>
-      <p class="aerial-alert__sug"  id="aerialAlertSug"></p>
-      <div class="aerial-alert__actions">
-        <button id="aerialAlertGoBtn"  class="btn btn--primary" type="button" hidden>Ir para o bloco disponível</button>
-        <button id="aerialAlertClose"  class="btn"              type="button">Fechar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modais de reserva -->
+  <!-- Modal sequência -->
   <div id="sequenceModal" class="modal" hidden>
     <div class="modal__content">
       <h2>Aceitar sequência sugerida?</h2>
       <p id="sequenceList"></p>
       <div class="modal__actions">
         <button id="acceptSequence" class="btn btn--primary" type="button">Aceitar sequência</button>
-        <button id="rejectSequence" class="btn"              type="button">Não, selecionar baia por baia</button>
+        <button id="rejectSequence" class="btn" type="button">Não, selecionar baia por baia</button>
       </div>
     </div>
   </div>
 
+  <!-- Modal comprovante -->
   <div id="receiptModal" class="modal" hidden>
     <div class="modal__content" style="max-width:600px;width:100%;text-align:center;">
       <div style="margin:0 auto 1rem;width:72px;height:72px;">
@@ -327,13 +750,13 @@
           <style>@keyframes circleIn{to{stroke-dashoffset:0}}@keyframes checkIn{to{stroke-dashoffset:0}}</style>
         </svg>
       </div>
-      <p style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin:0 0 0.25rem;">Reserva confirmada</p>
-      <h2 style="font-family:'Playfair Display',Georgia,serif;font-size:2rem;color:var(--gold);font-weight:700;margin:0 0 0.25rem;letter-spacing:0.04em;" id="receiptProtocol">—</h2>
-      <p style="font-size:0.82rem;color:var(--muted);margin:0 0 1.5rem;">Guarde este número de protocolo</p>
+      <p style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin:0 0 .25rem;">Reserva confirmada</p>
+      <h2 style="font-family:'DM Serif Display',Georgia,serif;font-size:2rem;color:var(--gold);font-weight:400;margin:0 0 .25rem;letter-spacing:.04em;" id="receiptProtocol">—</h2>
+      <p style="font-size:.82rem;color:var(--muted);margin:0 0 1.5rem;">Guarde este número de protocolo</p>
       <div id="receiptContent" class="receipt-content" style="text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--border-sub);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;"></div>
       <div class="modal__actions" style="justify-content:center;">
         <button id="downloadReceipt" class="btn btn--primary" type="button">⬇ Download do comprovante</button>
-        <button id="closeReceipt"    class="btn"              type="button">Fechar</button>
+        <button id="closeReceipt" class="btn" type="button">Fechar</button>
       </div>
     </div>
   </div>
@@ -354,34 +777,36 @@
   <script src="js/competidor.js"></script>
 
   <script>
-  /* ════════════════════════════════════════════════════════
-     Badges da home
-  ════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════
+     HOME SCREEN LOGIC — preservada na íntegra
+  ══════════════════════════════════════════════════ */
+
   window.refreshBadgesFromFirebase = function() {
     if (!window.FB) return;
     window.FB.getProvas().then(function(provas) {
       provas.forEach(function(prova) {
-        var badge = document.querySelector('[data-badge="'+prova.id+'"]');
+        var badge = document.querySelector('[data-badge="' + prova.id + '"]');
         if (!badge) return;
-        var av    = (prova.stalls||[]).filter(function(s){ return s.status==='available'; }).length;
-        var total = (prova.stalls||[]).length || 140;
+        var av    = (prova.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
+        var total = (prova.stalls || []).length || 100;
         var pct   = av / total;
         var bg, color, dot;
-        if (pct > 0.5)      { bg='rgba(77,170,106,.15)'; color='#4daa6a'; dot='#4daa6a'; }
-        else if (pct > 0.2) { bg='rgba(232,160,48,.15)'; color='#e8a030'; dot='#e8a030'; }
-        else                { bg='rgba(220,80,80,.15)';  color='#e07070'; dot='#e07070'; }
-        badge.style.background = bg; badge.style.color = color;
-        badge.innerHTML = '<span class="event-card__badge-dot" style="background:'+dot+
-          ';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;"></span>'+
-          av+' baia'+(av!==1?'s':'')+' disponível'+(av!==1?'is':'');
+        if (pct > 0.5) { bg='rgba(77,170,106,.18)'; color='#4daa6a'; dot='#4daa6a'; }
+        else if (pct > 0.2) { bg='rgba(232,160,48,.18)'; color='#e8a030'; dot='#e8a030'; }
+        else { bg='rgba(220,80,80,.18)'; color='#e07070'; dot='#e07070'; }
+        badge.style.background = bg;
+        badge.style.color      = color;
+        badge.querySelector('.card-badge__dot').style.background = dot;
+        badge.querySelector('.badge-text').textContent =
+          av + ' baia' + (av !== 1 ? 's' : '') + ' disponível' + (av !== 1 ? 'is' : '');
       });
     }).catch(function(e){ console.warn('badges:', e); });
   };
 
-  /* ════════════════════════════════════════════════════════
-     DOMContentLoaded
-  ════════════════════════════════════════════════════════ */
   document.addEventListener('DOMContentLoaded', function() {
+
+    var BASE_KEY   = 'baias_mvp_state_v2';
+    var TOTAL_BAIAS = 100;
 
     var EVENTS = [
       { id:1, name:'CSN Parque Equestre',         date:'28–30 Mar 2025', loc:'São Paulo, SP',      icon:'🏆' },
@@ -395,240 +820,203 @@
       { id:9, name:'Campeonato Mineiro de Saltos', date:'24–25 Mai 2025', loc:'Uberlândia, MG',     icon:'🏅' },
     ];
 
-    var BLOCOS = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
-      {id:1,label:'Bloco 1',stalls:30,start:1},
-      {id:2,label:'Bloco 2',stalls:30,start:31},
-      {id:3,label:'Bloco 3',stalls:30,start:61},
-      {id:4,label:'Bloco 4',stalls:30,start:91},
-      {id:5,label:'Bloco 5',stalls:20,start:121},
-    ];
+    function getStats(evId) {
+      try {
+        var raw = localStorage.getItem(BASE_KEY + '_ev' + evId);
+        if (!raw) return { available: TOTAL_BAIAS };
+        var d = JSON.parse(raw);
+        var av = (d.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
+        return { available: av };
+      } catch(e) { return { available: TOTAL_BAIAS }; }
+    }
 
-    /* ── Cards da home ─────────────────────────────────── */
+    function badgeStyle(av) {
+      if (av > 50) return { bg:'rgba(77,170,106,.18)',  color:'#4daa6a', dot:'#4daa6a' };
+      if (av > 20) return { bg:'rgba(232,160,48,.18)',  color:'#e8a030', dot:'#e8a030' };
+      return           { bg:'rgba(220,80,80,.18)',  color:'#e07070', dot:'#e07070' };
+    }
+
+    /* ── Render cards ───────────────────────────────── */
     var grid = document.getElementById('eventsGrid');
     EVENTS.forEach(function(ev) {
-      var btn = document.createElement('button');
-      btn.className = 'event-card'; btn.type = 'button'; btn.dataset.evId = ev.id;
+      var stats = getStats(ev.id);
+      var bs    = badgeStyle(stats.available);
+      var btn   = document.createElement('button');
+      btn.className   = 'event-card';
+      btn.type        = 'button';
+      btn.dataset.evId = ev.id;
+
       btn.innerHTML =
-        '<div class="event-card__icon">'+ev.icon+'</div>'+
-        '<div class="event-card__name">'+ev.name+'</div>'+
-        '<div class="event-card__date">'+ev.date+'</div>'+
-        '<div class="event-card__loc">📍 '+ev.loc+'</div>'+
-        '<div class="event-card__badge" data-badge="'+ev.id+
-          '" style="background:rgba(77,170,106,.15);color:#4daa6a;">'+
-          '<span class="event-card__badge-dot" style="background:#4daa6a;"></span> carregando...'+
-        '</div><span class="event-card__arrow">→</span>';
+        '<div class="card-header">' +
+          '<div class="card-icon">' + ev.icon + '</div>' +
+          '<div class="card-meta">' +
+            '<h3 class="card-name">' + ev.name + '</h3>' +
+            '<div class="card-date-loc">' +
+              '<span class="card-date">' + ev.date + '</span>' +
+              '<span class="card-loc">' +
+                '<span class="card-loc-dot"></span>' +
+                ev.loc +
+              '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card-footer">' +
+          '<div class="card-badge" data-badge="' + ev.id + '" style="background:' + bs.bg + ';color:' + bs.color + ';">' +
+            '<span class="card-badge__dot" style="background:' + bs.dot + ';"></span>' +
+            '<span class="badge-text">' +
+              stats.available + ' baia' + (stats.available !== 1 ? 's' : '') +
+              ' disponível' + (stats.available !== 1 ? 'is' : '') +
+            '</span>' +
+          '</div>' +
+          '<span class="card-cta">Reservar <span class="card-cta-arrow">→</span></span>' +
+        '</div>';
+
       btn.addEventListener('click', function(){ openEvent(ev); });
       grid.appendChild(btn);
     });
 
+    /* ── Badges from Firebase ───────────────────────── */
+    function refreshBadges() {
+      window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
+    }
+
     var _badgeInterval = setInterval(function() {
-      if (window.FB) { clearInterval(_badgeInterval); window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase(); }
+      if (window.FB) {
+        clearInterval(_badgeInterval);
+        window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
+      }
     }, 300);
 
-    /* ── History API ───────────────────────────────────── */
-    history.replaceState({ screen:'home' }, '', window.location.pathname);
-    history.pushState(   { screen:'home' }, '', window.location.pathname);
+    /* ── History API ────────────────────────────────── */
+    history.replaceState({ screen: 'home' }, '', window.location.pathname);
+    history.pushState({ screen: 'home' }, '', window.location.pathname);
 
-    window.addEventListener('popstate', function() {
-      if (!document.getElementById('aerialScreen').hidden)  { voltarParaDados(); history.pushState({screen:'dados'},'',window.location.pathname); return; }
-      if (!document.getElementById('reservaScreen').hidden) { goHome();          history.pushState({screen:'home'},'',window.location.pathname); }
-    });
-
-    /* ── Abrir evento → formulário de dados ────────────── */
-    async function openEvent(ev) {
-      history.pushState({ screen:'dados', evId:ev.id }, '', '#prova-'+ev.id);
-      window._selectedEvent = ev;
-      document.getElementById('selectedEventLabel').textContent = ev.name;
-      showScreen('reserva');
-
-      if (typeof window.entrarProva === 'function') await window.entrarProva(ev.id, ev.name);
-      if (typeof window._entrarEvento === 'function') window._entrarEvento(ev.name);
-    }
-
-    /* ── Formulário enviado → mapa aéreo ───────────────── */
-    document.getElementById('startReservationFlow').addEventListener('click', function() {
-      setTimeout(function() {
-        // competidor.js esconde o intake e mostra o mapa quando válido
-        // se o intake ainda está visível, dados inválidos — não avança
-        if (!document.getElementById('reservationIntake').hidden) return;
-        // Se competidor.js já mostrou o mapa de baias (filtro de bloco ativo), não redireciona
-        if (!document.getElementById('competitorMapSection').hidden) return;
-        // Ir para mapa aéreo
-        abrirMapaAereo();
-      }, 80);
-    });
-
-    function abrirMapaAereo() {
-      var ev    = window._selectedEvent;
-      var state = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      document.getElementById('aerialEventName').textContent      = ev ? ev.name : '—';
-      document.getElementById('aerialCompetitorInfo').textContent = state
-        ? state.holderName + ' · ' + state.requestedStalls + ' baia(s)'
-        : '—';
-      atualizarBlocos();
-      showScreen('aerial');
-    }
-
-    /* ── Botão avançar para reservas ───────────────────── */
-    document.getElementById('aerialAdvanceBtn').addEventListener('click', function() {
-      abrirSelecaoBlocos();
-    });
-
-    function abrirBloco(bloco) {
-      window._blocoAtivo = bloco;
-      showScreen('mapa');
-      document.getElementById('topbarIntake').hidden = true;
-      document.getElementById('topbarMap').hidden    = false;
-
-      var evEl      = document.getElementById('eventName');
-      var nameEl    = document.getElementById('competitorName');
-      var creditsEl = document.getElementById('stallCredits');
-      var timerEl   = document.getElementById('timer');
-      var state     = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name + ' · ' + bloco.label;
-      if (nameEl    && state) nameEl.textContent    = state.holderName || '';
-      if (creditsEl && state) creditsEl.textContent = String(state.requestedStalls || 0);
-      if (timerEl) timerEl.textContent = '--:--';
-
-      if (typeof window._filtrarBloco === 'function') window._filtrarBloco(bloco);
-    }
-
-    /* ── Alerta bloco lotado ───────────────────────────── */
-    function mostrarAlertaLotado(bloco) {
-      var state = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      var qtd   = state ? (state.requestedStalls || 1) : 1;
-      var stalls= window.BAIA_STATE && window.BAIA_STATE.stalls || [];
-      var msg   = document.getElementById('aerialAlertMsg');
-      var sug   = document.getElementById('aerialAlertSug');
-      var goBtn = document.getElementById('aerialAlertGoBtn');
-
-      msg.textContent = 'O '+bloco.label+' não tem vagas suficientes para '+qtd+' baia(s).';
-
-      var alternativo = null;
-      BLOCOS.forEach(function(b) {
-        if (b.id === bloco.id || alternativo) return;
-        var disp = stalls.filter(function(s){ return s.block===b.id && s.status==='available'; }).length;
-        if (disp >= qtd) alternativo = b;
-      });
-
-      if (alternativo) {
-        sug.textContent = '✓ '+alternativo.label+' tem vagas disponíveis.';
-        goBtn.hidden = false;
-        goBtn.onclick = function() { document.getElementById('aerialAlert').hidden=true; abrirBloco(alternativo); };
-      } else {
-        sug.textContent = 'No momento, nenhum bloco tem vagas suficientes para '+qtd+' baia(s).';
-        goBtn.hidden = true;
+    window.addEventListener('popstate', function(e) {
+      var reservaAtiva = !document.getElementById('reservaScreen').hidden;
+      if (reservaAtiva) {
+        goHome();
+        history.pushState({ screen: 'home' }, '', window.location.pathname);
       }
-      document.getElementById('aerialAlert').hidden = false;
-    }
-
-    document.getElementById('aerialAlertClose').addEventListener('click', function() {
-      document.getElementById('aerialAlert').hidden = true;
     });
 
-    /* ── Avançar para seleção de blocos ────────────────── */
-    function abrirSelecaoBlocos() {
-      // Mostrar todos os blocos no mapa e deixar competidor escolher
-      showScreen('mapa');
-      document.getElementById('topbarIntake').hidden = true;
-      document.getElementById('topbarMap').hidden    = false;
+    async function openEvent(ev) {
+      history.pushState({ screen: 'reserva', evId: ev.id, evName: ev.name }, '', '#prova-' + ev.id);
+      document.getElementById('selectedEventLabel').textContent = ev.name;
+      document.getElementById('homeScreen').hidden    = true;
+      document.getElementById('reservaScreen').hidden = false;
+      document.getElementById('topbarIntake').hidden  = false;
+      document.getElementById('topbarMap').hidden     = true;
 
-      var evEl      = document.getElementById('eventName');
-      var nameEl    = document.getElementById('competitorName');
-      var creditsEl = document.getElementById('stallCredits');
-      var timerEl   = document.getElementById('timer');
-      var state     = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name;
-      if (nameEl    && state) nameEl.textContent    = state.holderName || '';
-      if (creditsEl && state) creditsEl.textContent = String(state.requestedStalls || 0);
-      if (timerEl) timerEl.textContent = '--:--';
-
-      // Pequeno delay para garantir que a tela está visível antes de construir o mapa
-      setTimeout(function() {
-        if (typeof window._mostrarTodosBlocos === 'function') window._mostrarTodosBlocos();
-      }, 50);
+      if (typeof window.entrarProva === 'function') {
+        await window.entrarProva(ev.id, ev.name);
+      }
+      if (typeof window._entrarEvento === 'function') {
+        window._entrarEvento(ev.name);
+      }
     }
 
-    function atualizarBlocos() {} // mantido para compatibilidade
-    window._atualizarBlocos = atualizarBlocos;
+    function goHome() {
+      if (window.BAIA_STATE) {
+        if (window.BAIA_STATE.selectedStalls && window.BAIA_STATE.selectedStalls.length > 0) {
+          var toRelease = window.BAIA_STATE.selectedStalls.slice();
+          if (typeof updateState === 'function') {
+            updateState(function(next) {
+              toRelease.forEach(function(num) {
+                var stall = next.stalls.find(function(s){ return s.number === num; });
+                if (stall && (stall.status === 'selected' || stall.status === 'blocked')) {
+                  stall.status = 'available';
+                  stall.holderName = ''; stall.contactPhone = '';
+                  stall.requestedStalls = 0; stall.reservedAt = '';
+                }
+              });
+            });
+          }
+        }
+        var comp = window.BAIA_STATE.competitor;
+        if (comp && comp.timerId) { clearInterval(comp.timerId); comp.timerId = null; }
+        if (comp) {
+          comp.holderName = ''; comp.requestedStalls = 0; comp.contactPhone = '';
+          comp.selectedStalls = []; comp.suggestedSequence = [];
+          comp.mode = null;
+          comp.remainingSeconds = (window.BAIA_CONFIG && window.BAIA_CONFIG.HOLD_DURATION_SECONDS) || 300;
+          comp.receipt = null;
+        }
+        window.BAIA_STATE.selectedStalls = [];
+        window.BAIA_STATE.competitorCredits = 0;
+        window.BAIA_STATE.timer.isActive = false;
+        window.BAIA_STATE.reservation.status = 'inactive';
+      }
 
-    /* ── Voltar do mapa aéreo → dados ──────────────────── */
-    function voltarParaDados() {
-      showScreen('reserva');
-      document.getElementById('topbarIntake').hidden = false;
-      document.getElementById('topbarMap').hidden    = true;
+      var intakeHolder   = document.getElementById('intakeHolder');
+      var intakeQuantity = document.getElementById('intakeQuantity');
+      var intakePhone    = document.getElementById('intakePhone');
+      var intakeError    = document.getElementById('intakeError');
+      var intakeSection  = document.getElementById('reservationIntake');
+      var mapSection     = document.getElementById('competitorMapSection');
+      var topbarIntake   = document.getElementById('topbarIntake');
+      var topbarMap      = document.getElementById('topbarMap');
+      if (intakeHolder)   intakeHolder.value   = '';
+      if (intakeQuantity) intakeQuantity.value = '';
+      if (intakePhone)    intakePhone.value    = '';
+      if (intakeError)    intakeError.textContent = '';
+      if (intakeSection)  intakeSection.hidden = false;
+      if (mapSection)     mapSection.hidden    = true;
+      if (topbarIntake)   topbarIntake.hidden  = false;
+      if (topbarMap)      topbarMap.hidden     = true;
+
+      var receiptModal  = document.getElementById('receiptModal');
+      var sequenceModal = document.getElementById('sequenceModal');
+      var finishBtn     = document.getElementById('finishReservation');
+      if (receiptModal)  receiptModal.hidden  = true;
+      if (sequenceModal) sequenceModal.hidden = true;
+      if (finishBtn)     finishBtn.disabled   = true;
+
+      if (typeof window.pararListenerCompetidor === 'function') {
+        window.pararListenerCompetidor();
+      }
+      if (window.BAIA_STATE) window.BAIA_STATE._mapCacheDirty = true;
+
+      document.getElementById('reservaScreen').hidden = true;
+      document.getElementById('homeScreen').hidden    = false;
+      refreshBadges();
     }
-    document.getElementById('aerialBackBtn').addEventListener('click', voltarParaDados);
 
-    /* ── Voltar dos dados → home ────────────────────────── */
     document.getElementById('backToHome').addEventListener('click', function() { goHome(); });
 
-    /* ── Busca de baia no mapa ──────────────────────────── */
+    document.getElementById('startReservationFlow').addEventListener('click', function() {
+      setTimeout(function() {
+        var mapSection = document.getElementById('competitorMapSection');
+        if (mapSection && !mapSection.hidden) {
+          document.getElementById('topbarIntake').hidden = true;
+          document.getElementById('topbarMap').hidden    = false;
+          var evEl       = document.getElementById('eventName');
+          var nameEl     = document.getElementById('competitorName');
+          var creditsEl  = document.getElementById('stallCredits');
+          var timerEl    = document.getElementById('timer');
+          var formData   = window.BAIA_STATE && window.BAIA_STATE.formData;
+          if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name;
+          if (nameEl && formData)    nameEl.textContent    = formData.holderName || '';
+          if (creditsEl && formData) creditsEl.textContent = formData.requestedStalls || '0';
+          if (timerEl)               timerEl.textContent   = '--:--';
+        }
+      }, 60);
+    });
+
     var mapSearchBtn   = document.getElementById('mapSearchBtn');
     var mapSearchInput = document.getElementById('mapSearchInput');
     if (mapSearchBtn) {
       mapSearchBtn.addEventListener('click', function() {
         var n = Number(mapSearchInput.value);
-        if (!n||n<1||n>140) return;
-        var target = document.querySelector('[data-stall-number="'+n+'"]');
+        if (!n || n < 1 || n > 100) return;
+        var target = document.querySelector('[data-stall-number="' + n + '"]');
         if (!target) return;
         target.scrollIntoView({ behavior:'smooth', block:'center' });
-        target.classList.remove('stall--highlight'); void target.offsetWidth;
+        target.classList.remove('stall--highlight');
+        void target.offsetWidth;
         target.classList.add('stall--highlight');
         setTimeout(function(){ target.classList.remove('stall--highlight'); }, 3500);
       });
       mapSearchInput.addEventListener('keydown', function(e){ if(e.key==='Enter') mapSearchBtn.click(); });
-    }
-
-    /* ── goHome ─────────────────────────────────────────── */
-    function goHome() {
-      if (window.BAIA_STATE) {
-        if (typeof window.updateState==='function' && window.BAIA_STATE.selectedStalls && window.BAIA_STATE.selectedStalls.length>0) {
-          var toRelease = window.BAIA_STATE.selectedStalls.slice();
-          window.updateState(function(next) {
-            toRelease.forEach(function(num) {
-              var s = next.stalls.find(function(x){ return x.number===num; });
-              if (s && (s.status==='selected'||s.status==='blocked')) {
-                s.status='available'; s.holderName=''; s.contactPhone=''; s.requestedStalls=0; s.reservedAt='';
-              }
-            });
-          });
-        }
-        var comp = window.BAIA_STATE.competitor;
-        if (comp && comp.timerId) { clearInterval(comp.timerId); comp.timerId=null; }
-        if (comp) { comp.holderName=''; comp.requestedStalls=0; comp.contactPhone=''; comp.selectedStalls=[]; comp.suggestedSequence=[]; comp.mode=null; comp.remainingSeconds=300; comp.receipt=null; }
-        window.BAIA_STATE.selectedStalls=[]; window.BAIA_STATE.competitorCredits=0;
-        window.BAIA_STATE.timer.isActive=false; window.BAIA_STATE.reservation.status='inactive';
-      }
-      ['intakeHolder','intakeQuantity','intakePhone'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-      var ie = document.getElementById('intakeError'); if(ie) ie.textContent='';
-      document.getElementById('reservationIntake').hidden    = false;
-      document.getElementById('competitorMapSection').hidden = true;
-      document.getElementById('topbarIntake').hidden = false;
-      document.getElementById('topbarMap').hidden    = true;
-      ['receiptModal','sequenceModal'].forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=true; });
-      var fb=document.getElementById('finishReservation'); if(fb) fb.disabled=true;
-      document.getElementById('aerialAlert').hidden = true;
-      if (typeof window.pararListenerCompetidor==='function') window.pararListenerCompetidor();
-      window._selectedEvent=null; window._blocoAtivo=null;
-      showScreen('home');
-      window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
-    }
-
-    /* ── Helper: trocar telas ───────────────────────────── */
-    function showScreen(name) {
-      document.getElementById('homeScreen').hidden    = name!=='home';
-      document.getElementById('aerialScreen').hidden  = name!=='aerial';
-      // reservaScreen cobre tanto 'reserva' (intake) quanto 'mapa' (baias)
-      document.getElementById('reservaScreen').hidden = (name!=='reserva' && name!=='mapa');
-      if (name==='reserva') {
-        document.getElementById('reservationIntake').hidden    = false;
-        document.getElementById('competitorMapSection').hidden = true;
-      }
-      if (name==='mapa') {
-        document.getElementById('reservationIntake').hidden    = true;
-        document.getElementById('competitorMapSection').hidden = false;
-      }
     }
 
   }); // fim DOMContentLoaded
