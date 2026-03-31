@@ -378,12 +378,12 @@
           var creditsEl = document.getElementById('stallCredits');
           var timerEl   = document.getElementById('timer');
           var comp      = window.BAIA_STATE && window.BAIA_STATE.competitor;
-          if (evEl && _evNome)        evEl.textContent     = _evNome;
-          if (nameEl && comp)         nameEl.textContent   = comp.holderName || '';
-          if (creditsEl && comp)      creditsEl.textContent = String(comp.requestedStalls || '0');
-          if (timerEl)                timerEl.textContent  = '--:--';
+          if (evEl)      evEl.textContent      = document.getElementById('selectedEventLabel').textContent || '';
+          if (nameEl && comp)    nameEl.textContent    = comp.holderName || '';
+          if (creditsEl && comp) creditsEl.textContent = String(comp.requestedStalls || '0');
+          if (timerEl)           timerEl.textContent   = '--:--';
         }
-      }, 100);
+      }, 300);
     });
 
     var mapSearchBtn   = document.getElementById('mapSearchBtn');
