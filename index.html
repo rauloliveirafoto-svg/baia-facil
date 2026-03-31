@@ -366,21 +366,24 @@
 
     document.getElementById('startReservationFlow').addEventListener('click', function() {
       setTimeout(function() {
-        var mapSection = document.getElementById('competitorMapSection');
-        if (mapSection && !mapSection.hidden) {
+        var intakeSection = document.getElementById('reservationIntake');
+        if (intakeSection && intakeSection.hidden) {
           document.getElementById('topbarIntake').hidden = true;
           document.getElementById('topbarMap').hidden    = false;
-          var evEl       = document.getElementById('eventName');
-          var nameEl     = document.getElementById('competitorName');
-          var creditsEl  = document.getElementById('stallCredits');
-          var timerEl    = document.getElementById('timer');
-          var formData   = window.BAIA_STATE && window.BAIA_STATE.formData;
-          if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name;
-          if (nameEl && formData)    nameEl.textContent    = formData.holderName || '';
-          if (creditsEl && formData) creditsEl.textContent = formData.requestedStalls || '0';
-          if (timerEl)               timerEl.textContent   = '--:--';
+          if (typeof window._mostrarTodosBlocos === 'function') {
+            window._mostrarTodosBlocos();
+          }
+          var evEl      = document.getElementById('eventName');
+          var nameEl    = document.getElementById('competitorName');
+          var creditsEl = document.getElementById('stallCredits');
+          var timerEl   = document.getElementById('timer');
+          var comp      = window.BAIA_STATE && window.BAIA_STATE.competitor;
+          if (evEl && _evNome)        evEl.textContent     = _evNome;
+          if (nameEl && comp)         nameEl.textContent   = comp.holderName || '';
+          if (creditsEl && comp)      creditsEl.textContent = String(comp.requestedStalls || '0');
+          if (timerEl)                timerEl.textContent  = '--:--';
         }
-      }, 60);
+      }, 100);
     });
 
     var mapSearchBtn   = document.getElementById('mapSearchBtn');
