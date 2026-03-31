@@ -822,5 +822,13 @@
 
   }); // fim DOMContentLoaded
   </script>
+
+  <script>
+    window.addEventListener('load', function() {
+      if (document.getElementById('reservaScreen').hidden) {
+        document.getElementById('homeScreen').hidden = false;
+      }
+    });
+  </script>
 </body>
 </html>
