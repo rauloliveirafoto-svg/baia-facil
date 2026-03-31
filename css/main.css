@@ -72,14 +72,8 @@ body::after {
 
 .organizer-topbar { grid-template-columns: repeat(7, minmax(110px, 1fr)); }
 
-.topbar__logo {
-  display: flex; align-items: center;
-}
-
-.topbar__logo img {
-  height: 44px; width: auto;
-  border-radius: 6px;
-}
+.topbar__logo { display: flex; align-items: center; }
+.topbar__logo img { height: 44px; width: auto; border-radius: 6px; }
 
 .topbar__item {
   display: flex; flex-direction: column;
@@ -104,10 +98,7 @@ body::after {
 .topbar__feedback { color: var(--success); font-size: 0.88rem; white-space: normal; line-height: 1.25; }
 .topbar__nav { align-items: flex-start; }
 
-.link-btn {
-  text-decoration: none; color: var(--gold-light);
-  font-weight: 600; font-size: 0.88rem; transition: color .2s;
-}
+.link-btn { text-decoration: none; color: var(--gold-light); font-weight: 600; font-size: 0.88rem; transition: color .2s; }
 .link-btn:hover { color: var(--cream); }
 
 /* ── LAYOUT ─────────────────────────────── */
@@ -138,12 +129,7 @@ body::after {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.intake-card h1 {
-  margin: 0;
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 1.5rem; color: var(--cream); font-weight: 700;
-}
-
+.intake-card h1 { margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.5rem; color: var(--cream); font-weight: 700; }
 .intake-card > p { margin: 0; color: var(--muted); font-size: 0.9rem; }
 .validation-error { margin: 0; color: var(--danger); font-size: 0.85rem; min-height: 1rem; }
 
@@ -182,11 +168,7 @@ body::after {
 
 .block { border: 1px solid var(--border-sub); border-radius: 14px; padding: 0.75rem; background: rgba(255,255,255,.02); }
 
-.block__title {
-  margin: 0 0 0.5rem;
-  font-size: 0.78rem; color: var(--gold);
-  font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
-}
+.block__title { margin: 0 0 0.5rem; font-size: 0.78rem; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
 
 .stalls-row { display: grid; grid-template-columns: repeat(10, minmax(40px, 1fr)); gap: 0.45rem; }
 
@@ -441,10 +423,7 @@ body::after {
   padding-bottom: 0.5rem;
 }
 
-.block--vertical {
-  flex-shrink: 0;
-  min-width: 0;
-}
+.block--vertical { flex-shrink: 0; min-width: 0; }
 
 .stalls-two-cols {
   display: flex;
