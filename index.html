@@ -9,70 +9,41 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
-    /* ═══════════════════════════════════════════
-       REDESIGN VISUAL — só CSS, zero lógica
-    ═══════════════════════════════════════════ */
-    body::before {
-      background:
-        radial-gradient(ellipse 90% 70% at 15% 110%, rgba(30,90,38,0.25) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 50% at 85% -10%, rgba(201,168,76,0.10) 0%, transparent 50%),
-        linear-gradient(175deg, #04090a 0%, #06110c 40%, #081408 100%);
-    }
+    /* HOME */
     .home-screen { min-height:100dvh; display:flex; flex-direction:column; align-items:center; }
-    .home-header {
-      width:100%; padding:3.5rem 1.5rem 3rem;
-      display:flex; flex-direction:column; align-items:center;
-      position:relative; text-align:center; border-bottom:none;
-    }
-    .home-header::after {
-      content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%);
-      width:min(580px,80%); height:1px;
-      background:linear-gradient(90deg,transparent,rgba(201,168,76,0.55) 30%,rgba(201,168,76,0.75) 50%,rgba(201,168,76,0.55) 70%,transparent);
-    }
-    .home-header img { height:140px; width:auto; mix-blend-mode:lighten; filter:brightness(1.08); position:relative; z-index:1; display:block; margin-bottom:1.75rem; }
-    .home-header__sub { font-size:0.84rem; color:var(--muted); font-weight:300; letter-spacing:0.06em; margin:0; }
-    .hero-ornament { display:flex; align-items:center; gap:0.7rem; margin-bottom:0.75rem; }
-    .hero-ornament__line { width:48px; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.55)); }
-    .hero-ornament__line--r { background:linear-gradient(90deg,rgba(201,168,76,0.55),transparent); }
-    .hero-ornament__diamond { width:5px; height:5px; background:var(--gold); transform:rotate(45deg); opacity:0.85; }
-    .hero-eyebrow { font-size:0.66rem; font-weight:600; text-transform:uppercase; letter-spacing:0.22em; color:var(--gold); margin:0; }
-    .hero-title { font-family:'Playfair Display',Georgia,serif; font-size:clamp(1.7rem,4vw,2.5rem); font-weight:700; color:var(--cream); line-height:1.15; margin:0 0 0.5rem; }
-    .hero-title em { font-style:italic; color:var(--gold-light); }
-    .home-body { flex:1; width:100%; max-width:1160px; padding:2.5rem 1.25rem 4rem; display:flex; flex-direction:column; gap:1.5rem; position:relative; z-index:1; }
-    .section-header { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; padding-bottom:1rem; border-bottom:1px solid rgba(201,168,76,0.1); }
-    .home-section-title { font-family:'Playfair Display',Georgia,serif; font-size:1.2rem; color:var(--cream); font-weight:700; margin:0; }
-    .home-section-sub { display:none; }
-    .section-count { font-size:0.72rem; color:var(--muted); letter-spacing:0.08em; font-weight:500; text-transform:uppercase; white-space:nowrap; }
-    .events-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
-    .event-card {
-      background:rgba(10,24,14,0.75); border:1px solid rgba(201,168,76,0.14);
-      border-radius:18px; padding:0; cursor:pointer; text-align:left;
-      display:flex; flex-direction:column; position:relative; overflow:hidden;
-      transition:transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s ease, border-color 0.22s ease;
-      font-family:'DM Sans',sans-serif; backdrop-filter:blur(16px);
-    }
-    .event-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold-light) 60%,transparent); opacity:0; transition:opacity 0.25s ease; }
-    .event-card:hover { transform:translateY(-4px); border-color:rgba(201,168,76,0.42); box-shadow:0 14px 44px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.04); }
+    .home-header { width:100%; padding:2rem 1.25rem 1.25rem; display:flex; flex-direction:column; align-items:center; gap:0.4rem; border-bottom:1px solid rgba(201,168,76,0.12); }
+    .home-header img { height:160px; width:auto; mix-blend-mode:lighten; filter:brightness(1.05); }
+    .home-header__sub { font-size:0.78rem; color:var(--muted); letter-spacing:0.14em; text-transform:uppercase; margin:0; }
+    .home-body { flex:1; width:100%; max-width:1080px; padding:2rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.25rem; position:relative; z-index:1; }
+    .home-section-title { font-family:'Playfair Display',Georgia,serif; font-size:1.35rem; color:var(--cream); font-weight:700; margin:0 0 0.2rem; }
+    .home-section-sub { font-size:0.86rem; color:var(--muted); margin:0; }
+
+    /* Cards */
+    .events-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.9rem; }
+    .event-card { background:rgba(13,43,16,0.65); border:1px solid rgba(201,168,76,0.16); border-radius:16px; padding:1.3rem 1.15rem 1.1rem; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:0.5rem; position:relative; overflow:hidden; transition:transform .18s, box-shadow .18s, border-color .18s, background .18s; font-family:'DM Sans',sans-serif; }
+    .event-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); opacity:0; transition:opacity .2s; }
+    .event-card:hover { transform:translateY(-3px); border-color:rgba(201,168,76,0.42); background:rgba(13,43,16,0.9); box-shadow:0 10px 36px rgba(0,0,0,.45); }
     .event-card:hover::before { opacity:1; }
-    .event-card:active { transform:translateY(-2px); }
-    .card-header { padding:1.3rem 1.3rem 0.85rem; display:flex; gap:0.85rem; align-items:flex-start; flex:1; }
-    .card-icon { font-size:1.8rem; line-height:1; flex-shrink:0; margin-top:0.05rem; }
-    .card-meta { flex:1; min-width:0; }
-    .card-name { font-family:'Playfair Display',Georgia,serif; font-size:1rem; font-weight:700; color:var(--cream); line-height:1.22; margin:0 0 0.4rem; }
-    .card-date { font-size:0.73rem; color:var(--gold-light); font-weight:500; letter-spacing:0.04em; display:block; margin-bottom:0.2rem; }
-    .card-loc  { font-size:0.72rem; color:var(--muted); display:flex; align-items:center; gap:0.3rem; }
-    .card-loc-dot { width:3px; height:3px; border-radius:50%; background:var(--muted); flex-shrink:0; }
-    .card-footer { padding:0.65rem 1.3rem 1rem; display:flex; align-items:center; justify-content:space-between; border-top:1px solid rgba(255,255,255,0.05); gap:0.5rem; flex-wrap:wrap; }
-    .card-badge { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.7rem; font-weight:600; padding:0.2rem 0.55rem; border-radius:999px; flex-shrink:0; }
-    .card-badge__dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-    .card-cta { font-size:0.7rem; font-weight:600; color:var(--gold); letter-spacing:0.04em; text-transform:uppercase; display:flex; align-items:center; gap:0.25rem; opacity:0; transform:translateX(-4px); transition:opacity 0.2s ease,transform 0.2s ease; }
-    .event-card:hover .card-cta { opacity:1; transform:translateX(0); }
-    .organizer-wrap { display:flex; justify-content:center; padding-top:0.5rem; }
-    .organizer-btn { display:inline-flex; align-items:center; gap:0.55rem; padding:0.7rem 1.5rem; background:transparent; border:1px solid rgba(201,168,76,0.18); border-radius:999px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; cursor:pointer; text-decoration:none; letter-spacing:0.02em; transition:border-color 0.2s,color 0.2s,background 0.2s; }
-    .organizer-btn:hover { border-color:rgba(201,168,76,0.5); color:var(--gold-light); background:rgba(201,168,76,0.05); }
+    .event-card__icon { font-size:1.5rem; line-height:1; }
+    .event-card__name { font-family:'Playfair Display',Georgia,serif; font-size:0.97rem; font-weight:700; color:var(--cream); line-height:1.25; }
+    .event-card__date { font-size:0.76rem; color:var(--gold); font-weight:500; letter-spacing:0.04em; }
+    .event-card__loc { font-size:0.76rem; color:var(--muted); }
+    .event-card__badge { display:inline-flex; align-items:center; gap:0.3rem; font-size:0.7rem; font-weight:600; padding:0.18rem 0.5rem; border-radius:999px; width:fit-content; margin-top:0.15rem; }
+    .event-card__badge-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .event-card__arrow { position:absolute; bottom:0.9rem; right:1rem; font-size:1rem; color:var(--gold); opacity:0; transform:translateX(-4px); transition:opacity .18s, transform .18s; }
+    .event-card:hover .event-card__arrow { opacity:1; transform:translateX(0); }
+
+    /* Botão organizador */
+    .organizer-wrap { display:flex; justify-content:center; padding-top:0.75rem; }
+    .organizer-btn { display:inline-flex; align-items:center; gap:0.5rem; padding:0.65rem 1.4rem; background:transparent; border:1px solid rgba(201,168,76,0.25); border-radius:12px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.86rem; font-weight:500; cursor:pointer; text-decoration:none; transition:border-color .2s, color .2s, background .2s; }
+    .organizer-btn:hover { border-color:var(--gold); color:var(--gold-light); background:rgba(201,168,76,.06); }
+
+    /* Tela de reserva */
+    #reservaScreen { display:flex; flex-direction:column; min-height:100dvh; }
     .topbar-intake { display:flex; justify-content:center; align-items:center; padding:0.7rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); }
     .topbar-intake img { height:46px; width:auto; mix-blend-mode:lighten; filter:brightness(1.05); }
     .topbar-map { display:grid; grid-template-columns:auto 1fr 1fr 1fr auto; align-items:center; gap:0.5rem; padding:0.55rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); position:sticky; top:0; z-index:30; }
+    .topbar-map .t-logo img { height:36px; width:auto; mix-blend-mode:lighten; }
     .topbar-map .t-item { display:flex; flex-direction:column; gap:0.1rem; padding:0 0.5rem; border-left:1px solid var(--border-sub); }
     .topbar-map .t-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); font-weight:500; }
     .topbar-map .t-val { font-size:0.88rem; color:var(--cream); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -83,11 +54,12 @@
     .intake-back { background:none; border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.84rem; cursor:pointer; padding:0; display:flex; align-items:center; gap:0.35rem; transition:color .2s; margin-bottom:0.15rem; }
     .intake-back:hover { color:var(--gold-light); }
     .intake-event-tag { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin:0 0 0.15rem; }
+    .wz-icon { width:20px; height:20px; flex-shrink:0; }
     .map-search-wrap { display:flex; gap:0.5rem; margin-bottom:0.75rem; align-items:center; }
     .map-search-wrap input { flex:1; max-width:160px; }
-    #reservaScreen { display:flex; flex-direction:column; min-height:100dvh; }
-    @media(max-width:900px){ .events-grid{grid-template-columns:repeat(2,1fr);} .topbar-map{grid-template-columns:auto 1fr 1fr auto;} }
-    @media(max-width:580px){ .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;} .topbar-map{grid-template-columns:1fr 1fr;row-gap:0.4rem;} .topbar-map .t-logo{display:none;} .topbar-map .t-action{grid-column:1/-1;} .topbar-map .finish-btn{width:100%;} .card-cta{opacity:1;transform:none;} }
+
+    @media(max-width:900px) { .events-grid{grid-template-columns:repeat(2,1fr);} .topbar-map{grid-template-columns:auto 1fr 1fr auto;} }
+    @media(max-width:580px) { .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;} .topbar-map{grid-template-columns:1fr 1fr; row-gap:0.4rem;} .topbar-map .t-logo{display:none;} .topbar-map .t-action{grid-column:1/-1;} .topbar-map .finish-btn{width:100%;} }
   </style>
 </head>
 <body data-page="competidor">
@@ -96,26 +68,18 @@
   <div id="homeScreen" class="home-screen">
     <div class="home-header">
       <img src="img/logo.png" alt="Baia Fácil" />
-      <div class="hero-ornament">
-        <div class="hero-ornament__line"></div>
-        <div class="hero-ornament__diamond"></div>
-        <p class="hero-eyebrow">Reservas Equestres</p>
-        <div class="hero-ornament__diamond"></div>
-        <div class="hero-ornament__line hero-ornament__line--r"></div>
-      </div>
-      <h1 class="hero-title">Escolha seu <em>evento</em></h1>
-      <p class="home-header__sub">Selecione a prova e reserve suas baias em minutos</p>
+      <p class="home-header__sub">Reserva de baias para eventos equestres</p>
     </div>
     <div class="home-body">
-      <div class="section-header">
-        <h2 class="home-section-title">Provas disponíveis</h2>
-        <span class="section-count">9 eventos · temporada 2025</span>
+      <div>
+        <h1 class="home-section-title">Escolha sua prova</h1>
+        <p class="home-section-sub">Selecione o evento para reservar suas baias</p>
       </div>
       <div class="events-grid" id="eventsGrid"></div>
       <div class="organizer-wrap">
         <a href="login.html" class="organizer-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Acesso do organizador
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Sou organizador
         </a>
       </div>
     </div>
@@ -239,6 +203,7 @@
   <script src="js/competidor.js"></script>
 
   <script>
+  // Função global para atualizar badges dos cards com dados do Firebase
   window.refreshBadgesFromFirebase = function() {
     if (!window.FB) return;
     window.FB.getProvas().then(function(provas) {
@@ -254,16 +219,16 @@
         else { bg='rgba(220,80,80,.15)'; color='#e07070'; dot='#e07070'; }
         badge.style.background = bg;
         badge.style.color      = color;
-        var dotEl = badge.querySelector('.card-badge__dot');
-        var txtEl = badge.querySelector('.badge-text');
-        if (dotEl) dotEl.style.background = dot;
-        if (txtEl) txtEl.textContent = av + ' baia' + (av !== 1 ? 's' : '') + ' disponível' + (av !== 1 ? 'is' : '');
+        badge.innerHTML =
+          '<span class="event-card__badge-dot" style="background:' + dot + ';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;"></span>' +
+          av + ' baia' + (av !== 1 ? 's' : '') + ' disponível' + (av !== 1 ? 'is' : '');
       });
     }).catch(function(e){ console.warn('badges:', e); });
   };
 
   document.addEventListener('DOMContentLoaded', function() {
-    var BASE_KEY    = 'baias_mvp_state_v2';
+
+    var BASE_KEY   = 'baias_mvp_state_v2';
     var TOTAL_BAIAS = 100;
 
     var EVENTS = [
@@ -294,32 +259,25 @@
       return           { bg:'rgba(220,80,80,.15)',  color:'#e07070', dot:'#e07070' };
     }
 
+    // Renderiza cards
     var grid = document.getElementById('eventsGrid');
     EVENTS.forEach(function(ev) {
       var stats = getStats(ev.id);
       var bs    = badgeStyle(stats.available);
       var btn   = document.createElement('button');
-      btn.className    = 'event-card';
-      btn.type         = 'button';
+      btn.className   = 'event-card';
+      btn.type        = 'button';
       btn.dataset.evId = ev.id;
       btn.innerHTML =
-        '<div class="card-header">' +
-          '<div class="card-icon">' + ev.icon + '</div>' +
-          '<div class="card-meta">' +
-            '<div class="card-name">' + ev.name + '</div>' +
-            '<div class="card-date-loc">' +
-              '<span class="card-date">' + ev.date + '</span>' +
-              '<span class="card-loc"><span class="card-loc-dot"></span>' + ev.loc + '</span>' +
-            '</div>' +
-          '</div>' +
+        '<div class="event-card__icon">' + ev.icon + '</div>' +
+        '<div class="event-card__name">' + ev.name + '</div>' +
+        '<div class="event-card__date">' + ev.date + '</div>' +
+        '<div class="event-card__loc">📍 ' + ev.loc + '</div>' +
+        '<div class="event-card__badge" data-badge="' + ev.id + '" style="background:' + bs.bg + ';color:' + bs.color + ';">' +
+          '<span class="event-card__badge-dot" style="background:' + bs.dot + ';"></span> ' +
+          stats.available + ' baia' + (stats.available !== 1 ? 's' : '') + ' disponível' + (stats.available !== 1 ? 'is' : '') +
         '</div>' +
-        '<div class="card-footer">' +
-          '<div class="card-badge" data-badge="' + ev.id + '" style="background:' + bs.bg + ';color:' + bs.color + ';">' +
-            '<span class="card-badge__dot" style="background:' + bs.dot + ';"></span>' +
-            '<span class="badge-text">' + stats.available + ' baia' + (stats.available !== 1 ? 's' : '') + ' disponível' + (stats.available !== 1 ? 'is' : '') + '</span>' +
-          '</div>' +
-          '<span class="card-cta">Reservar →</span>' +
-        '</div>';
+        '<span class="event-card__arrow">→</span>';
       btn.addEventListener('click', function(){ openEvent(ev); });
       grid.appendChild(btn);
     });
@@ -329,7 +287,10 @@
     }
 
     var _badgeInterval = setInterval(function() {
-      if (window.FB) { clearInterval(_badgeInterval); refreshBadges(); }
+      if (window.FB) {
+        clearInterval(_badgeInterval);
+        window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
+      }
     }, 300);
 
     history.replaceState({ screen: 'home' }, '', window.location.pathname);
@@ -414,11 +375,11 @@
         if (mapSection && !mapSection.hidden) {
           document.getElementById('topbarIntake').hidden = true;
           document.getElementById('topbarMap').hidden    = false;
-          var evEl      = document.getElementById('eventName');
-          var nameEl    = document.getElementById('competitorName');
-          var creditsEl = document.getElementById('stallCredits');
-          var timerEl   = document.getElementById('timer');
-          var formData  = window.BAIA_STATE && window.BAIA_STATE.formData;
+          var evEl       = document.getElementById('eventName');
+          var nameEl     = document.getElementById('competitorName');
+          var creditsEl  = document.getElementById('stallCredits');
+          var timerEl    = document.getElementById('timer');
+          var formData   = window.BAIA_STATE && window.BAIA_STATE.formData;
           if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name;
           if (nameEl && formData)    nameEl.textContent    = formData.holderName || '';
           if (creditsEl && formData) creditsEl.textContent = formData.requestedStalls || '0';
