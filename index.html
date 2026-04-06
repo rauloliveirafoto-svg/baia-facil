@@ -38,19 +38,118 @@
     .home-body { flex:1; width:100%; max-width:1080px; padding:1.75rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.1rem; position:relative; z-index:1; }
     .home-section-title { font-family:'Poppins',sans-serif; font-size:1.25rem; color:var(--cream); font-weight:700; margin:0 0 0.15rem; letter-spacing:-0.01em; }
     .home-section-sub { font-size:0.84rem; color:var(--muted); margin:0; }
-    .events-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.9rem; }
-    .event-card { background:rgba(13,43,16,0.65); border:1px solid rgba(201,168,76,0.16); border-radius:16px; padding:1.3rem 1.15rem 1.1rem; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:0.5rem; position:relative; overflow:hidden; transition:transform .18s, box-shadow .18s, border-color .18s, background .18s; font-family:'DM Sans',sans-serif; }
-    .event-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); opacity:0; transition:opacity .2s; }
-    .event-card:hover { transform:translateY(-3px); border-color:rgba(201,168,76,0.42); background:rgba(13,43,16,0.9); box-shadow:0 10px 36px rgba(0,0,0,.45); }
+    /* ── CARDS HORIZONTAIS ─────────────────────────────── */
+    .events-grid { display:grid; grid-template-columns:1fr; gap:0.75rem; }
+
+    .event-card {
+      background: #122B24;
+      border: 1px solid rgba(212,175,55,0.1);
+      border-radius: 16px;
+      padding: 0;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s, border-color .2s;
+      font-family: 'Manrope', sans-serif;
+      min-height: 96px;
+    }
+
+    .event-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(212,175,55,0.28);
+      box-shadow: 0 8px 32px rgba(0,0,0,.45), 0 0 0 1px rgba(212,175,55,0.08);
+    }
+
+    /* Faixa dourada lateral esquerda no hover */
+    .event-card::before {
+      content:''; position:absolute; left:0; top:0; bottom:0; width:3px;
+      background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+      opacity:0; transition:opacity .2s;
+    }
     .event-card:hover::before { opacity:1; }
-    .event-card__icon { font-size:1.5rem; line-height:1; }
-    .event-card__name { font-family:'Playfair Display',Georgia,serif; font-size:0.97rem; font-weight:700; color:var(--cream); line-height:1.25; }
-    .event-card__date { font-size:0.76rem; color:var(--gold); font-weight:500; letter-spacing:0.04em; }
-    .event-card__loc { font-size:0.76rem; color:var(--muted); }
-    .event-card__badge { display:inline-flex; align-items:center; gap:0.3rem; font-size:0.7rem; font-weight:600; padding:0.18rem 0.5rem; border-radius:999px; width:fit-content; margin-top:0.15rem; }
+
+    /* Coluna do ícone/capa */
+    .event-card__cover {
+      width: 80px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(8,25,21,.6);
+      border-right: 1px solid rgba(255,255,255,.05);
+      font-size: 2rem;
+      border-radius: 0;
+    }
+
+    /* Coluna de conteúdo */
+    .event-card__body {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; justify-content: center;
+      gap: 0.2rem;
+      padding: 0.9rem 1rem;
+    }
+
+    .event-card__name {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem; font-weight: 700;
+      color: var(--cream); line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .event-card__meta {
+      display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+    }
+
+    .event-card__date {
+      font-size: 0.72rem; color: var(--gold);
+      font-weight: 600; letter-spacing: 0.03em;
+    }
+
+    .event-card__loc {
+      font-size: 0.72rem; color: var(--muted); font-weight: 500;
+    }
+
+    .event-card__badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.68rem; font-weight: 700;
+      padding: 0.2rem 0.55rem; border-radius: 999px;
+      width: fit-content; margin-top: 0.15rem;
+      border: 1px solid transparent;
+    }
+
     .event-card__badge-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-    .event-card__arrow { position:absolute; bottom:0.9rem; right:1rem; font-size:1rem; color:var(--gold); opacity:0; transform:translateX(-4px); transition:opacity .18s, transform .18s; }
-    .event-card:hover .event-card__arrow { opacity:1; transform:translateX(0); }
+
+    /* Coluna de ação */
+    .event-card__action {
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 1.25rem;
+      border-left: 1px solid rgba(255,255,255,.05);
+    }
+
+    .event-card__cta {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: linear-gradient(135deg, #D4AF37, #A88920);
+      color: #081915; font-family: 'Manrope', sans-serif;
+      font-size: 0.78rem; font-weight: 800;
+      padding: 0.5rem 1rem; border-radius: 8px;
+      white-space: nowrap;
+      box-shadow: 0 3px 12px rgba(212,175,55,.25);
+      transition: opacity .18s, transform .15s;
+    }
+    .event-card:hover .event-card__cta { opacity:.9; transform:scale(1.03); }
+
+    /* Ícone legado não usado mais, mas mantido para não quebrar nada */
+    .event-card__icon { display:none; }
+    .event-card__arrow { display:none; }
+
+    @media(max-width:580px) {
+      .event-card__action { padding:0 0.85rem; }
+      .event-card__cta { font-size:0.72rem; padding:0.45rem 0.75rem; }
+      .event-card__cover { width:60px; font-size:1.6rem; }
+      .event-card__name { font-size:0.88rem; }
+    }
     .organizer-wrap { display:flex; justify-content:center; padding-top:0.75rem; }
     .organizer-btn { display:inline-flex; align-items:center; gap:0.5rem; padding:0.65rem 1.4rem; background:transparent; border:1px solid rgba(201,168,76,0.25); border-radius:12px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.86rem; font-weight:500; cursor:pointer; text-decoration:none; transition:border-color .2s, color .2s, background .2s; }
     .organizer-btn:hover { border-color:var(--gold); color:var(--gold-light); background:rgba(201,168,76,.06); }
@@ -432,14 +531,21 @@
       var btn = document.createElement('button');
       btn.className = 'event-card'; btn.type = 'button'; btn.dataset.evId = ev.id;
       btn.innerHTML =
-        '<div class="event-card__icon">'+ev.icon+'</div>'+
-        '<div class="event-card__name">'+ev.name+'</div>'+
-        '<div class="event-card__date">'+ev.date+'</div>'+
-        '<div class="event-card__loc">📍 '+ev.loc+'</div>'+
-        '<div class="event-card__badge" data-badge="'+ev.id+
-          '" style="background:rgba(77,170,106,.15);color:#4daa6a;">'+
-          '<span class="event-card__badge-dot" style="background:#4daa6a;"></span> carregando...'+
-        '</div><span class="event-card__arrow">→</span>';
+        '<div class="event-card__cover">'+ev.icon+'</div>'+
+        '<div class="event-card__body">'+
+          '<div class="event-card__name">'+ev.name+'</div>'+
+          '<div class="event-card__meta">'+
+            '<span class="event-card__date">'+ev.date+'</span>'+
+            '<span class="event-card__loc">📍 '+ev.loc+'</span>'+
+          '</div>'+
+          '<div class="event-card__badge" data-badge="'+ev.id+
+            '" style="background:rgba(45,212,160,.1);color:#2DD4A0;border-color:rgba(45,212,160,.2);">'+
+            '<span class="event-card__badge-dot" style="background:#2DD4A0;"></span> carregando...'+
+          '</div>'+
+        '</div>'+
+        '<div class="event-card__action">'+
+          '<span class="event-card__cta">Reservar →</span>'+
+        '</div>';
       btn.addEventListener('click', function(){ openEvent(ev); });
       grid.appendChild(btn);
     });
