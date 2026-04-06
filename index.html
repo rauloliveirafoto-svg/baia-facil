@@ -12,12 +12,32 @@
   <style>
     /* ── HOME ─────────────────────────────────────────────── */
     .home-screen { min-height:100dvh; display:flex; flex-direction:column; align-items:center; }
-    .home-header { width:100%; padding:2.5rem 1.25rem 1.75rem; display:flex; flex-direction:column; align-items:center; gap:0.6rem; border-bottom:1px solid rgba(201,168,76,0.18); }
-    .home-header img { height:260px; width:auto; }
-    .home-header__sub { font-size:0.95rem; color:var(--gold-light); letter-spacing:0.22em; text-transform:uppercase; margin:0; font-weight:500; }
-    .home-body { flex:1; width:100%; max-width:1080px; padding:2rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.25rem; position:relative; z-index:1; }
-    .home-section-title { font-family:'Playfair Display',Georgia,serif; font-size:1.35rem; color:var(--cream); font-weight:700; margin:0 0 0.2rem; }
-    .home-section-sub { font-size:0.86rem; color:var(--muted); margin:0; }
+
+    /* Header compacto — ~130px altura total */
+    .home-header {
+      width:100%;
+      padding:1rem 1.5rem 0.9rem;
+      display:flex; flex-direction:row; align-items:center; justify-content:center; gap:1rem;
+      border-bottom:1px solid rgba(212,175,55,0.12);
+      background:rgba(8,25,21,0.96);
+      backdrop-filter:blur(20px);
+      position:sticky; top:0; z-index:20;
+      box-shadow:0 1px 0 rgba(212,175,55,0.06), 0 4px 32px rgba(0,0,0,.5);
+    }
+    .home-header img { height:52px; width:auto; flex-shrink:0; }
+    .home-header__brand { display:flex; flex-direction:column; gap:0.1rem; }
+    .home-header__name {
+      font-family:'Poppins',sans-serif; font-size:1.35rem; font-weight:700;
+      color:var(--cream); letter-spacing:-0.02em; line-height:1.1; margin:0;
+    }
+    .home-header__sub {
+      font-size:0.62rem; color:rgba(212,175,55,0.6);
+      letter-spacing:0.2em; text-transform:uppercase; margin:0; font-weight:600;
+    }
+
+    .home-body { flex:1; width:100%; max-width:1080px; padding:1.75rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.1rem; position:relative; z-index:1; }
+    .home-section-title { font-family:'Poppins',sans-serif; font-size:1.25rem; color:var(--cream); font-weight:700; margin:0 0 0.15rem; letter-spacing:-0.01em; }
+    .home-section-sub { font-size:0.84rem; color:var(--muted); margin:0; }
     .events-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.9rem; }
     .event-card { background:rgba(13,43,16,0.65); border:1px solid rgba(201,168,76,0.16); border-radius:16px; padding:1.3rem 1.15rem 1.1rem; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:0.5rem; position:relative; overflow:hidden; transition:transform .18s, box-shadow .18s, border-color .18s, background .18s; font-family:'DM Sans',sans-serif; }
     .event-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--gold),var(--gold-dark)); opacity:0; transition:opacity .2s; }
@@ -174,7 +194,10 @@
   <div id="homeScreen" class="home-screen">
     <div class="home-header">
       <img src="img/logo.png" alt="Baia Fácil" />
-      <p class="home-header__sub">Reserva de baias</p>
+      <div class="home-header__brand">
+        <p class="home-header__name">Baia Fácil</p>
+        <p class="home-header__sub">Reserva de baias</p>
+      </div>
     </div>
     <div class="home-body">
       <div>
