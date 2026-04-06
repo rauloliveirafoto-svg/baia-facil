@@ -22,9 +22,35 @@
   // ── Leitura ──────────────────────────────────────────────
   async function initProva(evId, evName) {
     var snap = await ref(evId).get();
-    if (snap.exists) return snap.data();
-    var stalls = Array.from({ length: 100 }, function(_, i) {
-      return { number: i+1, status:'available', holderName:'', contactPhone:'', requestedStalls:0, reservedAt:'' };
+    if (snap.exists) {
+      var data = snap.data();
+      // Se as baias existem mas não têm campo block (estrutura antiga),
+      // adicionar o campo block baseado no config para não quebrar filtros
+      if (data.stalls && data.stalls.length > 0 && !data.stalls[0].hasOwnProperty('block')) {
+        var blocos = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
+          {id:1,stalls:30,start:1},{id:2,stalls:30,start:31},{id:3,stalls:30,start:61},
+          {id:4,stalls:30,start:91},{id:5,stalls:20,start:121},
+        ];
+        data.stalls.forEach(function(s) {
+          var bloco = blocos.find(function(b){ return s.number >= b.start && s.number < b.start + b.stalls; });
+          s.block = bloco ? bloco.id : 1;
+        });
+        // Salvar estrutura migrada de volta
+        ref(evId).set(data).catch(function(e){ console.warn('[initProva] migração block:', e); });
+      }
+      return data;
+    }
+    // Criar prova nova com campo block desde o início
+    var blocos = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
+      {id:1,stalls:30,start:1},{id:2,stalls:30,start:31},{id:3,stalls:30,start:61},
+      {id:4,stalls:30,start:91},{id:5,stalls:20,start:121},
+    ];
+    var stalls = [];
+    blocos.forEach(function(bloco) {
+      for (var i = 0; i < bloco.stalls; i++) {
+        stalls.push({ number: bloco.start + i, block: bloco.id, status:'available',
+          holderName:'', contactPhone:'', requestedStalls:0, reservedAt:'' });
+      }
     });
     var data = { eventName: evName, stalls: stalls, reservations: [], updatedAt: new Date().toISOString() };
     await ref(evId).set(data);
@@ -41,7 +67,15 @@
   // ── Escrita ───────────────────────────────────────────────
   function salvar(evId, data) {
     data.updatedAt = new Date().toISOString();
-    return ref(evId).set(data).catch(function(e) { console.warn('[Firebase] salvar erro:', e); });
+    return ref(evId).set(data).catch(function(e) {
+      console.warn('[Firebase] salvar erro, tentando novamente em 3s:', e);
+      // Retry único após 3s — evita baias presas quando conexão cai momentaneamente
+      setTimeout(function() {
+        ref(evId).set(data).catch(function(e2) {
+          console.error('[Firebase] salvar falhou definitivamente:', e2);
+        });
+      }, 3000);
+    });
   }
 
   // ── Tempo real ────────────────────────────────────────────

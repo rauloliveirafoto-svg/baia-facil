@@ -260,8 +260,19 @@ document.addEventListener('DOMContentLoaded', function() {
     var numeros = state.mode==='sequence'
       ? state.selectedStalls.concat(state.suggestedSequence).slice(0, state.requestedStalls)
       : state.selectedStalls.slice(0, state.requestedStalls);
-    var now = new Date();
 
+    // Proteção: não confirmar reserva incompleta (modo manual com menos baias que o pedido)
+    if (numeros.length < state.requestedStalls) {
+      if (feedbackEl) feedbackEl.textContent =
+        'Selecione '+state.requestedStalls+' baia(s). Você selecionou '+numeros.length+'.';
+      finishBtn.disabled = false;
+      return;
+    }
+
+    // Proteção contra duplo submit
+    if (finishBtn.disabled) return;
+
+    var now = new Date();
     finishBtn.disabled = true;
     if (feedbackEl) feedbackEl.textContent = 'Confirmando reserva...';
 
