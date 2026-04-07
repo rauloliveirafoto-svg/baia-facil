@@ -248,15 +248,15 @@ body::after {
 
 /* ── STALL BUTTONS ───────────────────────── */
 .stall {
-  border: 1px solid rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.14);
   border-radius: 10px;
   min-height: var(--stall-size);
-  background: rgba(255,255,255,.04);
-  color: rgba(107,148,128,.7);
-  font-size: 0.7rem; font-weight: 700;
+  background: rgba(255,255,255,.09);
+  color: rgba(220,235,225,.85);
+  font-size: 0.82rem; font-weight: 900;
   cursor: pointer;
   font-family: 'Barlow Condensed', sans-serif;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   transition:
     transform .15s cubic-bezier(.16,1,.3,1),
     box-shadow .15s,
@@ -281,10 +281,10 @@ body::after {
 /* Disponível — verde vivo, muito legível */
 .stall:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.05);
-  background: rgba(34,196,122,.14);
-  border-color: rgba(34,196,122,.55);
-  color: #22C47A;
-  box-shadow: 0 6px 18px rgba(34,196,122,.18), 0 0 0 1px rgba(34,196,122,.2);
+  background: rgba(34,196,122,.22);
+  border-color: rgba(34,196,122,.7);
+  color: #AFFFDA;
+  box-shadow: 0 6px 18px rgba(34,196,122,.2), 0 0 0 1px rgba(34,196,122,.25);
 }
 
 /* Selecionada — dourado forte, destaque máximo */
@@ -293,37 +293,37 @@ body::after {
   border-color: var(--gold-light);
   color: #06100C;
   font-weight: 900;
+  text-shadow: none;
   box-shadow:
-    0 0 0 3px rgba(200,160,39,.35),
-    0 8px 28px rgba(200,160,39,.55),
-    0 0 40px rgba(200,160,39,.18);
+    0 0 0 3px rgba(200,160,39,.4),
+    0 8px 28px rgba(200,160,39,.5);
   transform: translateY(-2px) scale(1.04);
 }
 
 /* Bloqueada — amarelo apagado */
 .stall--blocked {
-  background: rgba(200,160,39,.08);
-  border-color: rgba(200,160,39,.22);
-  color: rgba(200,160,39,.45);
+  background: rgba(200,160,39,.12);
+  border-color: rgba(200,160,39,.3);
+  color: rgba(220,185,80,.7);
 }
 
 /* Reservada — vermelho claro, legível */
 .stall--reserved {
-  background: rgba(210,50,50,.12);
-  border-color: rgba(210,50,50,.32);
-  color: rgba(224,96,96,.8);
+  background: rgba(210,50,50,.18);
+  border-color: rgba(210,50,50,.45);
+  color: #EE8888;
 }
 
 /* Organizador */
 .stall--org-available {
-  background: rgba(34,196,122,.1);
-  border-color: rgba(34,196,122,.35);
-  color: #22C47A;
+  background: rgba(34,196,122,.16);
+  border-color: rgba(34,196,122,.5);
+  color: #4DDDA0;
 }
 .stall--org-reserved {
-  background: rgba(210,50,50,.1);
-  border-color: rgba(210,50,50,.32);
-  color: #DC6060;
+  background: rgba(210,50,50,.18);
+  border-color: rgba(210,50,50,.45);
+  color: #EE7070;
 }
 .stall--org-blocked {
   background: rgba(200,160,39,.09);
@@ -335,7 +335,7 @@ body::after {
   border-color: rgba(255,255,255,.07);
   color: rgba(107,148,128,.35);
 }
-.stall:disabled { cursor: not-allowed; opacity: .4; transform: none !important; box-shadow: none; }
+.stall:disabled { cursor: not-allowed; opacity: .5; transform: none !important; box-shadow: none; }
 
 /* ── BUTTONS ─────────────────────────────── */
 .finish-btn {
