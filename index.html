@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Baia Fácil | Reservas Equestres</title>
+  <link rel="icon" type="image/png" href="img/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -563,7 +564,7 @@
       var btn = document.createElement('button');
       btn.className = 'event-card'; btn.type = 'button'; btn.dataset.evId = ev.id;
       var coverContent = ev.img
-        ? '<img src="'+ev.img+'" alt="'+ev.name+'" />'
+        ? '<img src="'+ev.img+'" alt="'+ev.name+'" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><span style="font-size:2.6rem;display:none;align-items:center;justify-content:center;width:100%;height:100%;">'+ev.icon+'</span>'
         : '<span style="font-size:2.6rem;">'+ev.icon+'</span>';
       btn.innerHTML =
         '<div class="event-card__cover">'+coverContent+'</div>'+
@@ -651,6 +652,10 @@
       document.getElementById('aerialCompetitorInfo').textContent = state
         ? state.holderName + ' · ' + state.requestedStalls + ' baia(s)'
         : '—';
+      // Garantir listener ativo — pode ter sido parado ao voltar do mapa aéreo anteriormente
+      if (typeof window.iniciarListenerCompetidor === 'function') {
+        window.iniciarListenerCompetidor(null);
+      }
       atualizarBlocos();
       showScreen('aerial');
     }
