@@ -38,16 +38,15 @@
     .home-body { flex:1; width:100%; max-width:1080px; padding:1.75rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.1rem; position:relative; z-index:1; }
     .home-section-title { font-family:'Poppins',sans-serif; font-size:1.25rem; color:var(--cream); font-weight:700; margin:0 0 0.15rem; letter-spacing:-0.01em; }
     .home-section-sub { font-size:0.84rem; color:var(--muted); margin:0; }
-    /* ── GRID DE CARDS ─────────────────────────────────── */
+    /* ── GRID DE CARDS — 2 colunas estilo marketplace ──── */
     .events-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 0.85rem;
     }
-    @media(max-width:1024px) { .events-grid { grid-template-columns: repeat(3,1fr); } }
-    @media(max-width:700px)  { .events-grid { grid-template-columns: repeat(2,1fr); } }
-    @media(max-width:440px)  { .events-grid { grid-template-columns: 1fr; } }
+    @media(max-width:700px)  { .events-grid { grid-template-columns: 1fr; } }
 
+    /* Card horizontal — imagem esquerda, conteúdo direita */
     .event-card {
       background: #122B24;
       border: 1px solid rgba(212,175,55,0.1);
@@ -56,90 +55,105 @@
       cursor: pointer;
       text-align: left;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      align-items: stretch;
       position: relative;
       overflow: hidden;
       transition: transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s, border-color .2s;
       font-family: 'Manrope', sans-serif;
+      min-height: 160px;
     }
 
     .event-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(212,175,55,0.3);
-      box-shadow: 0 12px 36px rgba(0,0,0,.5), 0 0 0 1px rgba(212,175,55,0.08);
+      transform: translateY(-2px);
+      border-color: rgba(212,175,55,0.28);
+      box-shadow: 0 10px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(212,175,55,0.08);
     }
 
-    .event-card::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:2px;
-      background: linear-gradient(90deg, var(--gold), var(--gold-dark));
-      opacity:0; transition:opacity .2s;
-    }
-    .event-card:hover::before { opacity:1; }
-
-    /* Área do ícone/capa — topo do card */
+    /* Imagem lateral esquerda — largura fixa */
     .event-card__cover {
-      width: 100%; height: 80px; flex-shrink: 0;
+      width: 130px;
+      flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(8,25,21,.7);
-      border-bottom: 1px solid rgba(255,255,255,.05);
-      font-size: 2.2rem;
+      background: rgba(8,25,21,.8);
+      border-right: 1px solid rgba(255,255,255,.05);
+      font-size: 2.8rem;
+      overflow: hidden;
+      position: relative;
+    }
+    .event-card__cover img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
     }
 
-    /* Corpo do card */
+    /* Coluna direita — todo o conteúdo */
+    .event-card__right {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column;
+    }
+
+    /* Corpo: nome + meta + badge */
     .event-card__body {
       flex: 1; display: flex; flex-direction: column;
-      gap: 0.3rem; padding: 0.85rem 0.9rem 0.75rem;
+      gap: 0.28rem; padding: 0.9rem 1rem 0.6rem;
     }
 
     .event-card__name {
       font-family: 'Poppins', sans-serif;
-      font-size: 0.82rem; font-weight: 700;
+      font-size: 0.88rem; font-weight: 700;
       color: var(--cream); line-height: 1.3;
       display: -webkit-box; -webkit-line-clamp: 2;
       -webkit-box-orient: vertical; overflow: hidden;
     }
 
     .event-card__meta {
-      display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.1rem;
+      display: flex; flex-direction: column; gap: 0.15rem; margin-top: 0.15rem;
     }
 
     .event-card__date {
-      font-size: 0.68rem; color: var(--gold);
-      font-weight: 600; letter-spacing: 0.02em;
+      font-size: 0.7rem; color: rgba(212,175,55,.8);
+      font-weight: 600; display: flex; align-items: center; gap: 0.3rem;
     }
 
     .event-card__loc {
-      font-size: 0.67rem; color: var(--muted); font-weight: 500;
+      font-size: 0.68rem; color: var(--muted); font-weight: 500;
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+
+    .event-card__venue {
+      font-size: 0.67rem; color: rgba(168,193,184,.5); font-weight: 500;
+      display: flex; align-items: center; gap: 0.3rem;
     }
 
     .event-card__badge {
       display: inline-flex; align-items: center; gap: 0.28rem;
-      font-size: 0.64rem; font-weight: 700;
-      padding: 0.18rem 0.5rem; border-radius: 999px;
-      width: fit-content; margin-top: 0.25rem;
+      font-size: 0.63rem; font-weight: 700;
+      padding: 0.15rem 0.5rem; border-radius: 999px;
+      width: fit-content; margin-top: 0.2rem;
       border: 1px solid transparent;
     }
     .event-card__badge-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
 
-    /* Rodapé do card com botão */
+    /* Rodapé com botão — separado por borda */
     .event-card__action {
-      padding: 0 0.9rem 0.85rem;
+      padding: 0.6rem 1rem;
+      border-top: 1px solid rgba(255,255,255,.05);
     }
 
     .event-card__cta {
-      display: flex; align-items: center; justify-content: center; gap: 0.35rem;
-      width: 100%;
-      background: linear-gradient(135deg, #D4AF37, #A88920);
-      color: #081915; font-family: 'Manrope', sans-serif;
-      font-size: 0.74rem; font-weight: 800;
-      padding: 0.48rem 0.75rem; border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(212,175,55,.22);
-      transition: opacity .18s, box-shadow .18s;
-      letter-spacing: 0.01em;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: transparent;
+      border: 1px solid rgba(212,175,55,.35);
+      color: var(--gold); font-family: 'Manrope', sans-serif;
+      font-size: 0.74rem; font-weight: 700;
+      padding: 0.42rem 0.9rem; border-radius: 8px;
+      transition: background .18s, border-color .18s, color .18s;
+      letter-spacing: 0.01em; white-space: nowrap;
     }
     .event-card:hover .event-card__cta {
-      opacity: .92;
-      box-shadow: 0 4px 16px rgba(212,175,55,.35);
+      background: rgba(212,175,55,.1);
+      border-color: rgba(212,175,55,.6);
+      color: var(--gold-light);
     }
 
     .event-card__icon  { display:none; }
@@ -524,15 +538,15 @@
   document.addEventListener('DOMContentLoaded', function() {
 
     var EVENTS = [
-      { id:1, name:'CSN Parque Equestre',         date:'28–30 Mar 2025', loc:'São Paulo, SP',      icon:'🏆' },
-      { id:2, name:'Copa Brasil de Saltos',        date:'05–07 Abr 2025', loc:'Campinas, SP',       icon:'🥇' },
-      { id:3, name:'Torneio Haras das Palmeiras',  date:'12–13 Abr 2025', loc:'Jundiaí, SP',        icon:'🌴' },
-      { id:4, name:'Circuito Equestre Sul',        date:'19–21 Abr 2025', loc:'Curitiba, PR',       icon:'🐎' },
-      { id:5, name:'Grande Prêmio Itapeva',        date:'26–27 Abr 2025', loc:'Itapeva, SP',        icon:'🎖️' },
-      { id:6, name:'Festival de Adestramento',     date:'03–04 Mai 2025', loc:'Belo Horizonte, MG', icon:'🎠' },
-      { id:7, name:'Troféu Primavera',             date:'10–11 Mai 2025', loc:'Brasília, DF',       icon:'🌸' },
-      { id:8, name:'Copa Nordeste Equestre',       date:'17–18 Mai 2025', loc:'Recife, PE',         icon:'⭐' },
-      { id:9, name:'Campeonato Mineiro de Saltos', date:'24–25 Mai 2025', loc:'Uberlândia, MG',     icon:'🏅' },
+      { id:1, name:'Copa Brasil Três Tambores',              date:'28–30 Mar 2025', loc:'São Paulo, SP',      venue:'Parque Equestre',          icon:'🏆', img:'' },
+      { id:2, name:'Prova de Três Tambores — Troféu de Ouro',date:'05–07 Abr 2025', loc:'Campinas, SP',       venue:'Haras das Palmeiras',      icon:'🥇', img:'' },
+      { id:3, name:'Campeonato Laço de Ouro — Team Roping',  date:'12–13 Abr 2025', loc:'Jundiaí, SP',        venue:'Rancho Modelo',            icon:'🌴', img:'' },
+      { id:4, name:'Campeonato Três Tambores',               date:'19–21 Abr 2025', loc:'Curitiba, PR',       venue:'Centro Equestre Sul',      icon:'🐎', img:'' },
+      { id:5, name:'Grande Desafio — Team Roping',           date:'26–27 Abr 2025', loc:'Itapeva, SP',        venue:'Haras Itapeva',            icon:'🎖️', img:'' },
+      { id:6, name:'Circuito Estadual Três Tambores',        date:'03–04 Mai 2025', loc:'Belo Horizonte, MG', venue:'Parque de Exposições',     icon:'🎠', img:'' },
+      { id:7, name:'Festa dos Campeões — Três Tambores',     date:'10–11 Mai 2025', loc:'Brasília, DF',       venue:'Centro Hípico',            icon:'🌸', img:'' },
+      { id:8, name:'Revoredo Cup — Team Roping',             date:'17–18 Mai 2025', loc:'Recife, PE',         venue:'Rancho Revoredo',          icon:'⭐', img:'' },
+      { id:9, name:'Prova dos Três Tambores',                date:'24–25 Mai 2025', loc:'Uberlândia, MG',     venue:'Haras São Luiz',           icon:'🏅', img:'' },
     ];
 
     var BLOCOS = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
@@ -548,21 +562,35 @@
     EVENTS.forEach(function(ev) {
       var btn = document.createElement('button');
       btn.className = 'event-card'; btn.type = 'button'; btn.dataset.evId = ev.id;
+      var coverContent = ev.img
+        ? '<img src="'+ev.img+'" alt="'+ev.name+'" />'
+        : '<span style="font-size:2.6rem;">'+ev.icon+'</span>';
       btn.innerHTML =
-        '<div class="event-card__cover">'+ev.icon+'</div>'+
-        '<div class="event-card__body">'+
-          '<div class="event-card__name">'+ev.name+'</div>'+
-          '<div class="event-card__meta">'+
-            '<span class="event-card__date">📅 '+ev.date+'</span>'+
-            '<span class="event-card__loc">📍 '+ev.loc+'</span>'+
+        '<div class="event-card__cover">'+coverContent+'</div>'+
+        '<div class="event-card__right">'+
+          '<div class="event-card__body">'+
+            '<div class="event-card__name">'+ev.name+'</div>'+
+            '<div class="event-card__meta">'+
+              '<span class="event-card__date">'+
+                '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'+
+                ev.date+
+              '</span>'+
+              '<span class="event-card__loc">'+
+                '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+
+                ev.loc+
+              '</span>'+
+              (ev.venue ? '<span class="event-card__venue">'+
+                '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'+
+                ev.venue+'</span>' : '')+
+            '</div>'+
+            '<div class="event-card__badge" data-badge="'+ev.id+
+              '" style="background:rgba(45,212,160,.1);color:#2DD4A0;border-color:rgba(45,212,160,.2);">'+
+              '<span class="event-card__badge-dot" style="background:#2DD4A0;"></span> carregando...'+
+            '</div>'+
           '</div>'+
-          '<div class="event-card__badge" data-badge="'+ev.id+
-            '" style="background:rgba(45,212,160,.1);color:#2DD4A0;border-color:rgba(45,212,160,.2);">'+
-            '<span class="event-card__badge-dot" style="background:#2DD4A0;"></span> carregando...'+
+          '<div class="event-card__action">'+
+            '<span class="event-card__cta">Ver detalhes &rsaquo;</span>'+
           '</div>'+
-        '</div>'+
-        '<div class="event-card__action">'+
-          '<span class="event-card__cta">Reservar →</span>'+
         '</div>';
       btn.addEventListener('click', function(){ openEvent(ev); });
       grid.appendChild(btn);
