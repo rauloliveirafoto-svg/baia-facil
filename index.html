@@ -270,6 +270,24 @@
     .aerial-alert__sug   { font-size:0.88rem; color:var(--gold); font-weight:500; margin:0; }
     .aerial-alert__actions { display:flex; gap:0.6rem; flex-wrap:wrap; }
 
+    /* ── Loading overlay ao entrar numa prova ─────────── */
+    #homeLoadingOverlay {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+      background: rgba(8,25,21,0.92); backdrop-filter: blur(8px);
+    }
+    .home-loading__spinner {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 3px solid rgba(212,175,55,.2);
+      border-top-color: #D4AF37;
+      animation: spin .8s linear infinite;
+    }
+    .home-loading__text {
+      font-family: 'Manrope', sans-serif; font-size: 0.88rem;
+      color: rgba(212,175,55,.7); font-weight: 600; letter-spacing: 0.05em;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     @media(max-width:900px){ .events-grid{grid-template-columns:repeat(2,1fr);} }
     @media(max-width:580px){
       .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;}
@@ -458,6 +476,12 @@
     <button class="stall" type="button"><span class="stall__number"></span></button>
   </template>
 
+  <!-- Loading overlay ao entrar numa prova -->
+  <div id="homeLoadingOverlay" hidden>
+    <div class="home-loading__spinner"></div>
+    <span class="home-loading__text">Carregando evento...</span>
+  </div>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -558,14 +582,25 @@
     });
 
     /* ── Abrir evento → formulário de dados ────────────── */
+    var _abrindoEvento = false; // proteção contra clique duplo
     async function openEvent(ev) {
-      history.pushState({ screen:'dados', evId:ev.id }, '', '#prova-'+ev.id);
-      window._selectedEvent = ev;
-      document.getElementById('selectedEventLabel').textContent = ev.name;
-      showScreen('reserva');
+      if (_abrindoEvento) return;
+      _abrindoEvento = true;
+      // Loading visual enquanto Firebase carrega
+      var loadingEl = document.getElementById('homeLoadingOverlay');
+      if (loadingEl) loadingEl.hidden = false;
+      try {
+        history.pushState({ screen:'dados', evId:ev.id }, '', '#prova-'+ev.id);
+        window._selectedEvent = ev;
+        document.getElementById('selectedEventLabel').textContent = ev.name;
+        showScreen('reserva');
 
-      if (typeof window.entrarProva === 'function') await window.entrarProva(ev.id, ev.name);
-      if (typeof window._entrarEvento === 'function') window._entrarEvento(ev.name);
+        if (typeof window.entrarProva === 'function') await window.entrarProva(ev.id, ev.name);
+        if (typeof window._entrarEvento === 'function') window._entrarEvento(ev.name);
+      } finally {
+        _abrindoEvento = false;
+        if (loadingEl) loadingEl.hidden = true;
+      }
     }
 
     /* ── Formulário enviado → mapa aéreo ───────────────── */
@@ -677,11 +712,23 @@
 
     /* ── Voltar do mapa aéreo → dados ──────────────────── */
     function voltarParaDados() {
+      // Parar listener para evitar refreshMap em mapa potencialmente destruído
+      if (typeof window.pararListenerCompetidor === 'function') window.pararListenerCompetidor();
       showScreen('reserva');
       document.getElementById('topbarIntake').hidden = false;
       document.getElementById('topbarMap').hidden    = true;
     }
-    document.getElementById('aerialBackBtn').addEventListener('click', voltarParaDados);
+    document.getElementById('aerialBackBtn').addEventListener('click', function() {
+      var comp = window.BAIA_STATE && window.BAIA_STATE.competitor;
+      var temSelecao = comp && (
+        (comp.selectedStalls && comp.selectedStalls.length > 0) ||
+        (comp.suggestedSequence && comp.suggestedSequence.length > 0)
+      );
+      if (temSelecao && comp.timerId) {
+        if (!confirm('Você tem baias selecionadas. Voltar vai cancelar sua seleção e o timer. Deseja continuar?')) return;
+      }
+      voltarParaDados();
+    });
 
     /* ── Voltar dos dados → home ────────────────────────── */
     document.getElementById('backToHome').addEventListener('click', function() { goHome(); });
@@ -706,16 +753,22 @@
     /* ── goHome ─────────────────────────────────────────── */
     function goHome() {
       if (window.BAIA_STATE) {
-        if (typeof window.updateState==='function' && window.BAIA_STATE.selectedStalls && window.BAIA_STATE.selectedStalls.length>0) {
-          var toRelease = window.BAIA_STATE.selectedStalls.slice();
-          window.updateState(function(next) {
-            toRelease.forEach(function(num) {
-              var s = next.stalls.find(function(x){ return x.number===num; });
-              if (s && (s.status==='selected'||s.status==='blocked')) {
-                s.status='available'; s.holderName=''; s.contactPhone=''; s.requestedStalls=0; s.reservedAt='';
-              }
+        if (typeof window.updateState==='function') {
+          // Liberar selectedStalls E suggestedSequence — ambos podem ter baias presas no Firebase
+          var comp = window.BAIA_STATE.competitor;
+          var toRelease = (window.BAIA_STATE.selectedStalls || [])
+            .concat(comp ? (comp.suggestedSequence || []) : [])
+            .filter(function(v, i, a){ return a.indexOf(v) === i; }); // dedup
+          if (toRelease.length > 0) {
+            window.updateState(function(next) {
+              toRelease.forEach(function(num) {
+                var s = next.stalls.find(function(x){ return x.number===num; });
+                if (s && (s.status==='selected'||s.status==='blocked')) {
+                  s.status='available'; s.holderName=''; s.contactPhone=''; s.requestedStalls=0; s.reservedAt='';
+                }
+              });
             });
-          });
+          }
         }
         var comp = window.BAIA_STATE.competitor;
         if (comp && comp.timerId) { clearInterval(comp.timerId); comp.timerId=null; }
