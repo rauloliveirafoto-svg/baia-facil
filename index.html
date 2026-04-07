@@ -536,7 +536,14 @@
   /* ════════════════════════════════════════════════════════
      DOMContentLoaded
   ════════════════════════════════════════════════════════ */
-  document.addEventListener('DOMContentLoaded', function() {
+  function baiaImgFallback(img) {
+    img.onerror = null;
+    img.style.display = 'none';
+    var fallback = img.nextElementSibling;
+    if (fallback) fallback.style.display = 'flex';
+  }
+
+    document.addEventListener('DOMContentLoaded', function() {
 
     var EVENTS = [
       { id:1, name:'Copa Brasil Três Tambores',              date:'28–30 Mar 2025', loc:'São Paulo, SP',      venue:'Parque Equestre',          icon:'🏆', img:'img/events/ev1.png' },
@@ -564,7 +571,7 @@
       var btn = document.createElement('button');
       btn.className = 'event-card'; btn.type = 'button'; btn.dataset.evId = ev.id;
       var coverContent = ev.img
-        ? '<img src="'+ev.img+'" alt="'+ev.name+'" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" /><span style="font-size:2.6rem;display:none;align-items:center;justify-content:center;width:100%;height:100%;">'+ev.icon+'</span>'
+        ? '<img src="'+ev.img+'" alt="'+ev.name+'" onerror="baiaImgFallback(this)" /><span class="ev-icon-fallback" style="font-size:2.6rem;display:none;align-items:center;justify-content:center;width:100%;height:100%;">'+ev.icon+'</span>'
         : '<span style="font-size:2.6rem;">'+ev.icon+'</span>';
       btn.innerHTML =
         '<div class="event-card__cover">'+coverContent+'</div>'+
