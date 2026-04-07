@@ -12,7 +12,7 @@ var _unsub   = null;
 function fmt(n)           { return String(n).padStart(3,'0'); }
 function maskTel(v)       { var d=v.replace(/\D/g,'').slice(0,11); if(d.length<=2)return d; if(d.length<=6)return'('+d.slice(0,2)+') '+d.slice(2); if(d.length<=10)return'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6); return'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7); }
 function telValido(v)     { return v.replace(/\D/g,'').length>=8; }
-function protocolo()      { var n=new Date(); return 'BF-'+String(n.getFullYear()).slice(-2)+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'-'+String(Math.floor(Math.random()*9000)+1000); }
+function protocolo()      { var n=new Date(); return 'BF-'+String(n.getFullYear()).slice(-2)+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'-'+Date.now().toString(36).slice(-4).toUpperCase(); }
 
 // ── Storage ───────────────────────────────────────────────────
 function getState()       { return _cache; }

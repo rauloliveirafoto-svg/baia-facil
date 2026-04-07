@@ -50,12 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
   var elManPrev  = $('manualSelectedPreview');
   var elManFeed  = $('manualFeedback');
 
-  var EVENTOS = {
-    '1':'CSN Parque Equestre','2':'Copa Brasil de Saltos','3':'Torneio Haras das Palmeiras',
-    '4':'Circuito Equestre Sul','5':'Grande Prêmio Itapeva','6':'Festival de Adestramento',
-    '7':'Troféu Primavera','8':'Copa Nordeste Equestre','9':'Campeonato Mineiro de Saltos',
-  };
-
   // ── Estado ─────────────────────────────────────────────────
   var evId      = localStorage.getItem('baia_org_ev') || '1';
   var cache     = null;
@@ -120,7 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
   $('btnMoveReservation').addEventListener('click', function() {
     reqSel(function() {
       var dest = Number(elMove.value);
-      if (!dest||dest<1||dest>100) { msg('Destino inválido.',true); return; }
+      var totalBaias = (window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140;
+      if (!dest||dest<1||dest>totalBaias) { msg('Destino inválido.',true); return; }
       var ok = false;
       editarCache(function(next) {
         var src  = next.stalls.find(function(x){return x.number===selBaia;});
@@ -142,7 +137,18 @@ document.addEventListener('DOMContentLoaded', function() {
   $('cancelManualReservation').addEventListener('click', fecharManual);
   elManModal.addEventListener('click', function(e) { if(e.target===elManModal) fecharManual(); });
   $('confirmManualReservation').addEventListener('click', confirmarManual);
-  elManQtd.addEventListener('input', atualizarPrevManual);
+
+  // CORREÇÃO: ao mudar a quantidade na reserva manual, revalidar baias já selecionadas
+  // e remover o excesso caso a nova quantidade seja menor que a seleção atual
+  elManQtd.addEventListener('input', function() {
+    var novaQtd = Number(elManQtd.value) || 0;
+    if (novaQtd > 0 && manSel.length > novaQtd) {
+      // Remover baias excedentes (mantém as primeiras selecionadas)
+      manSel = manSel.slice(0, novaQtd);
+      renderMapaManual();
+    }
+    atualizarPrevManual();
+  });
 
   // Busca no mapa
   var elMapSearch    = $('orgMapSearch');
@@ -150,7 +156,8 @@ document.addEventListener('DOMContentLoaded', function() {
   if (elMapSearchBtn) {
     function buscarNoMapa() {
       var n = Number(elMapSearch.value);
-      if (!n||n<1||n>100) return;
+      var totalBaias = (window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140;
+      if (!n||n<1||n>totalBaias) return;
       var btn = elMap.querySelector('[data-stall-number="'+n+'"]');
       if (!btn) return;
       btn.scrollIntoView({behavior:'smooth',block:'center'});
@@ -163,6 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   $('exportCsv').addEventListener('click', exportCSV);
+
+  // CORREÇÃO: botão "Exportar PDF" existia no HTML mas sem listener — implementado aqui
+  $('exportPdf').addEventListener('click', exportPDF);
+
   $('printMap').addEventListener('click', function() { window.print(); });
 
   // ── Funções ────────────────────────────────────────────────
@@ -246,14 +257,20 @@ document.addEventListener('DOMContentLoaded', function() {
       var okNum    = numBusca ? s.number===numBusca : true;
       return okNome && okStatus && okNum;
     }).sort(function(a,b){return a.number-b.number;});
+    // CORREÇÃO: resetar para página 1 ao mudar filtro para garantir que o botão
+    // "Mostrar mais" seja removido corretamente antes de renderizar a nova listagem
+    pagina = 1;
     renderPagina();
   }
 
   function renderPagina() {
     elTable.innerHTML='';
+    // CORREÇÃO: sempre remover o botão órfão antes de decidir se deve recriar
+    removerMaisBtn();
+
     if (!linhas.length) {
       elTable.innerHTML='<tr class="empty-row"><td colspan="6">Nenhuma baia encontrada.</td></tr>';
-      removerMaisBtn(); return;
+      return;
     }
     linhas.slice(0, pagina*PAGE).forEach(function(s) {
       var tr = document.createElement('tr');
@@ -282,16 +299,14 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     var total = linhas.length, vis = Math.min(pagina*PAGE, total);
-    var btn = document.getElementById('maisLinhasBtn');
-    if (vis >= total) { if(btn) btn.remove(); return; }
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.id='maisLinhasBtn'; btn.className='btn'; btn.type='button';
-      btn.style.cssText='width:100%;margin-top:.5rem;font-size:.84rem;';
-      btn.addEventListener('click', function(){pagina++;renderPagina();});
-      elTable.closest('.table-wrap').after(btn);
-    }
+    if (vis >= total) return;
+
+    var btn = document.createElement('button');
+    btn.id='maisLinhasBtn'; btn.className='btn'; btn.type='button';
+    btn.style.cssText='width:100%;margin-top:.5rem;font-size:.84rem;';
     btn.textContent = 'Mostrar mais — '+vis+' de '+total+' baias';
+    btn.addEventListener('click', function(){ pagina++; renderPagina(); });
+    elTable.closest('.table-wrap').after(btn);
   }
 
   function removerMaisBtn() { var b=document.getElementById('maisLinhasBtn'); if(b) b.remove(); }
@@ -377,5 +392,37 @@ document.addEventListener('DOMContentLoaded', function() {
     var a    = Object.assign(document.createElement('a'),{href:url,download:'reservas.csv'});
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     msg('CSV exportado!');
+  }
+
+  // CORREÇÃO: implementar exportação em PDF (era botão sem listener)
+  function exportPDF() {
+    if (!cache) return;
+    var evNome = elSel.options[elSel.selectedIndex] ? elSel.options[elSel.selectedIndex].text : 'Evento';
+    var now    = new Date().toLocaleString('pt-BR');
+    var reservadas = cache.stalls.filter(function(s){return s.status==='reserved';});
+    var rows = reservadas.map(function(s){
+      return '<tr><td>'+fmt(s.number)+'</td><td>'+esc(s.holderName||'—')+'</td>'+
+        '<td>'+(s.requestedStalls||'—')+'</td><td>'+esc(s.contactPhone||'—')+'</td>'+
+        '<td>'+(s.reservedAt?new Date(s.reservedAt).toLocaleString('pt-BR'):'—')+'</td></tr>';
+    }).join('');
+    var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>'+
+      '<title>Reservas — '+esc(evNome)+'</title>'+
+      '<style>body{font-family:\'Segoe UI\',sans-serif;margin:2rem;color:#1c2431}'+
+      'h1{font-size:1.3rem;margin-bottom:.25rem}p{color:#666;font-size:.85rem;margin:0 0 1rem}'+
+      'table{width:100%;border-collapse:collapse;font-size:.88rem}'+
+      'th,td{padding:.45rem .6rem;border:1px solid #ddd;text-align:left}'+
+      'th{background:#060f08;color:#c9a84c;font-weight:600}tr:nth-child(even){background:#f9f9f9}'+
+      '.footer{margin-top:1.5rem;font-size:.75rem;color:#999;border-top:1px solid #eee;padding-top:.5rem}'+
+      '@media print{body{margin:1cm}}</style></head><body>'+
+      '<h1>Reservas — '+esc(evNome)+'</h1><p>Gerado em '+now+' · '+reservadas.length+' reserva(s)</p>'+
+      '<table><thead><tr><th>Baia</th><th>Titular</th><th>Qtd.</th><th>Contato</th><th>Reservado em</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody></table>'+
+      '<div class="footer">Baia Fácil · '+esc(evNome)+'</div>'+
+      '<script>window.onload=function(){window.print();}<\/script></body></html>';
+    var blob = new Blob([html],{type:'text/html;charset=utf-8'});
+    var url  = URL.createObjectURL(blob);
+    var a    = Object.assign(document.createElement('a'),{href:url,download:'reservas-'+evId+'.html'});
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    msg('PDF gerado! Abra o arquivo e use Ctrl+P para imprimir.');
   }
 });
