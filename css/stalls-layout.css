@@ -10,14 +10,15 @@
   align-items: flex-start; gap: 0;
   overflow-x: auto;
   padding: 1.5rem 1.25rem;
-  background: rgba(8,25,21,.55);
-  border: 1px solid rgba(212,175,55,.1);
-  border-radius: 20px; width: 100%;
+  background: rgba(3,9,6,.4);
+  border: 1px solid rgba(200,160,39,.12);
+  border-top: 2px solid rgba(200,160,39,.2);
+  border-radius: 18px; width: 100%;
   scrollbar-width: thin;
-  scrollbar-color: rgba(212,175,55,.2) transparent;
+  scrollbar-color: rgba(200,160,39,.25) transparent;
 }
 .stalls-grid-horizontal::-webkit-scrollbar { height: 4px; }
-.stalls-grid-horizontal::-webkit-scrollbar-thumb { background: rgba(212,175,55,.2); border-radius: 999px; }
+.stalls-grid-horizontal::-webkit-scrollbar-thumb { background: rgba(200,160,39,.25); border-radius: 999px; }
 .stalls-grid-horizontal::-webkit-scrollbar-track { background: transparent; }
 
 .block--vertical {
@@ -27,8 +28,8 @@
   padding: 0 0.65rem;
 }
 .block--vertical .block__title {
-  text-align: center; margin-bottom: 0.8rem;
-  white-space: nowrap; font-size: 0.66rem; letter-spacing: 0.12em;
+  text-align: center; margin-bottom: 0.85rem;
+  white-space: nowrap;
 }
 
 .corridor--vertical {
@@ -36,37 +37,40 @@
   align-items: center; justify-content: center;
   width: 28px; flex-shrink: 0; align-self: stretch;
   border: none !important;
-  border-left: 1px dashed rgba(212,175,55,.1) !important;
-  border-right: 1px dashed rgba(212,175,55,.1) !important;
+  border-left: 1px dashed rgba(200,160,39,.1) !important;
+  border-right: 1px dashed rgba(200,160,39,.1) !important;
   background: none !important; margin: 0 0.15rem;
 }
 .corridor--vertical span {
   writing-mode: vertical-rl; text-orientation: mixed;
-  font-size: 0.56rem; color: rgba(126,168,152,.22);
+  font-size: 0.56rem; color: rgba(107,148,128,.22);
   text-transform: uppercase; letter-spacing: 0.14em;
-  white-space: nowrap; font-weight: 700;
+  white-space: nowrap;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
 }
 
-/* Baias quadradas */
-.stalls-two-cols { display: flex; flex-direction: row; gap: 0.42rem; }
-.stalls-col { display: flex; flex-direction: column; gap: 0.42rem; }
+/* Baias quadradas — competidor */
+.stalls-two-cols { display: flex; flex-direction: row; gap: 0.48rem; }
+.stalls-col { display: flex; flex-direction: column; gap: 0.48rem; }
 .stalls-col .stall {
-  width: 58px; height: 58px; min-height: unset;
-  font-size: 0.7rem; padding: 0;
+  width: 62px; height: 62px; min-height: unset;
+  font-size: 0.72rem; padding: 0;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 12px; font-weight: 700;
+  border-radius: 10px;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+  letter-spacing: 0.04em;
 }
 
 @media (max-width: 700px) {
   .stalls-grid-horizontal { flex-direction: column; padding: 1rem 0.85rem; }
   .block--vertical { width: 100%; padding: 0; }
   .stalls-two-cols { justify-content: center; }
-  .stalls-col .stall { width: 48px; height: 48px; font-size: 0.64rem; }
+  .stalls-col .stall { width: 52px; height: 52px; font-size: 0.66rem; }
   .corridor--vertical {
     flex-direction: row; min-width: unset; min-height: 24px; width: 100%;
     border-left: none !important; border-right: none !important;
-    border-top: 1px dashed rgba(212,175,55,.1) !important;
-    border-bottom: 1px dashed rgba(212,175,55,.1) !important;
+    border-top: 1px dashed rgba(200,160,39,.1) !important;
+    border-bottom: 1px dashed rgba(200,160,39,.1) !important;
     margin: 0.2rem 0;
   }
   .corridor--vertical span { writing-mode: horizontal-tb; }
