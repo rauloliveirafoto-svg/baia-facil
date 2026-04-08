@@ -210,8 +210,8 @@
 
     /* ── TELA RESERVA (formulário + mapa de baias) ─────────── */
     #reservaScreen { display:flex; flex-direction:column; min-height:100dvh; }
-    .topbar-intake { display:none !important; }
-    .topbar-intake img { height:42px; width:auto; }
+    .topbar-intake { display:flex; justify-content:center; align-items:center; padding:0 2.5rem; min-height:80px; background:#081510; background-image:radial-gradient(ellipse 80% 120% at 50% -10%, rgba(28,61,42,0.85) 0%, transparent 65%); backdrop-filter:blur(28px); border-bottom:2px solid rgba(200,160,39,0.5); box-shadow:0 1px 0 rgba(200,160,39,0.06),0 8px 40px rgba(0,0,0,.8); }
+    .topbar-intake img { height:56px; width:auto; filter:drop-shadow(0 1px 8px rgba(0,0,0,.7)); transition:transform .2s ease; }
     .topbar-map { display:grid; grid-template-columns:auto 1fr 1fr 1fr auto; align-items:center; gap:0.5rem; padding:0.75rem 2rem; background:linear-gradient(175deg,#112D1F 0%,#071410 100%); backdrop-filter:blur(28px); border-bottom:3px solid rgba(200,160,39,.35); box-shadow:inset 0 -1px 0 rgba(200,160,39,.08),0 6px 0 rgba(0,0,0,.3),0 12px 60px rgba(0,0,0,.75); position:sticky; top:0; z-index:30; }
     .topbar-map .t-item { display:flex; flex-direction:column; gap:0.1rem; padding:0 0.5rem; border-left:1px solid var(--border-sub); }
     .topbar-map .t-label { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.16em; color:rgba(200,160,39,.8); font-weight:700; font-family:'Barlow Condensed',sans-serif; }
@@ -408,7 +408,7 @@
   <!-- ══════════ TELA DADOS + MAPA BAIAS ══════════ -->
   <div id="reservaScreen" hidden>
     <div class="topbar-intake" id="topbarIntake">
-      <img src="img/logo_header.png" alt="Baia Fácil" />
+      <img src="img/logo.png" alt="Baia Fácil" />
     </div>
     <header class="topbar-map" id="topbarMap" hidden>
       <div class="t-item">
@@ -478,7 +478,7 @@
   <!-- ══════════ TELA MAPA AÉREO ══════════ -->
   <div id="aerialScreen" hidden>
     <div class="aerial-topbar">
-      <img src="img/logo_header.png" alt="Baia Fácil" />
+      <img src="img/logo.png" alt="Baia Fácil" />
       <div class="aerial-topbar__info">
         <div class="aerial-topbar__event" id="aerialEventName">—</div>
         <div class="aerial-topbar__sub" id="aerialCompetitorInfo">—</div>
