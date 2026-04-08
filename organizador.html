@@ -2,6 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="img/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Baia Fácil | Organizador</title>
     <!-- Auth — verificado antes de renderizar qualquer coisa -->
@@ -120,7 +121,7 @@
         background: rgba(224,82,82,.12);
         border: 1px solid rgba(224,82,82,.3);
         border-radius: 10px;
-        color: #e07070; font-family: 'DM Sans', sans-serif;
+        color: #e07070; font-family: 'Manrope', sans-serif;
         font-size: 0.86rem; font-weight: 600; cursor: pointer;
         transition: background .2s, border-color .2s, color .2s;
         white-space: nowrap;
@@ -142,8 +143,8 @@
       .ctrl-col { display: flex; flex-direction: column; gap: 0.75rem; }
 
       .col-title {
-        font-family: 'Playfair Display', Georgia, serif;
-        font-size: 1.1rem; color: var(--cream); font-weight: 700; margin: 0 0 0.1rem;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 1.25rem; color: var(--cream); font-weight: 800; margin: 0 0 0.1rem; text-transform: uppercase; letter-spacing: 0.04em;
       }
       .col-sub { font-size: 0.82rem; color: var(--muted); margin: 0; }
 
@@ -234,8 +235,8 @@
       }
 
       .manual-modal__head h2 {
-        font-family: 'Playfair Display', Georgia, serif;
-        font-size: 1.2rem; color: var(--cream); margin: 0;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 1.4rem; color: var(--cream); margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;
       }
 
       .manual-modal__close {
@@ -333,7 +334,7 @@
               <span><i class="dot dot--org-maintenance"></i>Manutenção</span>
             </div>
             <div class="map-search-wrap" style="margin:0;">
-              <input id="orgMapSearch" type="number" min="1" max="100" placeholder="Ir para baia nº..." />
+              <input id="orgMapSearch" type="number" min="1" max="140" placeholder="Ir para baia nº..." />
               <button id="orgMapSearchBtn" class="btn" type="button">Localizar</button>
             </div>
           </div>
@@ -381,7 +382,7 @@
             <div class="form-row" style="margin-bottom:0.4rem;">
               <label for="moveTargetInput">Mover reserva para baia nº</label>
               <div class="inline-row">
-                <input id="moveTargetInput" type="number" min="1" max="100" placeholder="Ex: 77" />
+                <input id="moveTargetInput" type="number" min="1" max="140" placeholder="Ex: 77" />
                 <button id="btnMoveReservation" class="btn" type="button">Mover</button>
               </div>
             </div>
@@ -403,7 +404,7 @@
               <option value="available">Disponível</option>
               <option value="maintenance">Manutenção</option>
             </select>
-            <input id="findStall" type="number" min="1" max="100" placeholder="Nº da baia" />
+            <input id="findStall" type="number" min="1" max="140" placeholder="Nº da baia" />
           </div>
 
           <div class="table-wrap">
@@ -455,7 +456,7 @@
           </div>
           <div class="form-row" style="max-width:120px;">
             <label for="manualQty">Qtd. baias *</label>
-            <input id="manualQty" type="number" min="1" max="100" placeholder="Ex: 3" />
+            <input id="manualQty" type="number" min="1" max="140" placeholder="Ex: 3" />
           </div>
         </div>
 
