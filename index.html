@@ -14,48 +14,28 @@
     /* ── HOME ─────────────────────────────────────────────── */
     .home-screen { min-height:100dvh; display:flex; flex-direction:column; align-items:center; }
 
-    /* Header institucional */
+    /* Header — logo centralizado, fundo SEQM-inspired */
     .home-header {
       width:100%;
-      padding:0;
-      display:flex; flex-direction:row; align-items:stretch; justify-content:center;
-      background: linear-gradient(175deg, #112D1F 0%, #071410 100%);
-      border-bottom: 3px solid rgba(200,160,39,0.35);
-      box-shadow:
-        inset 0 -1px 0 rgba(200,160,39,0.08),
-        0 6px 0 rgba(0,0,0,.35),
-        0 12px 60px rgba(0,0,0,.75);
+      padding:0.75rem 2rem;
+      display:flex; align-items:center; justify-content:center;
+      background:
+        linear-gradient(180deg, #1C3D2A 0%, #0D2118 45%, #071410 100%);
+      border-bottom: 2px solid rgba(200,160,39,0.25);
+      box-shadow: 0 6px 40px rgba(0,0,0,.75);
       position:sticky; top:0; z-index:20;
       backdrop-filter:blur(28px);
     }
-
-    /* Bloco da marca */
     .home-header__inner {
-      display:flex; flex-direction:row; align-items:center; gap:1.4rem;
-      padding:1rem 3rem 0.9rem;
-      background: linear-gradient(90deg, transparent 0%, rgba(200,160,39,0.06) 40%, rgba(200,160,39,0.06) 60%, transparent 100%);
-      position:relative;
+      display:flex; align-items:center; justify-content:center;
     }
-    /* Linha dourada sutil centralizada no topo do bloco */
-    .home-header__inner::before {
-      content:'';
-      position:absolute; top:0; left:20%; right:20%; height:1px;
-      background: linear-gradient(90deg, transparent, rgba(200,160,39,0.45), transparent);
+    .home-header img {
+      height:62px; width:auto;
+      filter:drop-shadow(0 2px 10px rgba(0,0,0,.55));
     }
-
-    .home-header img { height:88px; width:auto; flex-shrink:0; filter:drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
-    .home-header__brand { display:flex; flex-direction:column; gap:0.2rem; }
-    .home-header__name {
-      font-family:'Barlow Condensed',sans-serif; font-size:2.1rem; font-weight:800;
-      color:#F2EFE6; letter-spacing:0.03em; line-height:1.0; margin:0;
-      text-transform:uppercase;
-      text-shadow: 0 1px 12px rgba(0,0,0,.6);
-    }
-    .home-header__sub {
-      font-size:0.58rem; color:rgba(200,160,39,0.65);
-      letter-spacing:0.32em; text-transform:uppercase; margin:0; font-weight:700;
-      font-family:'Barlow Condensed',sans-serif;
-    }
+    .home-header__brand { display:none; }
+    .home-header__name  { display:none; }
+    .home-header__sub   { display:none; }
 
     .home-body { flex:1; width:100%; max-width:1080px; padding:1.75rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.1rem; position:relative; z-index:1; }
     .home-section-title { font-family:'Poppins',sans-serif; font-size:1.25rem; color:var(--cream); font-weight:700; margin:0 0 0.15rem; letter-spacing:-0.01em; }
