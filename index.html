@@ -172,13 +172,14 @@
     }
 
     .event-card__badge {
-      display: inline-flex; align-items: center; gap: 0.28rem;
-      font-size: 0.63rem; font-weight: 700;
-      padding: 0.15rem 0.5rem; border-radius: 999px;
-      width: fit-content; margin-top: 0.2rem;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.78rem; font-weight: 700;
+      padding: 0.3rem 0.75rem; border-radius: 999px;
+      width: fit-content; margin-top: 0.3rem;
       border: 1px solid transparent;
+      letter-spacing: 0.01em;
     }
-    .event-card__badge-dot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+    .event-card__badge-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 
     /* Rodapé com botão — separado por borda */
     .event-card__action {
@@ -593,7 +594,7 @@
         badge.style.background = bg; badge.style.color = color;
         badge.innerHTML = '<span class="event-card__badge-dot" style="background:'+dot+
           ';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;"></span>'+
-          av+' baia'+(av!==1?'s':'')+' disponível'+(av!==1?'is':'');
+          av+' baia'+(av!==1?'s':'')+' disponív'+(av!==1?'eis':'el');
       });
     }).catch(function(e){ console.warn('badges:', e); });
   };
