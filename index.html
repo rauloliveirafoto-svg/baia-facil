@@ -14,26 +14,30 @@
     /* ── HOME ─────────────────────────────────────────────── */
     .home-screen { min-height:100dvh; display:flex; flex-direction:column; align-items:center; }
 
-    /* Header compacto — ~130px altura total */
+    /* Header premium */
     .home-header {
       width:100%;
-      padding:1.1rem 1.75rem 1rem;
-      display:flex; flex-direction:row; align-items:center; justify-content:center; gap:1.25rem;
-      border-bottom:1px solid rgba(212,175,55,0.12);
-      background:rgba(8,25,21,0.97);
-      backdrop-filter:blur(20px);
+      padding:1.1rem 2.5rem 1rem;
+      display:flex; flex-direction:row; align-items:center; justify-content:center; gap:1.4rem;
+      background: linear-gradient(180deg, #0D2318 0%, #081915 100%);
+      border-bottom: 2px solid rgba(200,160,39,0.22);
+      box-shadow:
+        0 2px 0 rgba(200,160,39,0.06),
+        0 8px 48px rgba(0,0,0,.7);
       position:sticky; top:0; z-index:20;
-      box-shadow:0 1px 0 rgba(212,175,55,0.07), 0 4px 32px rgba(0,0,0,.55);
+      backdrop-filter:blur(24px);
     }
-    .home-header img { height:72px; width:auto; flex-shrink:0; }
-    .home-header__brand { display:flex; flex-direction:column; gap:0.15rem; }
+    .home-header img { height:82px; width:auto; flex-shrink:0; }
+    .home-header__brand { display:flex; flex-direction:column; gap:0.18rem; }
     .home-header__name {
-      font-family:'Poppins',sans-serif; font-size:1.6rem; font-weight:700;
-      color:var(--cream); letter-spacing:-0.025em; line-height:1.1; margin:0;
+      font-family:'Barlow Condensed',sans-serif; font-size:1.85rem; font-weight:800;
+      color:#F2EFE6; letter-spacing:0.02em; line-height:1.05; margin:0;
+      text-transform:uppercase;
     }
     .home-header__sub {
-      font-size:0.63rem; color:rgba(212,175,55,0.55);
-      letter-spacing:0.22em; text-transform:uppercase; margin:0; font-weight:600;
+      font-size:0.6rem; color:rgba(200,160,39,0.5);
+      letter-spacing:0.28em; text-transform:uppercase; margin:0; font-weight:700;
+      font-family:'Barlow Condensed',sans-serif;
     }
 
     .home-body { flex:1; width:100%; max-width:1080px; padding:1.75rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.1rem; position:relative; z-index:1; }
@@ -165,13 +169,13 @@
 
     /* ── TELA RESERVA (formulário + mapa de baias) ─────────── */
     #reservaScreen { display:flex; flex-direction:column; min-height:100dvh; }
-    .topbar-intake { display:flex; justify-content:center; align-items:center; padding:0.7rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); }
-    .topbar-intake img { height:46px; width:auto; }
-    .topbar-map { display:grid; grid-template-columns:auto 1fr 1fr 1fr auto; align-items:center; gap:0.5rem; padding:0.55rem 1.25rem; background:rgba(6,15,8,0.94); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); box-shadow:0 4px 24px rgba(0,0,0,.4); position:sticky; top:0; z-index:30; }
+    .topbar-intake { display:flex; justify-content:center; align-items:center; padding:0.85rem 2rem; background:linear-gradient(180deg,#0D2318 0%,#081915 100%); backdrop-filter:blur(24px); border-bottom:2px solid rgba(200,160,39,.2); box-shadow:0 2px 0 rgba(200,160,39,.05),0 8px 48px rgba(0,0,0,.7); }
+    .topbar-intake img { height:58px; width:auto; }
+    .topbar-map { display:grid; grid-template-columns:auto 1fr 1fr 1fr auto; align-items:center; gap:0.5rem; padding:0.7rem 1.75rem; background:linear-gradient(180deg,#0D2318 0%,#081915 100%); backdrop-filter:blur(24px); border-bottom:2px solid rgba(200,160,39,.2); box-shadow:0 2px 0 rgba(200,160,39,.05),0 8px 48px rgba(0,0,0,.7); position:sticky; top:0; z-index:30; }
     .topbar-map .t-item { display:flex; flex-direction:column; gap:0.1rem; padding:0 0.5rem; border-left:1px solid var(--border-sub); }
-    .topbar-map .t-label { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); font-weight:500; }
-    .topbar-map .t-val { font-size:0.88rem; color:var(--cream); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .topbar-map .t-timer .t-val { color:var(--warning); font-weight:700; }
+    .topbar-map .t-label { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.16em; color:rgba(200,160,39,.8); font-weight:700; font-family:'Barlow Condensed',sans-serif; }
+    .topbar-map .t-val { font-size:1rem; color:#F2EFE6; font-weight:700; font-family:'Manrope',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .topbar-map .t-timer .t-val { color:#C8A027; font-weight:800; font-family:'Barlow Condensed',sans-serif; font-size:1.15rem; letter-spacing:0.04em; font-variant-numeric:tabular-nums; }
     .topbar-map .t-action { justify-self:end; }
     .topbar-map .finish-btn { padding:0.75rem 1.6rem; font-size:1rem; min-width:0; border-radius:12px; white-space:nowrap; }
     .map-feedback-strip { grid-column:1/-1; font-size:0.82rem; color:var(--success); padding:0 0.5rem; }
@@ -186,18 +190,19 @@
 
     .aerial-topbar {
       display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;
-      padding:0.6rem 1.25rem;
-      background:rgba(6,15,8,0.96); backdrop-filter:blur(12px);
-      border-bottom:1px solid var(--border);
-      box-shadow:0 4px 24px rgba(0,0,0,.4);
+      padding:0.85rem 2rem;
+      background:linear-gradient(180deg,#0D2318 0%,#081915 100%);
+      backdrop-filter:blur(24px);
+      border-bottom:2px solid rgba(200,160,39,.2);
+      box-shadow:0 2px 0 rgba(200,160,39,.05),0 8px 48px rgba(0,0,0,.7);
       position:sticky; top:0; z-index:30;
     }
-    .aerial-topbar img { height:38px; width:auto; }
-    .aerial-topbar__info { display:flex; flex-direction:column; gap:0.1rem; flex:1; padding:0 1rem; }
-    .aerial-topbar__event { font-family:'Playfair Display',Georgia,serif; font-size:0.95rem; color:var(--cream); font-weight:700; }
-    .aerial-topbar__sub { font-size:0.72rem; color:var(--muted); }
-    .aerial-topbar__back { background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.82rem; padding:0.45rem 0.9rem; cursor:pointer; transition:color .2s, border-color .2s; white-space:nowrap; }
-    .aerial-topbar__back:hover { color:var(--gold-light); border-color:var(--gold); }
+    .aerial-topbar img { height:52px; width:auto; }
+    .aerial-topbar__info { display:flex; flex-direction:column; gap:0.1rem; flex:1; padding:0 1.25rem; }
+    .aerial-topbar__event { font-family:'Barlow Condensed',sans-serif; font-size:1.15rem; color:#F2EFE6; font-weight:800; text-transform:uppercase; letter-spacing:0.03em; }
+    .aerial-topbar__sub { font-size:0.7rem; color:var(--muted); font-family:'Manrope',sans-serif; }
+    .aerial-topbar__back { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:9px; color:var(--muted); font-family:'Manrope',sans-serif; font-size:0.82rem; font-weight:600; padding:0.5rem 1rem; cursor:pointer; transition:color .2s, border-color .2s, background .2s; white-space:nowrap; }
+    .aerial-topbar__back:hover { color:var(--gold-light); border-color:rgba(200,160,39,.4); background:rgba(200,160,39,.06); }
 
     .aerial-body {
       flex:1; display:flex; flex-direction:column; align-items:center;
