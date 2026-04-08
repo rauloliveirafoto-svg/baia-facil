@@ -29,20 +29,18 @@
       backdrop-filter:blur(28px);
     }
 
-    /* Bloco da marca — âncora visual */
+    /* Bloco da marca */
     .home-header__inner {
       display:flex; flex-direction:row; align-items:center; gap:1.4rem;
       padding:1rem 3rem 0.9rem;
-      background: rgba(0,0,0,0.18);
-      border-right:1px solid rgba(255,255,255,0.05);
-      border-left:1px solid rgba(255,255,255,0.05);
+      background: linear-gradient(90deg, transparent 0%, rgba(200,160,39,0.06) 40%, rgba(200,160,39,0.06) 60%, transparent 100%);
       position:relative;
     }
-    /* Linha de topo dourada fina dentro do bloco */
+    /* Linha dourada sutil centralizada no topo do bloco */
     .home-header__inner::before {
       content:'';
-      position:absolute; top:0; left:3rem; right:3rem; height:2px;
-      background: linear-gradient(90deg, transparent, rgba(200,160,39,0.5), transparent);
+      position:absolute; top:0; left:20%; right:20%; height:1px;
+      background: linear-gradient(90deg, transparent, rgba(200,160,39,0.45), transparent);
     }
 
     .home-header img { height:88px; width:auto; flex-shrink:0; filter:drop-shadow(0 2px 8px rgba(0,0,0,.5)); }
