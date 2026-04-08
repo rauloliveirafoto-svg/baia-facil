@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // CORREÇÃO: actions agora inclui refreshMap (nome correto) em vez de refreshCompetitorMap
   var ctrlSelecao = window.BAIA_SELECTION.createSelectionController({
     state:     state,
-    constants: { totalStalls: 100 },
+    constants: { totalStalls: 140 },
     ui:        { mapSection, sequenceModal:seqModal, sequenceList:seqList, finishButton:finishBtn, feedbackEl: feedbackEl||{textContent:''} },
     helpers:   { formatStall: fmt },
     actions:   { getState, updateState, clearCurrentSelection, refreshMap, startTimer },
