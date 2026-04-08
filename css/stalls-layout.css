@@ -1,7 +1,7 @@
-/* ── Organizador: 2 linhas de 15 ── */
+/* ── Organizador: colunas responsivas ao número de baias do bloco ── */
 #organizerStallMap .stalls-row,
 #manualStallMap .stalls-row {
-  grid-template-columns: repeat(15, minmax(36px, 1fr)) !important;
+  grid-template-columns: repeat(auto-fill, minmax(42px, 1fr)) !important;
 }
 
 /* ── Container horizontal do competidor ── */

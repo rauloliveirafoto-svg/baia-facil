@@ -1,3 +1,9 @@
+
+/* Fallback offline — sistema não quebra sem Google Fonts */
+@supports not (font-family: 'Barlow Condensed') {
+  :root { --font-title: system-ui, sans-serif; }
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Poppins:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
 
 :root {
