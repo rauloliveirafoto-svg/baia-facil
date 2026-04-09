@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
     state.holderName=''; state.requestedStalls=0; state.contactPhone='';
     state.selectedStalls=[]; state.suggestedSequence=[];
-    state.mode=null; state.remainingSeconds=300; state.receipt=null;
+    state.mode=null; state.remainingSeconds=300; state.receipt=null; state._receiptUsed=false;
     window.BAIA_STATE.selectedStalls    = state.selectedStalls;
     window.BAIA_STATE.competitorCredits = 0;
     window.BAIA_STATE.timer.isActive    = false;
@@ -268,6 +268,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // ── Modo visualização (somente-leitura) ─────────────────────
+  var _viewMode = false;
+
+  window._ativarModoVisualizacao = function() {
+    _viewMode = true;
+    // Esconder o intake e o botão finalizar
+    if (intakeSection) intakeSection.hidden = true;
+    if (finishBtn)     finishBtn.hidden     = true;
+    if (mapSection)    mapSection.hidden    = false;
+  };
+
+  window._desativarModoVisualizacao = function() {
+    _viewMode = false;
+    if (finishBtn) finishBtn.hidden = false;
+  };
+
   // ── Exposto para index.html ───────────────────────────────
   window._entrarEvento = function(evNome) {
     resetar();
@@ -308,11 +324,18 @@ document.addEventListener('DOMContentLoaded', function() {
   finishBtn.addEventListener('click', finalizar);
   acceptBtn.addEventListener('click', ctrlSelecao.acceptSequence);
   rejectBtn.addEventListener('click', ctrlSelecao.rejectSequence);
-  closeReceiptBtn.addEventListener('click', function() { receiptModal.hidden = true; });
+  closeReceiptBtn.addEventListener('click', function() {
+    receiptModal.hidden = true;
+    // Se download ou whatsapp já foram usados, voltar para home
+    if (state._receiptUsed && typeof window._goHomeCallback === 'function') {
+      setTimeout(window._goHomeCallback, 300);
+    }
+  });
 
   if (whatsappBtn) {
     whatsappBtn.addEventListener('click', function() {
       if (!state.receipt) return;
+      state._receiptUsed = true;
       var r   = state.receipt;
       var tel = r.contactPhone ? r.contactPhone.replace(/[^0-9]/g, '') : '';
       // Garantir código do Brasil
@@ -338,6 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   downloadBtn.addEventListener('click', function() {
     if (!state.receipt) return;
+    state._receiptUsed = true;
     var html = buildComprovante(state.receipt);
     var blob = new Blob([html], { type:'text/html;charset=utf-8' });
     var url  = URL.createObjectURL(blob);
