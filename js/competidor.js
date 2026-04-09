@@ -200,6 +200,58 @@ document.addEventListener('DOMContentLoaded', function() {
     actions:   { getState, updateState, clearCurrentSelection, refreshMap, startTimer },
   });
 
+  // ── Tooltip no hover do mapa ─────────────────────────────
+  var compTooltip   = document.getElementById('compTooltip');
+  var compTipNum    = document.getElementById('compTipNum');
+  var compTipStatus = document.getElementById('compTipStatus');
+  var compTipHolder = document.getElementById('compTipHolder');
+
+  var STATUS_LABEL = {
+    available:   'Disponível',
+    selected:    'Em seleção',
+    blocked:     'Bloqueio temporário',
+    reserved:    'Reservada',
+    maintenance: 'Manutenção',
+  };
+
+  if (compTooltip && mapEl) {
+    mapEl.addEventListener('mouseover', function(e) {
+      var btn = e.target.closest('.stall');
+      if (!btn) { compTooltip.classList.remove('visible'); return; }
+      var n = Number(btn.dataset.stallNumber);
+      var storage = getState();
+      if (!storage) return;
+      var s = storage.stalls.find(function(x){ return x.number === n; });
+      if (!s) return;
+
+      compTipNum.textContent    = 'Baia ' + fmt(n);
+      compTipStatus.textContent = STATUS_LABEL[s.status] || s.status;
+
+      // Mostrar titular só em baias reservadas — não expor dados de outros em seleção
+      if (s.status === 'reserved' && s.holderName) {
+        compTipHolder.textContent = s.holderName;
+        compTipHolder.style.display = 'block';
+      } else {
+        compTipHolder.style.display = 'none';
+      }
+
+      compTooltip.classList.add('visible');
+    });
+
+    mapEl.addEventListener('mousemove', function(e) {
+      if (!compTooltip.classList.contains('visible')) return;
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 230 > window.innerWidth)  x = e.clientX - 234;
+      if (y + 120 > window.innerHeight) y = e.clientY - 124;
+      compTooltip.style.left = x + 'px';
+      compTooltip.style.top  = y + 'px';
+    });
+
+    mapEl.addEventListener('mouseleave', function() {
+      compTooltip.classList.remove('visible');
+    });
+  }
+
   // ── Exposto para index.html ───────────────────────────────
   window._entrarEvento = function(evNome) {
     resetar();
