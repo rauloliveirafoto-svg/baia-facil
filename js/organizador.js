@@ -49,6 +49,11 @@ document.addEventListener('DOMContentLoaded', function() {
   var elManQtd   = $('manualQty');
   var elManPrev  = $('manualSelectedPreview');
   var elManFeed  = $('manualFeedback');
+  var elObsInput = $('stallObsInput');
+  var elSaveObs  = $('btnSaveObs');
+  var elLogList  = $('logList');
+  var elClearLog = $('btnClearLog');
+  var tooltip    = $('stallTooltip');
 
   // ── Estado ─────────────────────────────────────────────────
   var evId      = localStorage.getItem('baia_org_ev') || '1';
@@ -61,6 +66,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var linhas    = [];
   var PAGE      = 10;
   var _unsub    = null;
+  var logEntries = [];        // histórico de ações em memória
+  var sessUser   = (window.BAIA_AUTH && window.BAIA_AUTH.getSession()) ? window.BAIA_AUTH.getSession().user : 'org';
 
   if (elSel) elSel.value = evId;
 
@@ -89,18 +96,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ── Botões de ação ─────────────────────────────────────────
   $('btnReleaseStall').addEventListener('click', function() {
-    reqSel(function() { atualizarBaia(selBaia,{status:'available'}); msg('Baia liberada.'); });
+    reqSel(function() { atualizarBaia(selBaia,{status:'available'}); addLog('Liberada', selBaia); msg('Baia liberada.'); });
   });
   $('btnBlockStall').addEventListener('click', function() {
     reqSel(function() {
       if (!confirm('Bloquear baia '+fmt(selBaia)+'?')) return;
-      atualizarBaia(selBaia,{status:'blocked'}); msg('Baia bloqueada.');
+      atualizarBaia(selBaia,{status:'blocked'}); addLog('Bloqueada', selBaia); msg('Baia bloqueada.');
     });
   });
   $('btnMaintenanceStall').addEventListener('click', function() {
     reqSel(function() {
       if (!confirm('Marcar baia '+fmt(selBaia)+' como manutenção?')) return;
-      atualizarBaia(selBaia,{status:'maintenance'}); msg('Em manutenção.');
+      atualizarBaia(selBaia,{status:'maintenance'}); addLog('Manutenção', selBaia); msg('Em manutenção.');
     });
   });
   $('btnRemoveReservation').addEventListener('click', function() {
@@ -108,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var s = cache && cache.stalls.find(function(x){return x.number===selBaia;});
       if (!s||s.status!=='reserved') { msg('Sem reserva ativa.',true); return; }
       if (!confirm('Remover reserva de '+(s.holderName||'?')+' na baia '+fmt(selBaia)+'?')) return;
-      atualizarBaia(selBaia,{status:'available'}); msg('Reserva removida.');
+      atualizarBaia(selBaia,{status:'available'}); addLog('Reserva removida', selBaia); msg('Reserva removida.');
     });
   });
   $('btnMoveReservation').addEventListener('click', function() {
@@ -128,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ok=true;
       });
       if (!ok) { msg('Não foi possível mover.',true); return; }
-      selBaia=dest; elMove.value=''; msg('Movida para baia '+fmt(dest)+'.');
+      addLog('Movida', selBaia, 'para '+fmt(dest)); selBaia=dest; elMove.value=''; msg('Movida para baia '+fmt(dest)+'.');
     });
   });
 
@@ -171,12 +178,94 @@ document.addEventListener('DOMContentLoaded', function() {
 
   $('exportCsv').addEventListener('click', exportCSV);
 
+  // Salvar observação
+  if (elSaveObs) {
+    elSaveObs.addEventListener('click', function() {
+      if (!selBaia) return;
+      var obs = elObsInput ? elObsInput.value.trim() : '';
+      editarCache(function(next) {
+        var s = next.stalls.find(function(x){ return x.number === selBaia; });
+        if (s) s.obs = obs;
+      });
+      addLog('Observação', selBaia, obs ? '"' + obs + '"' : '(removida)');
+      msg('Observação salva.');
+    });
+  }
+
+  // Limpar histórico
+  if (elClearLog) {
+    elClearLog.addEventListener('click', function() {
+      logEntries = [];
+      renderLog();
+    });
+  }
+
+  // Tooltip no hover das baias
+  if (tooltip) {
+    elMap.addEventListener('mouseover', function(e) {
+      var btn = e.target.closest('.stall');
+      if (!btn || !cache) return;
+      var n = Number(btn.dataset.stallNumber);
+      var s = cache.stalls.find(function(x){ return x.number === n; });
+      if (!s) return;
+      $('tooltipNum').textContent    = 'Baia ' + fmt(n);
+      $('tooltipStatus').innerHTML   = '<span>Status</span> ' + statusLabel(s.status);
+      $('tooltipHolder').innerHTML   = s.holderName   ? '<span>Titular</span> ' + esc(s.holderName)   : '';
+      $('tooltipPhone').innerHTML    = s.contactPhone ? '<span>Contato</span> ' + esc(s.contactPhone) : '';
+      var obsEl = $('tooltipObs');
+      if (s.obs) { obsEl.textContent = s.obs; obsEl.hidden = false; }
+      else       { obsEl.hidden = true; }
+      tooltip.classList.add('visible');
+    });
+    elMap.addEventListener('mousemove', function(e) {
+      if (!tooltip.classList.contains('visible')) return;
+      var x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 250 > window.innerWidth)  x = e.clientX - 254;
+      if (y + 160 > window.innerHeight) y = e.clientY - 164;
+      tooltip.style.left = x + 'px';
+      tooltip.style.top  = y + 'px';
+    });
+    elMap.addEventListener('mouseleave', function() {
+      tooltip.classList.remove('visible');
+    });
+  }
+
   // CORREÇÃO: botão "Exportar PDF" existia no HTML mas sem listener — implementado aqui
   $('exportPdf').addEventListener('click', exportPDF);
 
   $('printMap').addEventListener('click', function() { window.print(); });
 
   // ── Funções ────────────────────────────────────────────────
+  // ── Histórico de ações ──────────────────────────────────────
+  function addLog(acao, numero, extra) {
+    var now = new Date();
+    logEntries.unshift({
+      time:   now.toLocaleTimeString('pt-BR'),
+      acao:   acao,
+      numero: numero ? fmt(number=numero) : null,
+      extra:  extra || '',
+      user:   sessUser,
+    });
+    if (logEntries.length > 100) logEntries.pop();
+    renderLog();
+  }
+
+  function renderLog() {
+    if (!elLogList) return;
+    if (!logEntries.length) {
+      elLogList.innerHTML = '<p class="log-empty">Nenhuma ação registrada.</p>';
+      return;
+    }
+    elLogList.innerHTML = logEntries.map(function(e) {
+      return '<div class="log-item">' +
+        '<div class="log-item__time">' + e.time + ' · ' + e.user + '</div>' +
+        '<span class="log-item__action">' + e.acao + '</span>' +
+        (e.numero ? ' — Baia ' + e.numero : '') +
+        (e.extra  ? ' · ' + esc(e.extra)  : '') +
+        '</div>';
+    }).join('');
+  }
+
   function reqSel(cb) {
     if (!selBaia) { msg('Selecione uma baia no mapa.',true); return; }
     cb();
@@ -205,6 +294,8 @@ document.addEventListener('DOMContentLoaded', function() {
       s.contactPhone    = valores.contactPhone    !== undefined ? valores.contactPhone    : (valores.status!=='reserved'?'':s.contactPhone);
       s.requestedStalls = valores.requestedStalls !== undefined ? valores.requestedStalls : (valores.status!=='reserved'?0:s.requestedStalls);
       s.reservedAt      = valores.status==='reserved' ? (s.reservedAt||new Date().toISOString()) : '';
+      // Preservar obs ao mudar status — só limpa se explicitamente passado
+      if (valores.obs !== undefined) s.obs = valores.obs;
     });
     renderTudo();
   }
@@ -244,6 +335,8 @@ document.addEventListener('DOMContentLoaded', function() {
     elDetSt.textContent   = statusLabel(s.status);
     elDetComp.textContent = s.holderName  || '—';
     elDetTel.textContent  = s.contactPhone|| '—';
+    // Preencher campo de observação com valor salvo
+    if (elObsInput) elObsInput.value = s.obs || '';
   }
 
   function renderTabela() {
@@ -376,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     fecharManual(); renderTudo();
-    msg('Reserva criada: '+manSel.map(fmt).join(', ')+' → '+nome+'.');
+    addLog('Reserva manual', null, manSel.map(fmt).join(', ')+' → '+nome); msg('Reserva criada: '+manSel.map(fmt).join(', ')+' → '+nome+'.');
   }
 
   function exportCSV() {
