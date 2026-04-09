@@ -285,6 +285,40 @@
       .obs-row textarea:focus { border-color: rgba(200,160,39,.5); }
       .obs-row textarea::placeholder { color: rgba(107,148,128,.35); }
 
+      /* ── BARRA DE OCUPAÇÃO (E) ────────────────────── */
+      .org-topbar__stat--chart {
+        flex-direction: column; align-items: flex-start; gap: 0.22rem;
+        min-width: 160px; flex: 2;
+      }
+      .occ-bar-wrap {
+        width: 100%; height: 8px; border-radius: 999px;
+        background: rgba(255,255,255,.07); overflow: hidden;
+        display: flex; gap: 1px;
+      }
+      .occ-bar-reserved { height: 100%; background: #EE7070; border-radius: 999px 0 0 999px; transition: width .5s ease; }
+      .occ-bar-blocked  { height: 100%; background: #C8A027; transition: width .5s ease; }
+      .occ-bar-avail    { height: 100%; background: rgba(34,196,122,.4); border-radius: 0 999px 999px 0; transition: width .5s ease; }
+      .occ-legend {
+        display: flex; gap: 0.75rem; font-size: 0.62rem;
+        color: rgba(242,239,230,.5); font-family: 'Manrope', sans-serif;
+      }
+      .occ-legend span { display: flex; align-items: center; gap: 0.3rem; }
+      .occ-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+      /* ── BUSCA POR NOME NO MAPA (F) ─────────────────── */
+      .name-search-wrap { display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.5rem; }
+      .name-search-wrap input { flex: 1; }
+      .stall--name-match {
+        outline: 2px solid var(--gold) !important;
+        outline-offset: 1px;
+        animation: nameMatch .6s ease 3;
+      }
+      @keyframes nameMatch {
+        0%,100% { transform: scale(1); }
+        50% { transform: scale(1.12); box-shadow: 0 0 18px rgba(200,160,39,.6); }
+      }
+      .stall--name-dim { opacity: 0.2 !important; }
+
       /* ── HISTÓRICO ─────────────────────────────────── */
       .log-list { display: flex; flex-direction: column; gap: 0.35rem; max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(200,160,39,.2) transparent; }
       .log-item { font-size: 0.79rem; color: rgba(242,239,230,.75); padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(255,255,255,.025); border-left: 2px solid rgba(200,160,39,.2); line-height: 1.5; }
@@ -341,6 +375,19 @@
         <span class="org-topbar__label">Bloqueadas</span>
         <span class="org-topbar__val" id="orgBlockedCount">—</span>
       </div>
+      <div class="org-topbar__stat org-topbar__stat--chart">
+        <span class="org-topbar__label">Ocupação</span>
+        <div class="occ-bar-wrap">
+          <div class="occ-bar-reserved" id="occBarReserved" style="width:0%"></div>
+          <div class="occ-bar-blocked"  id="occBarBlocked"  style="width:0%"></div>
+          <div class="occ-bar-avail"    id="occBarAvail"    style="width:100%"></div>
+        </div>
+        <div class="occ-legend">
+          <span><i class="occ-dot" style="background:#EE7070"></i><span id="occPctReserved">0%</span> reserv.</span>
+          <span><i class="occ-dot" style="background:#C8A027"></i><span id="occPctBlocked">0%</span> bloq.</span>
+          <span><i class="occ-dot" style="background:rgba(34,196,122,.7)"></i><span id="occPctAvail">100%</span> disp.</span>
+        </div>
+      </div>
       <div class="org-topbar__logout">
         <span class="org-topbar__user" id="sessionUserLabel">—</span>
         <button class="logout-btn" id="logoutBtn" type="button">
@@ -368,9 +415,16 @@
               <span><i class="dot dot--org-blocked"></i>Bloqueada</span>
               <span><i class="dot dot--org-maintenance"></i>Manutenção</span>
             </div>
-            <div class="map-search-wrap" style="margin:0;">
-              <input id="orgMapSearch" type="number" min="1" max="140" placeholder="Ir para baia nº..." />
-              <button id="orgMapSearchBtn" class="btn" type="button">Localizar</button>
+            <div style="display:flex;flex-direction:column;gap:0.4rem;">
+              <div class="map-search-wrap" style="margin:0;">
+                <input id="orgMapSearch" type="number" min="1" max="140" placeholder="Ir para baia nº..." />
+                <button id="orgMapSearchBtn" class="btn" type="button">Localizar</button>
+              </div>
+              <div class="name-search-wrap">
+                <input id="nameSearchInput" type="search" placeholder="Buscar titular no mapa..." />
+                <button id="nameSearchBtn" class="btn" type="button">Buscar</button>
+                <button id="nameSearchClear" class="btn" type="button" title="Limpar">✕</button>
+              </div>
             </div>
           </div>
           <div id="organizerStallMap" class="stall-map"></div>
