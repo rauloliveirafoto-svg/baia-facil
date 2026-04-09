@@ -305,6 +305,50 @@
       .occ-legend span { display: flex; align-items: center; gap: 0.3rem; }
       .occ-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
+      /* ── MODAL DE CONFIRMAÇÃO (J) ───────────────────── */
+      .confirm-modal {
+        position: fixed; inset: 0; z-index: 70;
+        display: grid; place-items: center;
+        background: rgba(3,9,6,.88); padding: 1rem;
+        backdrop-filter: blur(8px);
+      }
+      .confirm-modal__box {
+        width: min(420px, 100%);
+        background: #0F2419;
+        border: 1px solid rgba(200,160,39,.2);
+        border-top: 3px solid var(--danger);
+        border-radius: 16px; padding: 1.75rem 1.5rem;
+        box-shadow: 0 24px 64px rgba(0,0,0,.75);
+        display: flex; flex-direction: column; gap: 1rem;
+      }
+      .confirm-modal__box.confirm--warn { border-top-color: var(--gold); }
+      .confirm-modal__title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; font-weight: 800; color: #F2EFE6; margin: 0; text-transform: uppercase; letter-spacing: 0.03em; }
+      .confirm-modal__msg   { font-size: 0.88rem; color: rgba(242,239,230,.65); margin: 0; line-height: 1.6; }
+      .confirm-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+      .confirm-modal__ok  { background: rgba(220,69,69,.15); border: 1px solid rgba(220,69,69,.4); border-radius: 8px; color: #EE7070; font-family: 'Manrope',sans-serif; font-size: 0.85rem; font-weight: 700; padding: 0.55rem 1.1rem; cursor: pointer; transition: background .18s, border-color .18s; }
+      .confirm-modal__ok:hover { background: rgba(220,69,69,.28); border-color: rgba(220,69,69,.7); }
+      .confirm-modal__ok.confirm--warn-btn { background: rgba(200,160,39,.12); border-color: rgba(200,160,39,.35); color: var(--gold); }
+      .confirm-modal__ok.confirm--warn-btn:hover { background: rgba(200,160,39,.22); border-color: rgba(200,160,39,.6); }
+      .confirm-modal__cancel { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; color: rgba(242,239,230,.6); font-family: 'Manrope',sans-serif; font-size: 0.85rem; font-weight: 600; padding: 0.55rem 1rem; cursor: pointer; transition: background .18s; }
+      .confirm-modal__cancel:hover { background: rgba(255,255,255,.1); }
+
+      /* ── INDICADOR DE CONEXÃO (L) ────────────────────── */
+      .conn-indicator {
+        display: flex; align-items: center; gap: 0.4rem;
+        font-size: 0.7rem; color: rgba(242,239,230,.45);
+        font-family: 'Manrope', sans-serif; padding: 0 0.75rem;
+        white-space: nowrap;
+      }
+      .conn-dot {
+        width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+        background: #22C47A;
+        box-shadow: 0 0 6px rgba(34,196,122,.6);
+        transition: background .4s, box-shadow .4s;
+      }
+      .conn-dot.offline { background: #EE7070; box-shadow: 0 0 6px rgba(220,69,69,.5); }
+      .conn-dot.syncing { background: #C8A027; box-shadow: 0 0 6px rgba(200,160,39,.5); animation: connPulse .8s ease infinite; }
+      @keyframes connPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
       /* ── BUSCA POR NOME NO MAPA (F) ─────────────────── */
       .name-search-wrap { display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.5rem; }
       .name-search-wrap input { flex: 1; }
@@ -389,6 +433,10 @@
         </div>
       </div>
       <div class="org-topbar__logout">
+        <div class="conn-indicator" id="connIndicator">
+          <span class="conn-dot" id="connDot"></span>
+          <span id="connLabel">online</span>
+        </div>
         <span class="org-topbar__user" id="sessionUserLabel">—</span>
         <button class="logout-btn" id="logoutBtn" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -540,6 +588,18 @@
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ── MODAL DE CONFIRMAÇÃO (J) ──────────────────── -->
+    <div id="confirmModal" class="confirm-modal" hidden>
+      <div class="confirm-modal__box" id="confirmBox">
+        <h2 class="confirm-modal__title" id="confirmTitle">Confirmar ação</h2>
+        <p  class="confirm-modal__msg"   id="confirmMsg"></p>
+        <div class="confirm-modal__actions">
+          <button class="confirm-modal__cancel" id="confirmCancel" type="button">Cancelar</button>
+          <button class="confirm-modal__ok"     id="confirmOk"     type="button">Confirmar</button>
+        </div>
       </div>
     </div>
 

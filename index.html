@@ -252,7 +252,7 @@
     .topbar-map .t-timer .t-val { color:#C8A027; font-weight:800; font-family:'Barlow Condensed',sans-serif; font-size:1.15rem; letter-spacing:0.04em; font-variant-numeric:tabular-nums; }
     .topbar-map .t-action { justify-self:end; }
     .topbar-map .finish-btn { padding:0.75rem 1.6rem; font-size:1rem; min-width:0; border-radius:12px; white-space:nowrap; }
-    .map-feedback-strip { grid-column:1/-1; font-size:0.82rem; color:var(--success); padding:0 0.5rem; }
+    .map-feedback-strip { grid-column:1/-1; font-size:0.82rem; color:var(--success); padding:0 0.5rem; display:flex; align-items:center; justify-content:space-between; }
     .intake-back { background:none; border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.84rem; cursor:pointer; padding:0; display:flex; align-items:center; gap:0.35rem; transition:color .2s; margin-bottom:0.15rem; }
     .intake-back:hover { color:var(--gold-light); }
     .intake-event-tag { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin:0 0 0.15rem; }
@@ -399,6 +399,28 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── INDICADOR DE CONEXÃO (L) ────────────────── */
+    .conn-pill {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.65rem; color: rgba(242,239,230,.4);
+      font-family: 'Manrope', sans-serif;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(255,255,255,.03);
+      transition: color .3s, border-color .3s;
+    }
+    .conn-pill.offline { color: #EE7070; border-color: rgba(220,69,69,.3); }
+    .conn-pill__dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #22C47A; flex-shrink: 0;
+      box-shadow: 0 0 5px rgba(34,196,122,.5);
+      transition: background .3s, box-shadow .3s;
+    }
+    .conn-pill.offline .conn-pill__dot { background: #EE7070; box-shadow: 0 0 5px rgba(220,69,69,.4); }
+    .conn-pill.syncing .conn-pill__dot { background: #C8A027; animation: connPulse .8s ease infinite; }
+    @keyframes connPulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
     /* ── TOOLTIP DO MAPA DO COMPETIDOR ───────────── */
     .comp-tooltip {
       position: fixed; z-index: 50; pointer-events: none;
@@ -481,6 +503,10 @@
       </div>
       <div class="map-feedback-strip">
         <span id="feedback" role="status" aria-live="polite"></span>
+        <span class="conn-pill" id="compConnPill">
+          <span class="conn-pill__dot" id="compConnDot"></span>
+          <span id="compConnLabel">online</span>
+        </span>
       </div>
     </header>
 
