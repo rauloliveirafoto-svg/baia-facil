@@ -399,6 +399,22 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── TOOLTIP DO MAPA DO COMPETIDOR ───────────── */
+    .comp-tooltip {
+      position: fixed; z-index: 50; pointer-events: none;
+      background: rgba(11,30,22,0.97);
+      border: 1px solid rgba(200,160,39,.3);
+      border-radius: 10px; padding: 0.55rem 0.8rem;
+      box-shadow: 0 8px 28px rgba(0,0,0,.65);
+      min-width: 160px; max-width: 220px;
+      opacity: 0; transition: opacity .12s;
+      font-family: 'Manrope', sans-serif;
+    }
+    .comp-tooltip.visible { opacity: 1; }
+    .comp-tooltip__num    { font-size: 0.64rem; color: rgba(200,160,39,.7); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 0.25rem; }
+    .comp-tooltip__status { font-size: 0.8rem; color: #F2EFE6; font-weight: 600; }
+    .comp-tooltip__holder { font-size: 0.78rem; color: rgba(242,239,230,.6); margin-top: 0.15rem; }
+
     @media(max-width:900px){ .events-grid{grid-template-columns:repeat(2,1fr);} }
     @media(max-width:580px){
       .events-grid{grid-template-columns:1fr;} .home-header img{height:110px;}
@@ -613,6 +629,13 @@
 
       <div id="lookupResults" hidden style="margin-top:1.25rem;display:flex;flex-direction:column;gap:0.75rem;"></div>
     </div>
+  </div>
+
+  <!-- Tooltip do mapa do competidor -->
+  <div id="compTooltip" class="comp-tooltip">
+    <div class="comp-tooltip__num"    id="compTipNum">—</div>
+    <div class="comp-tooltip__status" id="compTipStatus"></div>
+    <div class="comp-tooltip__holder" id="compTipHolder"></div>
   </div>
 
   <template id="stallTemplate">
