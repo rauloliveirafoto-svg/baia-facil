@@ -8,6 +8,12 @@ var _evNome  = null;
 var _cache   = null;
 var _unsub   = null;
 
+// ── ID único desta sessão de browser ─────────────────────────
+// Usado para identificar baias selecionadas por esta aba especificamente.
+// Se o browser fechar sem limpar, o initProva do próximo acesso
+// detecta baias com selectedAt > 10min e as libera automaticamente.
+var _sessionId = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
+
 // ── Helpers ───────────────────────────────────────────────────
 function fmt(n)           { return String(n).padStart(3,'0'); }
 function maskTel(v)       { var d=v.replace(/\D/g,'').slice(0,11); if(d.length<=2)return d; if(d.length<=6)return'('+d.slice(0,2)+') '+d.slice(2); if(d.length<=10)return'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6); return'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7); }
@@ -20,6 +26,21 @@ function getState()       { return _cache; }
 function updateState(fn) {
   if (!_cache) return;
   try { fn(_cache); } catch(e) { console.error('[updateState]', e); return; }
+
+  // Garantir que baias selected/blocked desta sessão tenham selectedAt e sessionId.
+  // O firebase.js usa esses campos para detectar e liberar baias órfãs
+  // (browser fechado abruptamente sem acionar beforeunload).
+  var agora = new Date().toISOString();
+  (_cache.stalls || []).forEach(function(s) {
+    if (s.status === 'selected' || s.status === 'blocked') {
+      if (!s.selectedAt)  s.selectedAt  = agora;
+      if (!s.sessionId)   s.sessionId   = _sessionId;
+    } else if (s.status === 'available' || s.status === 'reserved') {
+      // Limpar campos de sessão ao liberar ou confirmar
+      s.selectedAt = ''; s.sessionId = '';
+    }
+  });
+
   _cache.updatedAt    = new Date().toISOString();
   _cache.reservations = (_cache.stalls||[]).filter(function(s){return s.status==='reserved';})
     .map(function(s){return{stallNumber:s.number,holderName:s.holderName,
