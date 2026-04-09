@@ -18,9 +18,46 @@
 
   function ref(evId) { return db.collection('provas').doc(String(evId)); }
 
+  // ── H: Cache local (fallback offline) ────────────────────────
+  // Salva o estado da prova no localStorage após cada leitura bem-sucedida.
+  // Se o Firebase estiver indisponível, usa o cache como fallback de leitura.
+  var LS_PREFIX = 'baiafacil_cache_ev_';
+
+  function cacheSalvar(evId, data) {
+    try {
+      localStorage.setItem(LS_PREFIX + evId, JSON.stringify({
+        data: data,
+        savedAt: Date.now(),
+      }));
+    } catch(e) { /* localStorage cheio ou bloqueado */ }
+  }
+
+  function cacheCarregar(evId) {
+    try {
+      var raw = localStorage.getItem(LS_PREFIX + evId);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      // Cache válido por até 24h
+      if (Date.now() - obj.savedAt > 24 * 60 * 60 * 1000) return null;
+      return obj.data;
+    } catch(e) { return null; }
+  }
+
   // ── Leitura ──────────────────────────────────────────────
   async function initProva(evId, evName) {
-    var snap = await ref(evId).get();
+    var snap;
+    try {
+      snap = await ref(evId).get();
+    } catch(e) {
+      // H: Firebase indisponível — tentar cache local
+      console.warn('[initProva] Firebase offline, usando cache local:', e.message);
+      var cached = cacheCarregar(evId);
+      if (cached) {
+        console.info('[initProva] Cache local carregado para ev', evId);
+        return cached;
+      }
+      throw e; // sem cache, propaga o erro
+    }
     if (snap.exists) {
       var data = snap.data();
       var dirty = false;
@@ -65,6 +102,7 @@
       if (dirty) {
         ref(evId).set(data).catch(function(e){ console.warn('[initProva] save:', e); });
       }
+      cacheSalvar(evId, data); // H: atualizar cache local
       return data;
     }
 
@@ -85,6 +123,7 @@
     });
     var data = { eventName: evName, stalls: stalls, reservations: [], updatedAt: new Date().toISOString() };
     await ref(evId).set(data);
+    cacheSalvar(evId, data); // H: salvar cache local da nova prova
     return data;
   }
 
@@ -110,7 +149,18 @@
 
   // ── Tempo real ────────────────────────────────────────────
   function escutar(evId, cb) {
-    return ref(evId).onSnapshot(function(snap) { if (snap.exists) cb(snap.data()); });
+    return ref(evId).onSnapshot(
+      function(snap) {
+        if (snap.exists) {
+          cacheSalvar(evId, snap.data()); // H: manter cache atualizado em tempo real
+          cb(snap.data());
+        }
+      },
+      function(err) {
+        // H: listener perdeu conexão — notificar mas não crashar
+        console.warn('[escutar] Firebase desconectado:', err.message);
+      }
+    );
   }
 
   // ── Transaction atômica ───────────────────────────────────

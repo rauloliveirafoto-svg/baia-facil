@@ -52,8 +52,18 @@ document.addEventListener('DOMContentLoaded', function() {
   var elObsInput = $('stallObsInput');
   var elSaveObs  = $('btnSaveObs');
   var elLogList  = $('logList');
-  var elClearLog = $('btnClearLog');
-  var tooltip    = $('stallTooltip');
+  var elClearLog      = $('btnClearLog');
+  var tooltip         = $('stallTooltip');
+  var elNameSearch    = $('nameSearchInput');
+  var elNameSearchBtn = $('nameSearchBtn');
+  var elNameClear     = $('nameSearchClear');
+  var occReserved     = $('occBarReserved');
+  var occBlocked      = $('occBarBlocked');
+  var occAvail        = $('occBarAvail');
+  var occPctReserved  = $('occPctReserved');
+  var occPctBlocked   = $('occPctBlocked');
+  var occPctAvail     = $('occPctAvail');
+  var _nameHighlight  = [];   // baias atualmente destacadas pela busca de nome
 
   // ── Estado ─────────────────────────────────────────────────
   var evId      = localStorage.getItem('baia_org_ev') || '1';
@@ -200,6 +210,77 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // ── F: busca por nome no mapa ─────────────────────────────────
+  function aplicarNomeBusca(nome) {
+    // Limpar highlight anterior
+    _nameHighlight.forEach(function(n) {
+      var b = btnMap.get(n);
+      if (b) { b.classList.remove('stall--name-match'); b.classList.remove('stall--name-dim'); }
+    });
+    _nameHighlight = [];
+
+    if (!nome || !cache) return;
+
+    var termo = nome.trim().toLowerCase();
+    var matches = [];
+
+    cache.stalls.forEach(function(s) {
+      var b = btnMap.get(s.number);
+      if (!b) return;
+      var nomeStall = (s.holderName || '').toLowerCase();
+      if (nomeStall.includes(termo) && s.status === 'reserved') {
+        matches.push(s.number);
+      }
+    });
+
+    if (!matches.length) return;
+
+    // Destacar matches, escurecer o resto
+    cache.stalls.forEach(function(s) {
+      var b = btnMap.get(s.number);
+      if (!b) return;
+      if (matches.indexOf(s.number) >= 0) {
+        b.classList.add('stall--name-match');
+      } else {
+        b.classList.add('stall--name-dim');
+      }
+    });
+
+    _nameHighlight = cache.stalls.map(function(s){ return s.number; });
+
+    // Scroll para primeira baia encontrada
+    var primeiro = elMap.querySelector('[data-stall-number="' + matches[0] + '"]');
+    if (primeiro) primeiro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function limparNomeBusca() {
+    _nameHighlight.forEach(function(n) {
+      var b = btnMap.get(n);
+      if (b) { b.classList.remove('stall--name-match'); b.classList.remove('stall--name-dim'); }
+    });
+    _nameHighlight = [];
+    if (elNameSearch) elNameSearch.value = '';
+  }
+
+  if (elNameSearchBtn) {
+    elNameSearchBtn.addEventListener('click', function() {
+      aplicarNomeBusca(elNameSearch ? elNameSearch.value : '');
+    });
+  }
+  if (elNameSearch) {
+    elNameSearch.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') aplicarNomeBusca(elNameSearch.value);
+      if (e.key === 'Escape') limparNomeBusca();
+    });
+    // Limpar ao apagar tudo
+    elNameSearch.addEventListener('input', function() {
+      if (!elNameSearch.value) limparNomeBusca();
+    });
+  }
+  if (elNameClear) {
+    elNameClear.addEventListener('click', limparNomeBusca);
+  }
+
   // Tooltip no hover das baias
   if (tooltip) {
     elMap.addEventListener('mouseover', function(e) {
@@ -304,10 +385,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function renderTudo() {
     if (!cache||!cache.stalls) return;
-    elTotal.textContent  = String(cache.stalls.length);
-    elReserv.textContent = String(cache.stalls.filter(function(s){return s.status==='reserved';}).length);
-    elDisp.textContent   = String(cache.stalls.filter(function(s){return s.status==='available';}).length);
-    elBloq.textContent   = String(cache.stalls.filter(function(s){return s.status==='blocked'||s.status==='maintenance';}).length);
+    var total    = cache.stalls.length;
+    var reserved = cache.stalls.filter(function(s){return s.status==='reserved';}).length;
+    var avail    = cache.stalls.filter(function(s){return s.status==='available';}).length;
+    var bloq     = cache.stalls.filter(function(s){return s.status==='blocked'||s.status==='maintenance';}).length;
+
+    elTotal.textContent  = String(total);
+    elReserv.textContent = String(reserved);
+    elDisp.textContent   = String(avail);
+    elBloq.textContent   = String(bloq);
+
+    // ── E: atualizar barra de ocupação ─────────────────────────
+    if (occReserved && total > 0) {
+      var pR = Math.round(reserved / total * 100);
+      var pB = Math.round(bloq     / total * 100);
+      var pA = 100 - pR - pB;
+      occReserved.style.width = pR + '%';
+      occBlocked.style.width  = pB + '%';
+      occAvail.style.width    = Math.max(0, pA) + '%';
+      if (occPctReserved) occPctReserved.textContent = pR + '%';
+      if (occPctBlocked)  occPctBlocked.textContent  = pB + '%';
+      if (occPctAvail)    occPctAvail.textContent     = Math.max(0, pA) + '%';
+    }
+
     renderMapa(); renderDetalhe(); renderTabela();
   }
 
