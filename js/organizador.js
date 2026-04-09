@@ -55,6 +55,15 @@ document.addEventListener('DOMContentLoaded', function() {
   var elClearLog      = $('btnClearLog');
   var tooltip         = $('stallTooltip');
   var elNameSearch    = $('nameSearchInput');
+  var confirmModal    = $('confirmModal');
+  var confirmBox      = $('confirmBox');
+  var confirmTitle    = $('confirmTitle');
+  var confirmMsg      = $('confirmMsg');
+  var confirmOk       = $('confirmOk');
+  var confirmCancel   = $('confirmCancel');
+  var connDot         = $('connDot');
+  var connLabel       = $('connLabel');
+  var _confirmCb      = null; // callback pendente da confirmação
   var elNameSearchBtn = $('nameSearchBtn');
   var elNameClear     = $('nameSearchClear');
   var occReserved     = $('occBarReserved');
@@ -110,22 +119,27 @@ document.addEventListener('DOMContentLoaded', function() {
   });
   $('btnBlockStall').addEventListener('click', function() {
     reqSel(function() {
-      if (!confirm('Bloquear baia '+fmt(selBaia)+'?')) return;
-      atualizarBaia(selBaia,{status:'blocked'}); addLog('Bloqueada', selBaia); msg('Baia bloqueada.');
+      confirmar('Bloquear baia', 'Bloquear a baia '+fmt(selBaia)+'? Ela ficará indisponível para reserva.', function() {
+        atualizarBaia(selBaia,{status:'blocked'}); addLog('Bloqueada', selBaia); msg('Baia bloqueada.');
+      }, 'warn');
     });
   });
   $('btnMaintenanceStall').addEventListener('click', function() {
     reqSel(function() {
-      if (!confirm('Marcar baia '+fmt(selBaia)+' como manutenção?')) return;
-      atualizarBaia(selBaia,{status:'maintenance'}); addLog('Manutenção', selBaia); msg('Em manutenção.');
+      confirmar('Manutenção', 'Marcar a baia '+fmt(selBaia)+' como em manutenção?', function() {
+        atualizarBaia(selBaia,{status:'maintenance'}); addLog('Manutenção', selBaia); msg('Em manutenção.');
+      }, 'warn');
     });
   });
   $('btnRemoveReservation').addEventListener('click', function() {
     reqSel(function() {
       var s = cache && cache.stalls.find(function(x){return x.number===selBaia;});
       if (!s||s.status!=='reserved') { msg('Sem reserva ativa.',true); return; }
-      if (!confirm('Remover reserva de '+(s.holderName||'?')+' na baia '+fmt(selBaia)+'?')) return;
-      atualizarBaia(selBaia,{status:'available'}); addLog('Reserva removida', selBaia); msg('Reserva removida.');
+      confirmar(
+        'Remover reserva',
+        'Remover a reserva de '+(s.holderName||'?')+' na baia '+fmt(selBaia)+'? Esta ação não pode ser desfeita.',
+        function() { atualizarBaia(selBaia,{status:'available'}); addLog('Reserva removida', selBaia); msg('Reserva removida.'); }
+      );
     });
   });
   $('btnMoveReservation').addEventListener('click', function() {
@@ -317,6 +331,47 @@ document.addEventListener('DOMContentLoaded', function() {
   $('printMap').addEventListener('click', function() { window.print(); });
 
   // ── Funções ────────────────────────────────────────────────
+  // ── J: Modal de confirmação ─────────────────────────────────
+  function confirmar(titulo, mensagem, cb, tipo) {
+    // tipo: 'danger' (default) ou 'warn'
+    confirmTitle.textContent = titulo;
+    confirmMsg.textContent   = mensagem;
+    confirmBox.className     = 'confirm-modal__box' + (tipo === 'warn' ? ' confirm--warn' : '');
+    confirmOk.className      = 'confirm-modal__ok'  + (tipo === 'warn' ? ' confirm--warn-btn' : '');
+    _confirmCb = cb;
+    confirmModal.hidden = false;
+  }
+
+  if (confirmOk) {
+    confirmOk.addEventListener('click', function() {
+      confirmModal.hidden = true;
+      if (_confirmCb) { var cb = _confirmCb; _confirmCb = null; cb(); }
+    });
+  }
+  if (confirmCancel) {
+    confirmCancel.addEventListener('click', function() {
+      confirmModal.hidden = true; _confirmCb = null;
+    });
+  }
+  if (confirmModal) {
+    confirmModal.addEventListener('click', function(e) {
+      if (e.target === confirmModal) { confirmModal.hidden = true; _confirmCb = null; }
+    });
+  }
+
+  // ── L: Indicador de conexão ──────────────────────────────────
+  function setConn(estado) {
+    // estado: 'online' | 'offline' | 'syncing'
+    if (!connDot || !connLabel) return;
+    connDot.className = 'conn-dot' + (estado !== 'online' ? ' ' + estado : '');
+    connLabel.textContent = estado === 'online' ? 'online' : estado === 'syncing' ? 'sincronizando' : 'offline';
+  }
+
+  // Detectar conexão via navigator.onLine + eventos
+  window.addEventListener('online',  function() { setConn('online');  });
+  window.addEventListener('offline', function() { setConn('offline'); });
+  setConn(navigator.onLine ? 'online' : 'offline');
+
   // ── Histórico de ações ──────────────────────────────────────
   function addLog(acao, numero, extra) {
     var now = new Date();
@@ -363,7 +418,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!cache) return;
     try { fn(cache); } catch(e) { console.error('[org editarCache]', e); return; }
     cache.updatedAt = new Date().toISOString();
-    window.FB.salvar(evId, cache);
+    setConn('syncing');
+    window.FB.salvar(evId, cache).then(function() {
+      setConn('online');
+    }).catch(function() {
+      setConn('offline');
+    });
   }
 
   function atualizarBaia(numero, valores) {

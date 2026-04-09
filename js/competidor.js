@@ -200,7 +200,23 @@ document.addEventListener('DOMContentLoaded', function() {
     actions:   { getState, updateState, clearCurrentSelection, refreshMap, startTimer },
   });
 
-  // ── Tooltip no hover do mapa ─────────────────────────────
+  // ── L: Indicador de conexão ─────────────────────────────────
+  var compConnPill  = document.getElementById('compConnPill');
+  var compConnDot   = document.getElementById('compConnDot');
+  var compConnLabel = document.getElementById('compConnLabel');
+
+  function setCompConn(estado) {
+    if (!compConnPill) return;
+    compConnPill.className = 'conn-pill' + (estado !== 'online' ? ' ' + estado : '');
+    if (compConnLabel) compConnLabel.textContent =
+      estado === 'online' ? 'online' : estado === 'syncing' ? 'sincronizando' : 'offline';
+  }
+
+  window.addEventListener('online',  function() { setCompConn('online');  });
+  window.addEventListener('offline', function() { setCompConn('offline'); });
+  setCompConn(navigator.onLine ? 'online' : 'offline');
+
+  // ── Tooltip no hover do mapa ─────────────────────────────────
   var compTooltip   = document.getElementById('compTooltip');
   var compTipNum    = document.getElementById('compTipNum');
   var compTipStatus = document.getElementById('compTipStatus');
