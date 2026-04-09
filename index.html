@@ -725,9 +725,10 @@
       document.getElementById('aerialCompetitorInfo').textContent = state
         ? state.holderName + ' · ' + state.requestedStalls + ' baia(s)'
         : '—';
-      // Garantir listener ativo — pode ter sido parado ao voltar do mapa aéreo anteriormente
+      // Iniciar listener com callback que atualiza os dots de ocupação em tempo real.
+      // Antes passávamos null, o que fazia os dots ficarem estáticos durante a tela aérea.
       if (typeof window.iniciarListenerCompetidor === 'function') {
-        window.iniciarListenerCompetidor(null);
+        window.iniciarListenerCompetidor(atualizarBlocos);
       }
       atualizarBlocos();
       showScreen('aerial');
