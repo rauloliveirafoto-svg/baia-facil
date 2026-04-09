@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var receiptContent  = $('receiptContent');
   var receiptProtocol = $('receiptProtocol');
   var downloadBtn     = $('downloadReceipt');
+  var whatsappBtn     = $('whatsappReceipt');
   var closeReceiptBtn = $('closeReceipt');
 
   var state = window.BAIA_STATE.competitor;
@@ -240,6 +241,32 @@ document.addEventListener('DOMContentLoaded', function() {
   acceptBtn.addEventListener('click', ctrlSelecao.acceptSequence);
   rejectBtn.addEventListener('click', ctrlSelecao.rejectSequence);
   closeReceiptBtn.addEventListener('click', function() { receiptModal.hidden = true; });
+
+  if (whatsappBtn) {
+    whatsappBtn.addEventListener('click', function() {
+      if (!state.receipt) return;
+      var r   = state.receipt;
+      var tel = r.contactPhone ? r.contactPhone.replace(/[^0-9]/g, '') : '';
+      // Garantir código do Brasil
+      if (tel.length === 11) tel = '55' + tel;
+      else if (tel.length === 10) tel = '55' + tel;
+
+      var baias = r.baias.map(fmt).join(', ');
+      var data  = r.timestamp.toLocaleString('pt-BR');
+
+      var msg =
+        '*✅ RESERVA CONFIRMADA — BAIA FÁCIL*' + '%0A%0A' +
+        '*Protocolo:* ' + r.protocolo + '%0A' +
+        '*Evento:* ' + encodeURIComponent(r.evento) + '%0A' +
+        '*Titular:* ' + encodeURIComponent(r.titular) + '%0A' +
+        '*Baia(s):* ' + encodeURIComponent(baias) + '%0A' +
+        '*Data:* ' + encodeURIComponent(data) + '%0A%0A' +
+        encodeURIComponent('Guarde esta mensagem como comprovante.');
+
+      var url = 'https://wa.me/' + tel + '?text=' + msg;
+      window.open(url, '_blank');
+    });
+  }
 
   downloadBtn.addEventListener('click', function() {
     if (!state.receipt) return;
