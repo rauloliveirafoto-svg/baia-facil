@@ -656,7 +656,10 @@
           </div>
           <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:0.75rem;">
             <p style="font-size:0.78rem;color:var(--muted);margin:0 0 0.5rem;">Ao encerrar, um relatório PDF completo é gerado e a prova fica inacessível para novos competidores.</p>
-            <button id="btnEncerrarProva" class="btn" type="button" style="width:100%;background:rgba(220,69,69,.1);border-color:rgba(220,69,69,.35);color:#EE7070;font-weight:700;">⏹ Encerrar prova</button>
+            <div style="display:flex;gap:0.4rem;flex-direction:column;">
+              <button id="btnEncerrarProva" class="btn" type="button" style="width:100%;background:rgba(220,69,69,.1);border-color:rgba(220,69,69,.35);color:#EE7070;font-weight:700;">⏹ Encerrar prova</button>
+              <button id="btnBaixarRelatorio" class="btn" type="button" style="width:100%;display:none;">⬇ Baixar relatório</button>
+            </div>
           </div>
         </div>
 

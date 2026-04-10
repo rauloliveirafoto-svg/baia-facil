@@ -967,17 +967,20 @@
       if (loadingEl) loadingEl.hidden = false;
       var isView = _modoVisualizacao;
       try {
-        // CRÍTICO 1: verificar status no Firestore antes de abrir
-        // Garante que prova encerrada é bloqueada mesmo via URL direta
+        // Verificar se prova está encerrada — cache local primeiro, Firestore como fallback
+        // Evita leitura desnecessária do Firestore quando badge já indica status ativo
+        var cardCheck = document.querySelector('[data-ev-id="'+ev.id+'"]');
+        var jaEncerradaLocalmente = cardCheck && cardCheck.classList.contains('event-card--encerrada');
+        if (jaEncerradaLocalmente) {
+          _abrindoEvento = false;
+          if (loadingEl) loadingEl.hidden = true;
+          return;
+        }
+        // Confirmar no Firestore (cobre URL direta e badges ainda não carregados)
         if (window.FB && window.FB.getProvaSnapshot) {
           var snap = await window.FB.getProvaSnapshot(ev.id);
           if (snap && snap.status === 'encerrada') {
-            // Mostrar feedback e abortar
-            var card = document.querySelector('[data-ev-id="'+ev.id+'"]');
-            if (card) {
-              card.classList.add('event-card--encerrada');
-              card.style.order = '99';
-            }
+            if (cardCheck) { cardCheck.classList.add('event-card--encerrada'); cardCheck.style.order = '99'; }
             _abrindoEvento = false;
             if (loadingEl) loadingEl.hidden = true;
             return;
