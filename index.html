@@ -962,13 +962,27 @@
     var _abrindoEvento = false; // proteção contra clique duplo
     async function openEvent(ev) {
       if (_abrindoEvento) return;
-      // Bloquear acesso a provas encerradas pelo competidor
-      // (organizador acessa pelo painel, não pelo index)
       _abrindoEvento = true;
       var loadingEl = document.getElementById('homeLoadingOverlay');
       if (loadingEl) loadingEl.hidden = false;
       var isView = _modoVisualizacao;
       try {
+        // CRÍTICO 1: verificar status no Firestore antes de abrir
+        // Garante que prova encerrada é bloqueada mesmo via URL direta
+        if (window.FB && window.FB.getProvaSnapshot) {
+          var snap = await window.FB.getProvaSnapshot(ev.id);
+          if (snap && snap.status === 'encerrada') {
+            // Mostrar feedback e abortar
+            var card = document.querySelector('[data-ev-id="'+ev.id+'"]');
+            if (card) {
+              card.classList.add('event-card--encerrada');
+              card.style.order = '99';
+            }
+            _abrindoEvento = false;
+            if (loadingEl) loadingEl.hidden = true;
+            return;
+          }
+        }
         history.pushState({ screen:'dados', evId:ev.id }, '', '#prova-'+ev.id);
         window._selectedEvent = ev;
         document.getElementById('selectedEventLabel').textContent = ev.name;
