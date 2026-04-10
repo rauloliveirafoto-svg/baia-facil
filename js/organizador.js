@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
     logEntries.unshift({
       time:   now.toLocaleTimeString('pt-BR'),
       acao:   acao,
-      numero: numero ? fmt(number=numero) : null,
+      numero: numero ? fmt(numero) : null,
       extra:  extra || '',
       user:   sessUser,
     });
@@ -488,6 +488,11 @@ document.addEventListener('DOMContentLoaded', function() {
       if (s.number===selBaia)       b.classList.add('stall--selected');
       b.title = fmt(s.number)+' | '+statusLabel(s.status)+' | '+(s.holderName||'—');
     });
+    // RISCO CORRIGIDO: re-aplicar highlight de busca por nome após cada renderMapa
+    // sem isso o Firebase listener apaga o destaque a cada atualização
+    if (_nameHighlight.length > 0 && elNameSearch && elNameSearch.value) {
+      aplicarNomeBusca(elNameSearch.value);
+    }
   }
 
   function renderDetalhe() {

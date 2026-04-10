@@ -18,7 +18,7 @@ var _sessionId = 'sess-' + Date.now().toString(36) + '-' + Math.random().toStrin
 function fmt(n)           { return String(n).padStart(3,'0'); }
 function maskTel(v)       { var d=v.replace(/\D/g,'').slice(0,11); if(d.length<=2)return d; if(d.length<=6)return'('+d.slice(0,2)+') '+d.slice(2); if(d.length<=10)return'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6); return'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7); }
 function telValido(v)     { return v.replace(/\D/g,'').length>=8; }
-function protocolo()      { var n=new Date(); return 'BF-'+String(n.getFullYear()).slice(-2)+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'-'+Date.now().toString(36).slice(-4).toUpperCase(); }
+// protocolo() removido — gerado pelo Firebase em reservarAtomico() e retornado em res.protocolo
 
 // ── Storage ───────────────────────────────────────────────────
 function getState()       { return _cache; }
@@ -43,9 +43,14 @@ function updateState(fn) {
 
   _cache.updatedAt    = new Date().toISOString();
   _cache.reservations = (_cache.stalls||[]).filter(function(s){return s.status==='reserved';})
-    .map(function(s){return{stallNumber:s.number,holderName:s.holderName,
-      contactPhone:s.contactPhone,requestedStalls:s.requestedStalls,
-      status:'Confirmada',reservedAt:s.reservedAt};});
+    .map(function(s){
+      // Preservar protocolo se já existia na reserva anterior
+      var existing = (_cache.reservations||[]).find(function(r){ return r.stallNumber===s.number; });
+      return {stallNumber:s.number,holderName:s.holderName,
+        contactPhone:s.contactPhone,requestedStalls:s.requestedStalls,
+        status:'Confirmada',reservedAt:s.reservedAt,
+        protocolo: existing ? existing.protocolo : ''};
+    });
   window.BAIA_STATE.stalls = _cache.stalls || [];
   if (_evId) window.FB.salvar(_evId, _cache);
 }
@@ -61,7 +66,10 @@ window.entrarProva = async function(evId, evNome) {
   _cache = await window.FB.initProva(_evId, _evNome);
   window.BAIA_STATE.stalls = _cache.stalls || [];
   // W: registrar acesso anônimo para estatísticas
-  if (window.FB && window.FB.registrarAcesso) window.FB.registrarAcesso(_evId);
+  // W: tipo distingue acesso de reserva de acesso de visualização
+  var _tipoAcesso = (typeof window._getModoVisualizacao === 'function' && window._getModoVisualizacao())
+    ? 'visualizacao' : 'reserva';
+  if (window.FB && window.FB.registrarAcesso) window.FB.registrarAcesso(_evId, _tipoAcesso);
 };
 
 window.iniciarListenerCompetidor = function(onUpdate) {
@@ -326,8 +334,8 @@ document.addEventListener('DOMContentLoaded', function() {
   rejectBtn.addEventListener('click', ctrlSelecao.rejectSequence);
   closeReceiptBtn.addEventListener('click', function() {
     receiptModal.hidden = true;
-    // Se download ou whatsapp já foram usados, voltar para home
-    if (state._receiptUsed && typeof window._goHomeCallback === 'function') {
+    // Redirecionar para home apenas se: usou download/whatsapp E não está em modo visualização
+    if (state._receiptUsed && !_viewMode && typeof window._goHomeCallback === 'function') {
       setTimeout(window._goHomeCallback, 300);
     }
   });
@@ -447,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (res.data) { _cache=res.data; window.BAIA_STATE.stalls=res.data.stalls||[]; }
 
     state.receipt = {
-      protocolo:  protocolo(),
+      protocolo:  (res.protocolo) || ('BF-' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'') + '-????'),
       evento:     _evNome || (evNomeEl&&evNomeEl.textContent) || 'Evento',
       titular:    state.holderName,
       baias:      numeros,
