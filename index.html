@@ -739,12 +739,28 @@
   <div id="lookupModal" class="modal" hidden>
     <div class="modal__content" style="max-width:520px;width:100%;">
       <h2 style="margin-bottom:0.25rem;">Consultar reserva</h2>
-      <p style="font-size:0.86rem;color:var(--muted);margin:0 0 1.25rem;">Digite o telefone cadastrado na reserva.</p>
+      <p style="font-size:0.86rem;color:var(--muted);margin:0 0 1.25rem;">Busque pelo telefone ou pelo protocolo da reserva.</p>
 
-      <div class="form-row" style="margin-bottom:0.5rem;">
-        <label for="lookupPhone">Telefone de contato</label>
-        <input id="lookupPhone" type="tel" placeholder="(11) 99999-9999" autocomplete="tel" />
+      <!-- Tabs -->
+      <div style="display:flex;gap:0;margin-bottom:1rem;border-bottom:1px solid rgba(255,255,255,.08);">
+        <button id="lookupTabPhone" type="button" style="flex:1;padding:0.5rem;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-family:'Manrope',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;">📞 Por telefone</button>
+        <button id="lookupTabProto" type="button" style="flex:1;padding:0.5rem;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Manrope',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;">🔖 Por protocolo</button>
       </div>
+
+      <div id="lookupPanelPhone">
+        <div class="form-row" style="margin-bottom:0.5rem;">
+          <label for="lookupPhone">Telefone de contato</label>
+          <input id="lookupPhone" type="tel" placeholder="(11) 99999-9999" autocomplete="tel" />
+        </div>
+      </div>
+
+      <div id="lookupPanelProto" hidden>
+        <div class="form-row" style="margin-bottom:0.5rem;">
+          <label for="lookupProto">Código do protocolo</label>
+          <input id="lookupProto" type="text" placeholder="Ex: BF-250409-A3K2" autocomplete="off" style="text-transform:uppercase;" />
+        </div>
+      </div>
+
       <p id="lookupError" style="font-size:0.83rem;color:var(--danger);min-height:1rem;margin:0 0 0.75rem;font-weight:600;"></p>
 
       <div class="modal__actions" style="margin-top:0;">
@@ -1204,13 +1220,46 @@
       else                   lookupPhone.value = '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);
     });
 
-    btnMinhaReserva.addEventListener('click', function() {
-      lookupPhone.value = '';
+    // Tabs do modal
+    var lookupTabPhone  = document.getElementById('lookupTabPhone');
+    var lookupTabProto  = document.getElementById('lookupTabProto');
+    var lookupPanelPhone= document.getElementById('lookupPanelPhone');
+    var lookupPanelProto= document.getElementById('lookupPanelProto');
+    var lookupProto     = document.getElementById('lookupProto');
+    var _lookupTab      = 'phone'; // aba ativa
+
+    function setLookupTab(tab) {
+      _lookupTab = tab;
+      var isPhone = tab === 'phone';
+      lookupPanelPhone.hidden = !isPhone;
+      lookupPanelProto.hidden =  isPhone;
+      lookupTabPhone.style.borderBottomColor = isPhone ? 'var(--gold)' : 'transparent';
+      lookupTabPhone.style.color             = isPhone ? 'var(--gold)' : 'var(--muted)';
+      lookupTabProto.style.borderBottomColor = !isPhone ? 'var(--gold)' : 'transparent';
+      lookupTabProto.style.color             = !isPhone ? 'var(--gold)' : 'var(--muted)';
       lookupError.textContent = '';
       lookupResults.hidden = true;
       lookupResults.innerHTML = '';
+      setTimeout(function(){ (isPhone ? lookupPhone : lookupProto).focus(); }, 60);
+    }
+
+    if (lookupTabPhone) lookupTabPhone.addEventListener('click', function() { setLookupTab('phone'); });
+    if (lookupTabProto) lookupTabProto.addEventListener('click', function() { setLookupTab('proto'); });
+    if (lookupProto)    lookupProto.addEventListener('input', function() {
+      lookupProto.value = lookupProto.value.toUpperCase();
+    });
+    if (lookupProto)    lookupProto.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') lookupSearchBtn.click();
+    });
+
+    btnMinhaReserva.addEventListener('click', function() {
+      lookupPhone.value = '';
+      if (lookupProto) lookupProto.value = '';
+      lookupError.textContent = '';
+      lookupResults.hidden = true;
+      lookupResults.innerHTML = '';
+      setLookupTab('phone');
       lookupModal.hidden = false;
-      setTimeout(function(){ lookupPhone.focus(); }, 80);
     });
 
     lookupCloseBtn.addEventListener('click', function() {
@@ -1230,18 +1279,30 @@
       lookupResults.hidden = true;
       lookupResults.innerHTML = '';
 
-      var tel = lookupPhone.value.replace(/\D/g,'');
-      if (tel.length < 8) { lookupError.textContent = 'Digite um telefone válido.'; return; }
-
       lookupSearchBtn.disabled = true;
       lookupSearchBtn.textContent = 'Buscando...';
 
       try {
-        var resultados = await window.FB.buscarReservasPorTelefone(tel);
+        var resultados;
 
-        if (!resultados || resultados.length === 0) {
-          lookupError.textContent = 'Nenhuma reserva encontrada para este telefone.';
-          return;
+        if (_lookupTab === 'proto') {
+          // Busca por protocolo
+          var proto = (lookupProto ? lookupProto.value.trim().toUpperCase() : '');
+          if (proto.length < 6) { lookupError.textContent = 'Digite o protocolo completo.'; return; }
+          resultados = await window.FB.buscarReservasPorProtocolo(proto);
+          if (!resultados || resultados.length === 0) {
+            lookupError.textContent = 'Nenhuma reserva encontrada para este protocolo.';
+            return;
+          }
+        } else {
+          // Busca por telefone
+          var tel = lookupPhone.value.replace(/[^0-9]/g,'');
+          if (tel.length < 8) { lookupError.textContent = 'Digite um telefone válido.'; return; }
+          resultados = await window.FB.buscarReservasPorTelefone(tel);
+          if (!resultados || resultados.length === 0) {
+            lookupError.textContent = 'Nenhuma reserva encontrada para este telefone.';
+            return;
+          }
         }
 
         lookupResults.innerHTML = '';
