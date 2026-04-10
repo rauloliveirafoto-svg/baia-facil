@@ -130,6 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
     state.holderName=''; state.requestedStalls=0; state.contactPhone='';
     state.selectedStalls=[]; state.suggestedSequence=[];
     state.mode=null; state.remainingSeconds=300; state.receipt=null; state._receiptUsed=false;
+    // Garantir que modo visualização é desativado ao resetar
+    if (typeof window._desativarModoVisualizacao === 'function') window._desativarModoVisualizacao();
     window.BAIA_STATE.selectedStalls    = state.selectedStalls;
     window.BAIA_STATE.competitorCredits = 0;
     window.BAIA_STATE.timer.isActive    = false;
@@ -289,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   window._desativarModoVisualizacao = function() {
     _viewMode = false;
-    if (finishBtn) finishBtn.hidden = false;
+    if (finishBtn) { finishBtn.hidden = false; finishBtn.disabled = true; }
   };
 
   // ── Exposto para index.html ───────────────────────────────
@@ -429,6 +431,13 @@ document.addEventListener('DOMContentLoaded', function() {
       res = await window.FB.reservarAtomico(_evId, numeros, state.holderName, state.contactPhone, state.requestedStalls);
     } catch(e) {
       console.error('[finalizar]', e);
+      // Fallback offline: gerar protocolo temporário marcado com T (Temporário)
+      // O competidor é informado que o protocolo pode mudar ao sincronizar
+      var d = now;
+      var dd = String(d.getDate()).padStart(2,'0');
+      var mm = String(d.getMonth()+1).padStart(2,'0');
+      var aaaa = String(d.getFullYear());
+      var protoTemp = 'BF-' + dd + mm + aaaa + '-T' + Date.now().toString(36).slice(-3).toUpperCase();
       updateState(function(next) {
         numeros.forEach(function(n) {
           var s = next.stalls.find(function(x){return x.number===n;});
@@ -438,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
           s.reservedAt=now.toISOString();
         });
       });
-      res = { ok:true, data:getState() };
+      res = { ok:true, data:getState(), protocolo: protoTemp, offline: true };
     }
 
     if (!res.ok) {
@@ -455,7 +464,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (res.data) { _cache=res.data; window.BAIA_STATE.stalls=res.data.stalls||[]; }
 
     state.receipt = {
-      protocolo:  (res.protocolo) || ('BF-' + new Date().toLocaleDateString('pt-BR').replace(/\//g,'') + '-????'),
+      protocolo:  res.protocolo || 'BF-ERRO',
+      offline:    res.offline || false,
       evento:     _evNome || (evNomeEl&&evNomeEl.textContent) || 'Evento',
       titular:    state.holderName,
       baias:      numeros,
@@ -476,7 +486,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function mostrarComprovante() {
     if (!state.receipt) return;
     if (receiptProtocol) receiptProtocol.textContent = state.receipt.protocolo;
+    var offlineAviso = state.receipt.offline
+      ? '<p style="margin:.3rem 0 .6rem;font-size:.82rem;color:#C8A027;background:rgba(200,160,39,.08);border:1px solid rgba(200,160,39,.25);border-radius:8px;padding:.4rem .7rem;">'+
+        '⚠️ Reserva salva localmente. Protocolo temporário — confirme a conexão.</p>'
+      : '';
     if (receiptContent) receiptContent.innerHTML =
+      offlineAviso+
       '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Evento:</strong> '+state.receipt.evento+'</p>'+
       '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Titular:</strong> '+state.receipt.titular+'</p>'+
       '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Baia(s):</strong> '+state.receipt.baias.map(fmt).join(', ')+'</p>'+

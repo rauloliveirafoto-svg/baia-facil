@@ -488,10 +488,26 @@ document.addEventListener('DOMContentLoaded', function() {
       if (s.number===selBaia)       b.classList.add('stall--selected');
       b.title = fmt(s.number)+' | '+statusLabel(s.status)+' | '+(s.holderName||'—');
     });
-    // RISCO CORRIGIDO: re-aplicar highlight de busca por nome após cada renderMapa
-    // sem isso o Firebase listener apaga o destaque a cada atualização
-    if (_nameHighlight.length > 0 && elNameSearch && elNameSearch.value) {
-      aplicarNomeBusca(elNameSearch.value);
+    // Re-aplicar highlight de busca por nome após cada renderMapa
+    // Proteção contra recursão: aplicarNomeBusca não chama renderMapa
+    if (elNameSearch && elNameSearch.value.trim()) {
+      var termo = elNameSearch.value.trim().toLowerCase();
+      // Re-aplicar classes diretamente sem chamar aplicarNomeBusca (evita loop)
+      var matches = [];
+      cache.stalls.forEach(function(s) {
+        if ((s.holderName||'').toLowerCase().includes(termo) && s.status==='reserved') {
+          matches.push(s.number);
+        }
+      });
+      if (matches.length > 0) {
+        cache.stalls.forEach(function(s) {
+          var b = btnMap.get(s.number);
+          if (!b) return;
+          if (matches.indexOf(s.number) >= 0) b.classList.add('stall--name-match');
+          else b.classList.add('stall--name-dim');
+        });
+        _nameHighlight = cache.stalls.map(function(s){ return s.number; });
+      }
     }
   }
 

@@ -20,24 +20,24 @@
 
   // ── Gerador de protocolo sequencial ──────────────────────────
   // Formato: BF-DDMMAAAA-NNNN  ex: BF-09042025-0001
-  // O contador é por prova e por dia, salvo no documento da prova.
+  // Contadores ficam em data.protoSeq (objeto isolado) — não polui o doc raiz.
   function gerarProtocolo(data, now) {
-    var d     = now || new Date();
-    var dd    = String(d.getDate()).padStart(2,'0');
-    var mm    = String(d.getMonth()+1).padStart(2,'0');
-    var aaaa  = String(d.getFullYear());
-    var data_str = dd + mm + aaaa;
+    var d        = now || new Date();
+    var dd       = String(d.getDate()).padStart(2,'0');
+    var mm       = String(d.getMonth()+1).padStart(2,'0');
+    var aaaa     = String(d.getFullYear());
+    var dataStr  = dd + mm + aaaa;
 
-    // Incrementar contador do dia
-    var key     = 'proto_seq_' + data_str;
-    var seq     = (data[key] || 0) + 1;
-    data[key]   = seq;                          // persiste no documento
-    var num     = String(seq).padStart(4, '0');
-    return 'BF-' + data_str + '-' + num;
+    if (!data.protoSeq) data.protoSeq = {};
+    var seq  = (data.protoSeq[dataStr] || 0) + 1;
+    data.protoSeq[dataStr] = seq;
+    return 'BF-' + dataStr + '-' + String(seq).padStart(4, '0');
   }
 
   // ── H: Cache local (fallback offline) ────────────────────────
-  var LS_PREFIX = 'baiafacil_cache_ev_';
+  var LS_PREFIX   = 'baiafacil_cache_ev_';
+  var CACHE_TTL   = 24 * 60 * 60 * 1000;  // 24h
+  var CACHE_MAX   =  7 * 24 * 60 * 60 * 1000; // 7 dias — limpeza
 
   function cacheSalvar(evId, data) {
     try {
@@ -52,10 +52,27 @@
       var raw = localStorage.getItem(LS_PREFIX + evId);
       if (!raw) return null;
       var obj = JSON.parse(raw);
-      if (Date.now() - obj.savedAt > 24 * 60 * 60 * 1000) return null;
+      if (Date.now() - obj.savedAt > CACHE_TTL) return null;
       return obj.data;
     } catch(e) { return null; }
   }
+
+  // Limpar entradas de cache com mais de 7 dias
+  function cacheLimparExpirados() {
+    try {
+      var agora = Date.now();
+      Object.keys(localStorage).forEach(function(k) {
+        if (!k.startsWith(LS_PREFIX)) return;
+        try {
+          var obj = JSON.parse(localStorage.getItem(k));
+          if (obj && obj.savedAt && (agora - obj.savedAt) > CACHE_MAX) {
+            localStorage.removeItem(k);
+          }
+        } catch(e) {}
+      });
+    } catch(e) {}
+  }
+  cacheLimparExpirados(); // executar ao carregar o módulo
 
   // ── Leitura ──────────────────────────────────────────────────
   async function initProva(evId, evName) {
