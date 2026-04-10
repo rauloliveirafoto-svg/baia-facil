@@ -667,10 +667,10 @@
         <section class="map-wrapper">
           <div class="legend">
             <span><i class="dot dot--available"></i>Disponível</span>
-            <span><i class="dot dot--selected"></i>Selecionada</span>
-            <span><i class="dot" style="background:#c87820;border-color:#c87820;"></i>Em seleção</span>
+            <span><i class="dot dot--selected"></i>Sua seleção</span>
+            <span><i class="dot" style="background:rgba(220,120,20,.22);border:1px solid rgba(230,140,30,.7);"></i>Reservada por outro — aguarde</span>
             <span><i class="dot dot--blocked"></i>Bloqueio temporário</span>
-            <span><i class="dot dot--reserved"></i>Reservada</span>
+            <span><i class="dot dot--reserved"></i>Confirmada</span>
           </div>
           <div id="stallMap" class="stall-map"></div>
         </section>
@@ -863,6 +863,35 @@
     }).catch(function(e){ console.warn('badges:', e); });
   };
 
+  // ── Encerramento automático por data ─────────────────────────
+  // Verifica ao carregar se algum evento já passou da data de fim
+  // e aciona o encerramento no Firestore se ainda não foi encerrado
+  window.verificarEncerramentoPorData = async function() {
+    if (!window.FB) return;
+    var hoje = new Date();
+    hoje.setHours(23, 59, 59, 999); // final do dia de hoje
+
+    var EVENTS_LOCAL = window._EVENTS_DATA || [];
+    for (var i = 0; i < EVENTS_LOCAL.length; i++) {
+      var ev = EVENTS_LOCAL[i];
+      if (!ev.endDate) continue;
+      var fim = new Date(ev.endDate + 'T23:59:59');
+      if (fim < hoje) {
+        // Data já passou — verificar se ainda não foi encerrada no Firestore
+        try {
+          var snap = await window.FB.getProvaSnapshot(ev.id);
+          if (snap && snap.status !== 'encerrada') {
+            console.log('[autoEncerramento] encerrando prova', ev.id, ev.name);
+            await window.FB.encerrarProva(ev.id, 'sistema (data)');
+            // Marcar card como encerrado visualmente
+            var card = document.querySelector('[data-ev-id="'+ev.id+'"]');
+            if (card) { card.classList.add('event-card--encerrada'); card.style.order='99'; }
+          }
+        } catch(e) { console.warn('[autoEncerramento]', e.message); }
+      }
+    }
+  };
+
   /* ════════════════════════════════════════════════════════
      DOMContentLoaded
   ════════════════════════════════════════════════════════ */
@@ -876,16 +905,18 @@
     document.addEventListener('DOMContentLoaded', function() {
 
     var EVENTS = [
-      { id:1, name:'Copa Brasil Três Tambores',              date:'28–30 Mar 2025', loc:'São Paulo, SP',      venue:'Parque Equestre',          icon:'🏆', img:'img/events/ev1.png' },
-      { id:2, name:'Prova de Três Tambores — Troféu de Ouro',date:'05–07 Abr 2025', loc:'Campinas, SP',       venue:'Haras das Palmeiras',      icon:'🥇', img:'img/events/ev2.png' },
-      { id:3, name:'Campeonato Laço de Ouro — Team Roping',  date:'12–13 Abr 2025', loc:'Jundiaí, SP',        venue:'Rancho Modelo',            icon:'🌴', img:'img/events/ev3.png' },
-      { id:4, name:'Campeonato Três Tambores',               date:'19–21 Abr 2025', loc:'Curitiba, PR',       venue:'Centro Equestre Sul',      icon:'🐎', img:'img/events/ev4.png' },
-      { id:5, name:'Grande Desafio — Team Roping',           date:'26–27 Abr 2025', loc:'Itapeva, SP',        venue:'Haras Itapeva',            icon:'🎖️', img:'img/events/ev5.png' },
-      { id:6, name:'Circuito Estadual Três Tambores',        date:'03–04 Mai 2025', loc:'Belo Horizonte, MG', venue:'Parque de Exposições',     icon:'🎠', img:'img/events/ev6.png' },
-      { id:7, name:'Festa dos Campeões — Três Tambores',     date:'10–11 Mai 2025', loc:'Brasília, DF',       venue:'Centro Hípico',            icon:'🌸', img:'img/events/ev7.png' },
-      { id:8, name:'Revoredo Cup — Team Roping',             date:'17–18 Mai 2025', loc:'Recife, PE',         venue:'Rancho Revoredo',          icon:'⭐', img:'img/events/ev8.png' },
-      { id:9, name:'Prova dos Três Tambores',                date:'24–25 Mai 2025', loc:'Uberlândia, MG',     venue:'Haras São Luiz',           icon:'🏅', img:'img/events/ev9.png' },
+      { id:1, name:'Copa Brasil Três Tambores',              date:'28–30 Mar 2025', endDate:'2025-03-30', loc:'São Paulo, SP',      venue:'Parque Equestre',          icon:'🏆', img:'img/events/ev1.png' },
+      { id:2, name:'Prova de Três Tambores — Troféu de Ouro',date:'05–07 Abr 2025', endDate:'2025-04-07', loc:'Campinas, SP',       venue:'Haras das Palmeiras',      icon:'🥇', img:'img/events/ev2.png' },
+      { id:3, name:'Campeonato Laço de Ouro — Team Roping',  date:'12–13 Abr 2025', endDate:'2025-04-13', loc:'Jundiaí, SP',        venue:'Rancho Modelo',            icon:'🌴', img:'img/events/ev3.png' },
+      { id:4, name:'Campeonato Três Tambores',               date:'19–21 Abr 2025', endDate:'2025-04-21', loc:'Curitiba, PR',       venue:'Centro Equestre Sul',      icon:'🐎', img:'img/events/ev4.png' },
+      { id:5, name:'Grande Desafio — Team Roping',           date:'26–27 Abr 2025', endDate:'2025-04-27', loc:'Itapeva, SP',        venue:'Haras Itapeva',            icon:'🎖️', img:'img/events/ev5.png' },
+      { id:6, name:'Circuito Estadual Três Tambores',        date:'03–04 Mai 2025', endDate:'2025-05-04', loc:'Belo Horizonte, MG', venue:'Parque de Exposições',     icon:'🎠', img:'img/events/ev6.png' },
+      { id:7, name:'Festa dos Campeões — Três Tambores',     date:'10–11 Mai 2025', endDate:'2025-05-11', loc:'Brasília, DF',       venue:'Centro Hípico',            icon:'🌸', img:'img/events/ev7.png' },
+      { id:8, name:'Revoredo Cup — Team Roping',             date:'17–18 Mai 2025', endDate:'2025-05-18', loc:'Recife, PE',         venue:'Rancho Revoredo',          icon:'⭐', img:'img/events/ev8.png' },
+      { id:9, name:'Prova dos Três Tambores',                date:'24–25 Mai 2025', endDate:'2025-05-25', loc:'Uberlândia, MG',     venue:'Haras São Luiz',           icon:'🏅', img:'img/events/ev9.png' },
     ];
+
+    window._EVENTS_DATA = EVENTS; // expor para verificarEncerramentoPorData
 
     var BLOCOS = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
       {id:1,label:'Bloco 1',stalls:30,start:1},
@@ -946,7 +977,14 @@
     });
 
     var _badgeInterval = setInterval(function() {
-      if (window.FB) { clearInterval(_badgeInterval); window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase(); }
+      if (window.FB) {
+        clearInterval(_badgeInterval);
+        window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
+        // Verificar encerramento automático por data ao carregar
+        setTimeout(function() {
+          window.verificarEncerramentoPorData && window.verificarEncerramentoPorData();
+        }, 1500); // aguardar badges renderizarem primeiro
+      }
     }, 300);
 
     /* ── History API ───────────────────────────────────── */
