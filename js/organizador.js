@@ -97,10 +97,74 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (elSel) elSel.value = evId;
 
+  // ── Preencher select de provas dinamicamente ───────────────
+  async function populateEventSelect() {
+    if (!elSel || !window.FB) return;
+    try {
+      var provas = await window.FB.getProvas();
+      // Separar ativas e encerradas
+      var ativas     = provas.filter(function(p){ return p.status !== 'encerrada'; });
+      var encerradas = provas.filter(function(p){ return p.status === 'encerrada'; });
+
+      // Ordenar por id numérico (decrescente = mais recente primeiro nas ativas)
+      ativas.sort(function(a,b){ return Number(b.id) - Number(a.id); });
+      encerradas.sort(function(a,b){ return Number(b.id) - Number(a.id); });
+
+      elSel.innerHTML = '';
+
+      // Grupo: provas ativas
+      if (ativas.length) {
+        var grpAtivas = document.createElement('optgroup');
+        grpAtivas.label = 'Provas ativas';
+        ativas.forEach(function(p) {
+          var opt = document.createElement('option');
+          opt.value = p.id;
+          opt.style.background = '#0b1e16';
+          opt.textContent = p.eventName || ('Prova ' + p.id);
+          grpAtivas.appendChild(opt);
+        });
+        elSel.appendChild(grpAtivas);
+      }
+
+      // Grupo: provas encerradas
+      if (encerradas.length) {
+        var grpEnc = document.createElement('optgroup');
+        grpEnc.label = '— Encerradas';
+        grpEnc.style.color = 'rgba(107,148,128,.5)';
+        encerradas.forEach(function(p) {
+          var opt = document.createElement('option');
+          opt.value = p.id;
+          opt.style.background = '#070f09';
+          opt.style.color      = 'rgba(242,239,230,.35)';
+          opt.textContent      = '✓ ' + (p.eventName || ('Prova ' + p.id));
+          grpEnc.appendChild(opt);
+        });
+        elSel.appendChild(grpEnc);
+      }
+
+      // Manter a prova selecionada, ou selecionar a primeira ativa
+      var opcoes = Array.from(elSel.options);
+      var existe = opcoes.some(function(o){ return o.value === evId; });
+      if (existe) {
+        elSel.value = evId;
+      } else if (ativas.length) {
+        evId = String(ativas[0].id);
+        elSel.value = evId;
+        localStorage.setItem('baia_org_ev', evId);
+      }
+
+      iniciarListener();
+    } catch(e) {
+      console.warn('[populateEventSelect]', e);
+      // Fallback: iniciar com o evId atual
+      iniciarListener();
+    }
+  }
+
   // ── Init ───────────────────────────────────────────────────
   window.BAIA_MAP.buildStallMap({ mapElement:elMap, template:elTpl, onStallClick:clickBaia });
   elMap.querySelectorAll('.stall').forEach(function(b) { btnMap.set(Number(b.dataset.stallNumber),b); });
-  iniciarListener();
+  populateEventSelect();
 
   // ── Seletor de evento ──────────────────────────────────────
   elSel.addEventListener('change', function() {
@@ -112,9 +176,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function iniciarListener() {
     if (_unsub) { _unsub(); _unsub = null; }
-    // Cancelar listener do histórico antes de trocar de prova
     if (_unsubHistorico) { _unsubHistorico(); _unsubHistorico = null; }
-    _unsub = window.FB.escutar(evId, function(data) { cache = data; renderTudo(); });
+    _unsub = window.FB.escutar(evId, function(data) {
+      cache = data;
+      // Reconstruir mapa se os blocos desta prova forem diferentes
+      if (data.blocos && Array.isArray(data.blocos)) {
+        var totalAtual = btnMap.size;
+        var totalNovo  = data.stalls ? data.stalls.length : 0;
+        if (totalAtual !== totalNovo) {
+          window.BAIA_MAP.buildStallMap({ mapElement:elMap, template:elTpl, onStallClick:clickBaia, blocos:data.blocos });
+          btnMap = new Map();
+          elMap.querySelectorAll('.stall').forEach(function(b) { btnMap.set(Number(b.dataset.stallNumber),b); });
+        }
+      }
+      renderTudo();
+    });
     carregarAcessos();
     carregarHistorico();
   }
@@ -777,7 +853,8 @@ document.addEventListener('DOMContentLoaded', function() {
       msg('Prova encerrada. Relatório gerado.');
       addLog('Prova encerrada', null, evNome);
 
-      // 3. Atualizar UI — badge de encerrada
+      // 3. Atualizar UI — re-popular select para mover prova para grupo encerradas
+      await populateEventSelect();
       if (btnEnc) { btnEnc.textContent = '✓ Encerrada'; btnEnc.disabled = true; }
 
     } catch(e) {

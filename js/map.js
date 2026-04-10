@@ -66,25 +66,32 @@
     parent.appendChild(wrap);
   }
 
-  // Mapa completo em GRID HORIZONTAL — organizador
+  // Mapa completo — organizador usa o mesmo layout 2 colunas do competidor
   function buildStallMap({ mapElement, template, onStallClick, blocos }) {
     if (!mapElement || !template) { console.warn('[buildStallMap] ausente'); return; }
     const layout = getBlocksLayout(blocos);
     mapElement.innerHTML = '';
+
+    // Container horizontal: todos os blocos lado a lado (igual ao mapa vertical do competidor)
+    const grid = document.createElement('div');
+    grid.className = 'stalls-grid-horizontal';
+    mapElement.appendChild(grid);
+
     layout.forEach((block, blockIndex) => {
-      const blockEl = document.createElement('section');
-      blockEl.className = 'block';
+      const blockEl = document.createElement('div');
+      blockEl.className = 'block block--vertical';
       const title = document.createElement('h2');
       title.className = 'block__title';
       title.textContent = block.label || ('Bloco ' + block.id);
       blockEl.appendChild(title);
-      buildRowLayout(blockEl, template, block.start, block.stalls, onStallClick);
-      mapElement.appendChild(blockEl);
+      buildTwoCols(blockEl, template, block.start, block.stalls, onStallClick);
+      grid.appendChild(blockEl);
+
       if (blockIndex < layout.length - 1) {
         const corridor = document.createElement('div');
-        corridor.className = 'corridor';
-        corridor.textContent = 'Corredor de circulação';
-        mapElement.appendChild(corridor);
+        corridor.className = 'corridor corridor--vertical';
+        corridor.innerHTML = '<span>Corredor</span>';
+        grid.appendChild(corridor);
       }
     });
   }
