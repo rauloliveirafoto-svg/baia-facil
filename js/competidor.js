@@ -451,6 +451,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (!res.ok) {
+      // Prova encerrada durante a seleção
+      if (res.encerrada) {
+        if (feedbackEl) feedbackEl.textContent = 'Esta prova foi encerrada. Suas baias foram liberadas.';
+        clearCurrentSelection();
+        return;
+      }
       var conf = res.conflito.map(fmt).join(', ');
       if (feedbackEl) feedbackEl.textContent = 'Baia(s) '+conf+' já reservada(s). Selecione outras.';
       state.selectedStalls = state.selectedStalls.filter(function(n){return res.conflito.indexOf(n)<0;});

@@ -190,6 +190,12 @@
       var data   = snap.data();
       var stalls = data.stalls || [];
 
+      // Bloquear reserva em prova encerrada
+      if (data.status === 'encerrada') {
+        resultado = { ok:false, encerrada:true, conflito:[] };
+        return;
+      }
+
       var conflito = numeros.filter(function(n) {
         var s = stalls.find(function(x) { return x.number === n; });
         if (!s) return true;
@@ -359,22 +365,39 @@
 
   // ── Encerrar prova ────────────────────────────────────────────
   async function encerrarProva(evId, usuario) {
+    // Idempotência: verificar se já está encerrada antes de agir
+    var snap = await ref(evId).get();
+    if (snap.exists && snap.data().status === 'encerrada') {
+      return snap.data().encerradaAt; // já encerrada — retornar sem duplicar
+    }
     var agora = new Date().toISOString();
-    // 1. Marcar prova como encerrada
     await ref(evId).update({
-      status:      'encerrada',
-      encerradaAt: agora,
+      status:       'encerrada',
+      encerradaAt:  agora,
       encerradaPor: usuario || 'organizador',
     });
-    // 2. Registrar no histórico
     await registrarAcao(evId, 'Prova encerrada', null, '', usuario);
     return agora;
+  }
+
+  // ── reservarAtomico: bloquear reserva em prova encerrada ──────
+  // (verificação adicionada dentro da transaction existente)
+
+  // Buscar estado atual de uma prova diretamente do Firestore (sem cache)
+  async function getProvaSnapshot(evId) {
+    try {
+      var snap = await ref(evId).get();
+      return snap.exists ? snap.data() : null;
+    } catch(e) {
+      console.warn('[getProvaSnapshot]', e.message);
+      return null;
+    }
   }
 
   window.FB = {
     initProva, getProvas, salvar, escutar, reservarAtomico,
     buscarReservasPorTelefone, buscarReservasPorProtocolo,
     registrarAcesso, getAcessos,
-    registrarAcao, getHistorico, encerrarProva,
+    registrarAcao, getHistorico, encerrarProva, getProvaSnapshot,
   };
 })();

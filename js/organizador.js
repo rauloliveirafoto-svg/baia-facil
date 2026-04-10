@@ -496,6 +496,20 @@ document.addEventListener('DOMContentLoaded', function() {
     elDisp.textContent   = String(avail);
     elBloq.textContent   = String(bloq);
 
+    // RISCO 1: desativar botão de encerramento se prova já encerrada
+    var btnEnc = $('btnEncerrarProva');
+    if (btnEnc) {
+      if (cache.status === 'encerrada') {
+        btnEnc.disabled = true;
+        btnEnc.textContent = '✓ Prova encerrada';
+        btnEnc.style.opacity = '0.5';
+      } else {
+        btnEnc.disabled = false;
+        btnEnc.textContent = '⏹ Encerrar prova';
+        btnEnc.style.opacity = '';
+      }
+    }
+
     // ── E: atualizar barra de ocupação ─────────────────────────
     if (occReserved && total > 0) {
       var pR = Math.round(reserved / total * 100);
@@ -704,9 +718,11 @@ document.addEventListener('DOMContentLoaded', function() {
       // 1. Marcar como encerrada no Firestore
       await window.FB.encerrarProva(evId, sessUser);
 
-      // 2. Gerar PDF do relatório final
+      // 2. Buscar estado final do Firestore para garantir PDF atualizado
+      var snapFinal = await window.FB.getProvaSnapshot(evId);
+      var dadosFinal = snapFinal || cache; // fallback para cache se necessário
       var historico = await window.FB.getHistorico(evId);
-      await gerarRelatorioPDF(cache, evNome, historico);
+      await gerarRelatorioPDF(dadosFinal, evNome, historico);
 
       msg('Prova encerrada. Relatório gerado.');
       addLog('Prova encerrada', null, evNome);
@@ -763,14 +779,20 @@ document.addEventListener('DOMContentLoaded', function() {
       y += 5.5;
     }
     function wrap(txt, maxLen) {
-      // quebra texto longo em múltiplas linhas
+      // Quebra por espaços primeiro; se palavra > maxLen, força quebra por caractere
       var words = txt.split(' '); var line = ''; var lines = [];
-      words.forEach(function(w){
-        if ((line+w).length > maxLen) { if(line) lines.push(line.trim()); line = w+' '; }
-        else line += w+' ';
+      words.forEach(function(w) {
+        // Palavra maior que maxLen — forçar quebra interna
+        while (w.length > maxLen) {
+          if (line) { lines.push(line.trim()); line = ''; }
+          lines.push(w.slice(0, maxLen));
+          w = w.slice(maxLen);
+        }
+        if ((line + w).length > maxLen) { if (line) lines.push(line.trim()); line = w + ' '; }
+        else line += w + ' ';
       });
       if (line.trim()) lines.push(line.trim());
-      return lines;
+      return lines.length ? lines : [txt.slice(0, maxLen)];
     }
 
     // ── Cabeçalho ────────────────────────────────────────────────
