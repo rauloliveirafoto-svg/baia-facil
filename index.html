@@ -255,6 +255,34 @@
       color: var(--gold-light);
     }
 
+    /* Botão "Ver mapa" secundário */
+    .event-card__cta--view {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(242,239,230,.45);
+    }
+    .event-card:hover .event-card__cta--view {
+      background: rgba(255,255,255,.05);
+      border-color: rgba(255,255,255,.22);
+      color: rgba(242,239,230,.75);
+    }
+
+    /* Prova encerrada — P&B + vai para o final */
+    .event-card--encerrada {
+      filter: grayscale(1) brightness(0.6);
+      opacity: 0.65;
+      order: 99;
+      cursor: default;
+      pointer-events: none;
+    }
+    .event-card--encerrada .event-card__cta { display: none; }
+    .event-card--encerrada .event-card__cta--view { display: none; }
+    .badge--encerrada {
+      background: rgba(255,255,255,.08) !important;
+      color: rgba(200,200,200,.6) !important;
+      border-color: rgba(255,255,255,.1) !important;
+    }
+
     .event-card__icon  { display:none; }
     .event-card__arrow { display:none; }
     .organizer-wrap { display:flex; justify-content:center; padding-top:0.75rem; }
@@ -557,10 +585,7 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <span>Minha reserva</span>
         </button>
-        <button id="btnVerMapa" class="home-header__lookup" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6l7-4 8 4 7-4v16l-7 4-8-4-7 4V6z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-          <span>Ver mapa</span>
-        </button>
+
         <a href="login.html" class="home-header__org">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           <span>Organizador</span>
@@ -810,6 +835,19 @@
       provas.forEach(function(prova) {
         var badge = document.querySelector('[data-badge="'+prova.id+'"]');
         if (!badge) return;
+        var card  = badge.closest('.event-card');
+
+        // Prova encerrada — P&B + vai para o final + inacessível
+        if (prova.status === 'encerrada') {
+          if (card) {
+            card.classList.add('event-card--encerrada');
+            card.style.order = '99';
+          }
+          badge.className = 'event-card__badge badge--encerrada';
+          badge.innerHTML = '<span class="event-card__badge-dot" style="background:#888;display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;"></span>Prova encerrada';
+          return;
+        }
+
         var av    = (prova.stalls||[]).filter(function(s){ return s.status==='available'; }).length;
         var total = (prova.stalls||[]).length || 140;
         var pct   = av / total;
@@ -888,11 +926,22 @@
               '<span class="event-card__badge-dot" style="background:#2DD4A0;"></span> carregando...'+
             '</div>'+
           '</div>'+
-          '<div class="event-card__action">'+
-            '<span class="event-card__cta">Ver detalhes &rsaquo;</span>'+
+          '<div class="event-card__action" style="display:flex;gap:0.4rem;">'+
+            '<span class="event-card__cta event-card__cta--reservar">Reservar baias &rsaquo;</span>'+
+            '<span class="event-card__cta event-card__cta--view" data-view-btn>👁 Ver mapa</span>'+
           '</div>'+
         '</div>';
-      btn.addEventListener('click', function(){ openEvent(ev); });
+      // Clique em "Reservar baias"
+      btn.addEventListener('click', function(e) {
+        if (e.target.closest('[data-view-btn]')) return; // ignorar — tratado abaixo
+        openEvent(ev);
+      });
+      // Clique em "Ver mapa"
+      btn.querySelector('[data-view-btn]').addEventListener('click', function(e) {
+        e.stopPropagation();
+        _modoVisualizacao = true;
+        openEvent(ev);
+      });
       grid.appendChild(btn);
     });
 
@@ -913,6 +962,8 @@
     var _abrindoEvento = false; // proteção contra clique duplo
     async function openEvent(ev) {
       if (_abrindoEvento) return;
+      // Bloquear acesso a provas encerradas pelo competidor
+      // (organizador acessa pelo painel, não pelo index)
       _abrindoEvento = true;
       var loadingEl = document.getElementById('homeLoadingOverlay');
       if (loadingEl) loadingEl.hidden = false;
@@ -1167,13 +1218,8 @@
     var btnVerMapa = document.getElementById('btnVerMapa');
     var viewModeBanner = document.getElementById('viewModeBanner');
 
-    if (btnVerMapa) {
-      btnVerMapa.addEventListener('click', function() {
-        // Pedir para escolher o evento antes de visualizar
-        // Abre um mini-select modal ou reutiliza o fluxo existente em modo view
-        abrirModoVisualizacao();
-      });
-    }
+    // btnVerMapa removido do header — agora cada card tem seu próprio botão "Ver mapa"
+    // A flag _modoVisualizacao é setada diretamente no listener do card
 
     function abrirModoVisualizacao() {
       // Mostrar seletor de prova inline — aproveitar o eventsGrid já existente

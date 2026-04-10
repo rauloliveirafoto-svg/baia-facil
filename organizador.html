@@ -649,10 +649,14 @@
         <!-- Relatórios -->
         <div class="panel">
           <h2 class="panel__title">Relatórios</h2>
-          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
             <button id="exportCsv"   class="btn" type="button">Exportar CSV</button>
             <button id="exportPdf"   class="btn" type="button">Exportar PDF</button>
-            <button id="printMap" class="btn" type="button">🖨 Imprimir mapa</button>
+            <button id="printMap"    class="btn" type="button">🖨 Imprimir mapa</button>
+          </div>
+          <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:0.75rem;">
+            <p style="font-size:0.78rem;color:var(--muted);margin:0 0 0.5rem;">Ao encerrar, um relatório PDF completo é gerado e a prova fica inacessível para novos competidores.</p>
+            <button id="btnEncerrarProva" class="btn" type="button" style="width:100%;background:rgba(220,69,69,.1);border-color:rgba(220,69,69,.35);color:#EE7070;font-weight:700;">⏹ Encerrar prova</button>
           </div>
         </div>
 
