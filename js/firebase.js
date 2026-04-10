@@ -120,7 +120,7 @@
         });
       }
 
-      if (dirty) ref(evId).set(data).catch(function(e){ console.warn('[initProva] save:', e); });
+      if (dirty) ref(evId).set(data, { merge: true }).catch(function(e){ console.warn('[initProva] save:', e); });
       cacheSalvar(evId, data);
       return data;
     }

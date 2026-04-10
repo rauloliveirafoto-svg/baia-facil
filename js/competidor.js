@@ -76,11 +76,19 @@ window.iniciarListenerCompetidor = function(onUpdate) {
   if (_unsub) { _unsub(); _unsub = null; }
   if (!_evId) return;
   _unsub = window.FB.escutar(_evId, function(data) {
-    // CORREÇÃO: só aceitar dados do Firebase se o cache já foi populado (evitar race condition)
-    // O listener pode disparar antes de entrarProva terminar; ignorar se _cache ainda é null
     if (!_cache) return;
     _cache = data;
     window.BAIA_STATE.stalls = data.stalls || [];
+
+    // RISCO 5: se a prova foi encerrada enquanto o competidor estava selecionando,
+    // parar o timer e limpar a seleção imediatamente com mensagem clara
+    if (data.status === 'encerrada') {
+      var feedbackEl = document.getElementById('feedback');
+      if (feedbackEl) feedbackEl.textContent = 'Esta prova foi encerrada pelo organizador.';
+      // Disparar clearCurrentSelection via evento customizado para não depender de closure
+      window.dispatchEvent(new CustomEvent('baia:provaEncerrada'));
+    }
+
     if (onUpdate) onUpdate();
   });
 };
@@ -385,6 +393,17 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       e.returnValue = 'Você tem baias selecionadas. Sair vai cancelar sua reserva.';
     }
+  });
+
+  // RISCO 5: limpar seleção quando prova for encerrada remotamente
+  window.addEventListener('baia:provaEncerrada', function() {
+    if (state.selectedStalls && state.selectedStalls.length > 0) {
+      clearCurrentSelection();
+    }
+    // Desativar o botão finalizar e esconder modal de sequência
+    if (finishBtn) finishBtn.disabled = true;
+    if (seqModal)  seqModal.hidden = true;
+    stopTimer();
   });
 
   // ── Funções internas ──────────────────────────────────────

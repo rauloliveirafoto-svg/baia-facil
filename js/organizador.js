@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var lblUser = $('sessionUserLabel');
   if (lblUser && sess) lblUser.textContent = sess.user || '';
   $('logoutBtn').addEventListener('click', function() {
-    if (_unsub) _unsub();
-    if (_unsubHistorico) _unsubHistorico();
+    try { if (_unsub) { _unsub(); _unsub = null; } } catch(e) {}
+    try { if (_unsubHistorico) { _unsubHistorico(); _unsubHistorico = null; } } catch(e) {}
     window.BAIA_AUTH.logout();
     window.location.replace('login.html');
   });
@@ -427,9 +427,11 @@ document.addEventListener('DOMContentLoaded', function() {
     logEntries.unshift(entrada);
     if (logEntries.length > 200) logEntries.pop();
     renderLog();
-    // Persistir no Firestore — não bloqueia UI
+    // Persistir no Firestore — não bloqueia UI, mas sinaliza falha no indicador de conexão
     if (window.FB && window.FB.registrarAcao) {
-      window.FB.registrarAcao(evId, acao, numero, extra, sessUser);
+      window.FB.registrarAcao(evId, acao, numero, extra, sessUser).catch(function() {
+        setConn('offline'); // indicar falha visualmente
+      });
     }
   }
 
