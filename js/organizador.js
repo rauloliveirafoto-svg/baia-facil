@@ -52,9 +52,15 @@ document.addEventListener('DOMContentLoaded', function() {
   var elManFeed  = $('manualFeedback');
   var elObsInput = $('stallObsInput');
   var elSaveObs  = $('btnSaveObs');
-  var elLogList  = $('logList');
-  var elClearLog      = $('btnClearLog');
-  var tooltip         = $('stallTooltip');
+  var elLogList     = $('logList');
+  var elClearLog    = $('btnClearLog');
+  var tooltip       = $('stallTooltip');
+  var checkinBody   = $('checkinTableBody');
+  var checkinSumEl  = $('checkinSummary');
+  var qrModal       = $('qrModal');
+  var qrFrom        = $('qrFrom');
+  var qrTo          = $('qrTo');
+  var qrFeedback    = $('qrFeedback');
   var elNameSearch    = $('nameSearchInput');
   var confirmModal    = $('confirmModal');
   var confirmBox      = $('confirmBox');
@@ -242,6 +248,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // W: carregar log de acessos ao trocar de evento
   carregarAcessos();
+
+  // ── Placas QR ────────────────────────────────────────────────
+  if ($('btnGerarPlacas')) {
+    $('btnGerarPlacas').addEventListener('click', function() {
+      if (qrFrom) qrFrom.value = '1';
+      if (qrTo)   qrTo.value   = String((window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140);
+      if (qrFeedback) qrFeedback.textContent = '';
+      if (qrModal) qrModal.hidden = false;
+    });
+  }
+  if ($('qrCancel'))  $('qrCancel').addEventListener('click',  function(){ if(qrModal) qrModal.hidden=true; });
+  if ($('qrConfirm')) $('qrConfirm').addEventListener('click', function(){ gerarPlacasQR(); });
+  if (qrModal) qrModal.addEventListener('click', function(e){ if(e.target===qrModal) qrModal.hidden=true; });
 
   // Salvar observação
   if (elSaveObs) {
@@ -554,7 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (occPctAvail)    occPctAvail.textContent     = Math.max(0, pA) + '%';
     }
 
-    renderMapa(); renderDetalhe(); renderTabela();
+    renderMapa(); renderDetalhe(); renderTabela(); renderCheckin();
   }
 
   function renderMapa() {
@@ -984,6 +1003,174 @@ document.addEventListener('DOMContentLoaded', function() {
         elLast.textContent = '—';
       }
     }).catch(function(){});
+  }
+
+  // ── Check-in em tempo real ───────────────────────────────────
+  function renderCheckin() {
+    if (!cache || !cache.stalls || !checkinBody) return;
+    var reservadas = cache.stalls.filter(function(s){ return s.status === 'reserved'; });
+    var checkins   = reservadas.filter(function(s){ return s.checkinAt; });
+
+    if (checkinSumEl) {
+      checkinSumEl.textContent = checkins.length + ' / ' + reservadas.length + ' check-ins';
+    }
+
+    if (!reservadas.length) {
+      checkinBody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);font-style:italic;text-align:center;padding:1rem;">Nenhuma reserva ainda.</td></tr>';
+      return;
+    }
+
+    // Ordenar: check-in feito primeiro, depois por número
+    reservadas.sort(function(a,b){
+      if (!!a.checkinAt === !!b.checkinAt) return a.number - b.number;
+      return a.checkinAt ? -1 : 1;
+    });
+
+    checkinBody.innerHTML = reservadas.map(function(s) {
+      var feito = !!s.checkinAt;
+      var horario = feito ? new Date(s.checkinAt).toLocaleTimeString('pt-BR') : '—';
+      return '<tr>'+
+        '<td><strong>'+fmt(s.number)+'</strong></td>'+
+        '<td>'+esc(s.holderName||'—')+'</td>'+
+        '<td>'+esc(s.contactPhone||'—')+'</td>'+
+        '<td><span class="'+(feito?'chip-checkin':'chip-pendente')+'">'+
+          (feito?'✓ Feito':'Pendente')+'</span></td>'+
+        '<td>'+horario+'</td>'+
+      '</tr>';
+    }).join('');
+  }
+
+  // ── Geração de placas QR ──────────────────────────────────────
+  async function gerarPlacasQR() {
+    if (!qrFrom || !qrTo || !qrFeedback) return;
+    var de  = Number(qrFrom.value);
+    var ate = Number(qrTo.value);
+    var total = (window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140;
+
+    if (!de || !ate || de < 1 || ate > total || de > ate) {
+      qrFeedback.textContent = 'Intervalo inválido. Verifique os valores.';
+      return;
+    }
+
+    var evNome = elSel.options[elSel.selectedIndex] ? elSel.options[elSel.selectedIndex].text : 'Evento';
+    var baseUrl = window.location.origin + window.location.pathname.replace('organizador.html','') + 'checkin.html';
+
+    qrFeedback.textContent = '';
+    var btn = $('qrConfirm');
+    if (btn) { btn.disabled = true; btn.textContent = 'Gerando...'; }
+
+    try {
+      // Carregar jsPDF
+      if (typeof window.jspdf === 'undefined') {
+        await new Promise(function(res, rej) {
+          var s = document.createElement('script');
+          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+
+      var jsPDF  = window.jspdf.jsPDF;
+      var doc    = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      var W = 210; var H = 297;
+      // 4 placas por página: 2 colunas × 2 linhas
+      var colW = W / 2;   // 105mm
+      var rowH = H / 2;   // 148.5mm
+      var padding = 8;
+
+      var baias = [];
+      for (var n = de; n <= ate; n++) baias.push(n);
+
+      for (var i = 0; i < baias.length; i++) {
+        var num   = baias[i];
+        var col   = i % 2;           // 0 = esquerda, 1 = direita
+        var row   = Math.floor(i / 2) % 2; // 0 = cima, 1 = baixo
+        var pageIdx = Math.floor(i / 4);
+
+        if (i > 0 && i % 4 === 0) doc.addPage();
+
+        var x0 = col * colW;
+        var y0 = row * rowH;
+
+        // Borda da placa
+        doc.setDrawColor(200, 168, 76);
+        doc.setLineWidth(0.5);
+        doc.rect(x0 + padding, y0 + padding, colW - padding*2, rowH - padding*2);
+
+        // Fundo do cabeçalho
+        doc.setFillColor(6, 15, 8);
+        doc.rect(x0 + padding, y0 + padding, colW - padding*2, 18, 'F');
+
+        // Logo texto
+        doc.setTextColor(201, 168, 76);
+        doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+        doc.text('BAIA FÁCIL', x0 + colW/2, y0 + padding + 6, { align:'center' });
+
+        // Nome do evento
+        doc.setTextColor(180, 180, 180);
+        doc.setFontSize(6);
+        doc.text(evNome.slice(0,30), x0 + colW/2, y0 + padding + 11, { align:'center' });
+
+        // Número da baia — grande
+        doc.setTextColor(20, 20, 20);
+        doc.setFontSize(52); doc.setFont('helvetica', 'bold');
+        doc.text(String(num).padStart(3,'0'), x0 + colW/2, y0 + padding + 50, { align:'center' });
+
+        // Label "BAIA"
+        doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text('BAIA', x0 + colW/2, y0 + padding + 58, { align:'center' });
+
+        // Gerar QR code como imagem via canvas
+        var url = baseUrl + '?ev=' + evId + '&baia=' + num;
+        var canvas = document.createElement('canvas');
+        canvas.width = 200; canvas.height = 200;
+
+        await new Promise(function(resolve) {
+          new QRCode(canvas, {
+            text:          url,
+            width:         200,
+            height:        200,
+            colorDark:     '#000000',
+            colorLight:    '#ffffff',
+            correctLevel:  QRCode.CorrectLevel.M,
+          });
+          setTimeout(resolve, 150); // aguardar renderização
+        });
+
+        var qrData = canvas.toDataURL('image/png');
+        var qrSize = 45; // mm
+        var qrX = x0 + colW/2 - qrSize/2;
+        var qrY = y0 + padding + 63;
+        doc.addImage(qrData, 'PNG', qrX, qrY, qrSize, qrSize);
+
+        // Instrução
+        doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');
+        doc.setTextColor(120, 120, 120);
+        doc.text('Escaneie para fazer check-in', x0 + colW/2, y0 + padding + 113, { align:'center' });
+
+        // Linha separadora entre placas
+        doc.setDrawColor(220, 220, 220); doc.setLineWidth(0.2);
+        if (col === 0 && row === 0 && i < baias.length - 1) {
+          doc.line(x0+colW, y0+padding, x0+colW, y0+rowH-padding); // vertical
+        }
+        if (row === 0 && i + 2 < baias.length) {
+          doc.line(x0+padding, y0+rowH, x0+colW-padding, y0+rowH); // horizontal
+        }
+      }
+
+      var nomeArq = 'placas-qr-baias-' + de + '-a-' + ate + '.pdf';
+      doc.save(nomeArq);
+      if (qrModal) qrModal.hidden = true;
+      msg('Placas geradas: baias ' + de + ' a ' + ate + '.');
+      addLog('Placas QR geradas', null, 'baias ' + de + ' a ' + ate);
+
+    } catch(e) {
+      console.error('[gerarPlacasQR]', e);
+      if (qrFeedback) qrFeedback.textContent = 'Erro ao gerar. Tente novamente.';
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Gerar PDF'; }
+    }
   }
 
   function exportCSV() {
