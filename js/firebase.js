@@ -154,10 +154,12 @@
   // ── Escrita ───────────────────────────────────────────────────
   function salvar(evId, data) {
     data.updatedAt = new Date().toISOString();
-    return ref(evId).set(data).catch(function(e) {
+    // merge:true garante que campos como status/encerradaAt não sejam sobrescritos
+    // caso encerrarProva() tenha rodado entre o último get e este set
+    return ref(evId).set(data, { merge: true }).catch(function(e) {
       console.warn('[Firebase] salvar erro, retentando em 3s:', e);
       setTimeout(function() {
-        ref(evId).set(data).catch(function(e2) {
+        ref(evId).set(data, { merge: true }).catch(function(e2) {
           console.error('[Firebase] salvar falhou definitivamente:', e2);
         });
       }, 3000);
@@ -354,13 +356,27 @@
       var snap = await refHistorico(evId).get();
       if (!snap.exists) return [];
       var acoes = snap.data().acoes || [];
-      // Ordenar por ts decrescente
       acoes.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
       return acoes;
     } catch(e) {
       console.warn('[getHistorico]', e.message);
       return [];
     }
+  }
+
+  // Listener em tempo real para o histórico — múltiplos organizadores sincronizados
+  function escutarHistorico(evId, cb) {
+    return refHistorico(evId).onSnapshot(
+      function(snap) {
+        if (!snap.exists) { cb([]); return; }
+        var acoes = (snap.data().acoes || []).slice();
+        acoes.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+        cb(acoes);
+      },
+      function(err) {
+        console.warn('[escutarHistorico]', err.message);
+      }
+    );
   }
 
   // ── Encerrar prova ────────────────────────────────────────────
@@ -398,6 +414,6 @@
     initProva, getProvas, salvar, escutar, reservarAtomico,
     buscarReservasPorTelefone, buscarReservasPorProtocolo,
     registrarAcesso, getAcessos,
-    registrarAcao, getHistorico, encerrarProva, getProvaSnapshot,
+    registrarAcao, getHistorico, escutarHistorico, encerrarProva, getProvaSnapshot,
   };
 })();

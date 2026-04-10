@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (lblUser && sess) lblUser.textContent = sess.user || '';
   $('logoutBtn').addEventListener('click', function() {
     if (_unsub) _unsub();
+    if (_unsubHistorico) _unsubHistorico();
     window.BAIA_AUTH.logout();
     window.location.replace('login.html');
   });
@@ -105,9 +106,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function iniciarListener() {
     if (_unsub) { _unsub(); _unsub = null; }
+    // Cancelar listener do histórico antes de trocar de prova
+    if (_unsubHistorico) { _unsubHistorico(); _unsubHistorico = null; }
     _unsub = window.FB.escutar(evId, function(data) { cache = data; renderTudo(); });
     carregarAcessos();
-    carregarHistorico(); // carregar histórico persistido do Firestore
+    carregarHistorico();
   }
 
   // ── Filtros ────────────────────────────────────────────────
@@ -214,6 +217,26 @@ document.addEventListener('DOMContentLoaded', function() {
         'Encerrar "' + evNome + '"? Esta ação é irreversível. Um relatório PDF será gerado automaticamente.',
         function() { executarEncerramento(evNome); }
       );
+    });
+  }
+
+  // Baixar relatório (provas já encerradas)
+  if ($('btnBaixarRelatorio')) {
+    $('btnBaixarRelatorio').addEventListener('click', async function() {
+      if (!cache) return;
+      var btn = $('btnBaixarRelatorio');
+      btn.disabled = true; btn.textContent = 'Gerando PDF...';
+      try {
+        var evNome = elSel.options[elSel.selectedIndex] ? elSel.options[elSel.selectedIndex].text : 'Evento';
+        var snapFinal = await window.FB.getProvaSnapshot(evId);
+        var dadosFinal = snapFinal || cache;
+        var historico  = await window.FB.getHistorico(evId);
+        await gerarRelatorioPDF(dadosFinal, evNome, historico);
+      } catch(e) {
+        msg('Erro ao gerar relatório.', true);
+      } finally {
+        btn.disabled = false; btn.textContent = '⬇ Baixar relatório';
+      }
     });
   }
 
@@ -426,10 +449,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }).join('');
   }
 
-  // Carregar histórico do Firestore ao trocar de prova
+  // Listener em tempo real para o histórico — múltiplos organizadores sincronizados
+  var _unsubHistorico = null;
+
   function carregarHistorico() {
-    if (!window.FB || !window.FB.getHistorico) return;
-    window.FB.getHistorico(evId).then(function(acoes) {
+    if (_unsubHistorico) { _unsubHistorico(); _unsubHistorico = null; }
+    if (!window.FB || !window.FB.escutarHistorico) return;
+    _unsubHistorico = window.FB.escutarHistorico(evId, function(acoes) {
       logEntries = acoes.map(function(a) {
         return {
           time:   a.at ? new Date(a.at).toLocaleTimeString('pt-BR') : '—',
@@ -440,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
       });
       renderLog();
-    }).catch(function(){});
+    });
   }
 
   function reqSel(cb) {
@@ -496,17 +522,20 @@ document.addEventListener('DOMContentLoaded', function() {
     elDisp.textContent   = String(avail);
     elBloq.textContent   = String(bloq);
 
-    // RISCO 1: desativar botão de encerramento se prova já encerrada
+    // Botões de encerramento — ajustar conforme status da prova
     var btnEnc = $('btnEncerrarProva');
+    var btnRel = $('btnBaixarRelatorio');
     if (btnEnc) {
       if (cache.status === 'encerrada') {
         btnEnc.disabled = true;
         btnEnc.textContent = '✓ Prova encerrada';
         btnEnc.style.opacity = '0.5';
+        if (btnRel) btnRel.style.display = 'block'; // mostrar botão de relatório
       } else {
         btnEnc.disabled = false;
         btnEnc.textContent = '⏹ Encerrar prova';
         btnEnc.style.opacity = '';
+        if (btnRel) btnRel.style.display = 'none';
       }
     }
 
