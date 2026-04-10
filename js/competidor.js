@@ -57,11 +57,11 @@ window.updateState = updateState;
 window.entrarProva = async function(evId, evNome) {
   _evId   = String(evId);
   _evNome = evNome;
-  // Cancelar listener anterior
   if (_unsub) { _unsub(); _unsub = null; }
-  // Carregar dados do Firebase
   _cache = await window.FB.initProva(_evId, _evNome);
   window.BAIA_STATE.stalls = _cache.stalls || [];
+  // W: registrar acesso anônimo para estatísticas
+  if (window.FB && window.FB.registrarAcesso) window.FB.registrarAcesso(_evId);
 };
 
 window.iniciarListenerCompetidor = function(onUpdate) {

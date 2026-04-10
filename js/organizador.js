@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function iniciarListener() {
     if (_unsub) { _unsub(); _unsub = null; }
     _unsub = window.FB.escutar(evId, function(data) { cache = data; renderTudo(); });
+    carregarAcessos(); // W: recarregar acessos ao trocar prova
   }
 
   // ── Filtros ────────────────────────────────────────────────
@@ -201,6 +202,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   $('exportCsv').addEventListener('click', exportCSV);
+
+  // W: carregar log de acessos ao trocar de evento
+  carregarAcessos();
 
   // Salvar observação
   if (elSaveObs) {
@@ -630,6 +634,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     fecharManual(); renderTudo();
     addLog('Reserva manual', null, manSel.map(fmt).join(', ')+' → '+nome); msg('Reserva criada: '+manSel.map(fmt).join(', ')+' → '+nome+'.');
+  }
+
+  // ── W: Log de acessos ────────────────────────────────────────
+  function carregarAcessos() {
+    if (!window.FB || !window.FB.getAcessos) return;
+    window.FB.getAcessos(evId).then(function(acessos) {
+      var el = document.getElementById('acessosCount');
+      var elLast = document.getElementById('acessosLast');
+      if (el) el.textContent = acessos.length;
+      if (elLast && acessos.length > 0) {
+        var ultimo = acessos.sort(function(a,b){ return b.ts - a.ts; })[0];
+        elLast.textContent = new Date(ultimo.at).toLocaleString('pt-BR');
+      } else if (elLast) {
+        elLast.textContent = '—';
+      }
+    }).catch(function(){});
   }
 
   function exportCSV() {

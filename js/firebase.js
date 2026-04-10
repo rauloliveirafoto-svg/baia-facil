@@ -193,10 +193,14 @@
         s.selectedAt = ''; s.sessionId = '';
       });
       data.updatedAt    = now;
+      // Gerar protocolo da transação para busca futura
+      var txProto = 'BF-' + new Date().toISOString().slice(2,10).replace(/-/g,'') + '-' +
+                    Date.now().toString(36).slice(-4).toUpperCase();
       data.reservations = stalls.filter(function(s) { return s.status === 'reserved'; })
         .map(function(s) { return { stallNumber:s.number, holderName:s.holderName,
           contactPhone:s.contactPhone, requestedStalls:s.requestedStalls,
-          status:'Confirmada', reservedAt:s.reservedAt }; });
+          status:'Confirmada', reservedAt:s.reservedAt,
+          protocolo: txProto }; });
       tx.set(ref(evId), data);
       resultado = { ok: true, data: data };
     });
@@ -225,5 +229,59 @@
     return resultados;
   }
 
-  window.FB = { initProva, getProvas, salvar, escutar, reservarAtomico, buscarReservasPorTelefone };
+  // ── S: Buscar reservas por protocolo ────────────────────────────
+  async function buscarReservasPorProtocolo(protocolo) {
+    var snap = await db.collection('provas').get();
+    var resultados = [];
+    snap.forEach(function(doc) {
+      var data = doc.data();
+      // Protocolo fica no campo reservedAt não — está no comprovante local.
+      // O protocolo é gerado no frontend e não salvo no Firestore hoje.
+      // Vamos buscar pelo campo 'protocolo' nas reservations se existir,
+      // ou pelo holderName+baias como fallback visual.
+      // Para funcionar, precisamos salvar o protocolo na reserva — ver reservarAtomico.
+      var reservas = (data.reservations || []).filter(function(r) {
+        return r.protocolo && r.protocolo.toUpperCase() === protocolo;
+      });
+      if (reservas.length > 0) {
+        // Buscar baias correspondentes
+        var nums = reservas.map(function(r){ return r.stallNumber; });
+        var baias = (data.stalls || []).filter(function(s){
+          return nums.indexOf(s.number) >= 0;
+        });
+        if (baias.length > 0) {
+          resultados.push({ evId: doc.id, evNome: data.eventName || 'Evento', baias: baias });
+        }
+      }
+    });
+    return resultados;
+  }
+
+  // ── W: Log de acessos por prova ──────────────────────────────
+  // Registra um acesso anônimo toda vez que alguém entra numa prova.
+  // Usa sub-collection 'acessos' para não poluir o documento principal.
+  function registrarAcesso(evId) {
+    try {
+      db.collection('provas').doc(String(evId))
+        .collection('acessos')
+        .add({
+          at: new Date().toISOString(),
+          ua: navigator.userAgent.slice(0, 120),
+          ts: Date.now(),
+        })
+        .catch(function(e){ /* silencioso — log não é crítico */ });
+    } catch(e) { /* silencioso */ }
+  }
+
+  async function getAcessos(evId) {
+    var snap = await db.collection('provas').doc(String(evId))
+      .collection('acessos').orderBy('ts','desc').limit(200).get();
+    var list = [];
+    snap.forEach(function(d){ list.push(d.data()); });
+    return list;
+  }
+
+  window.FB = { initProva, getProvas, salvar, escutar, reservarAtomico,
+                buscarReservasPorTelefone, buscarReservasPorProtocolo,
+                registrarAcesso, getAcessos };
 })();
