@@ -1336,11 +1336,15 @@
       if (e.key === 'Enter') lookupSearchBtn.click();
     });
 
+    // Token para cancelar buscas anteriores em flight
+    var _lookupReqId = 0;
+
     lookupSearchBtn.addEventListener('click', async function() {
       lookupError.textContent = '';
       lookupResults.hidden = true;
       lookupResults.innerHTML = '';
 
+      var reqId = ++_lookupReqId; // token único desta busca
       lookupSearchBtn.disabled = true;
       lookupSearchBtn.textContent = 'Buscando...';
 
@@ -1367,40 +1371,57 @@
           }
         }
 
+        // Ignorar resultado se uma busca mais recente já foi iniciada
+        if (reqId !== _lookupReqId) return;
+
         lookupResults.innerHTML = '';
+
+        // Agrupar por protocolo — um card por reserva, não por prova
         resultados.forEach(function(ev) {
-          var card = document.createElement('div');
-          card.style.cssText = 'background:rgba(255,255,255,.04);border:1px solid var(--border-sub);border-radius:12px;padding:1rem 1.1rem;';
+          // Montar mapa protocolo → baias
+          var grupos = {};
+          ev.baias.forEach(function(b) {
+            var key = b.protocolo || '_sem_proto';
+            if (!grupos[key]) grupos[key] = [];
+            grupos[key].push(b);
+          });
 
-          var nome  = ev.baias[0].holderName || '—';
-          var nums  = ev.baias.map(function(b){ return String(b.number).padStart(3,'0'); }).join(', ');
-          var qtd   = ev.baias[0].requestedStalls || ev.baias.length;
-          var data  = ev.baias[0].reservedAt ? new Date(ev.baias[0].reservedAt).toLocaleString('pt-BR') : '—';
-          var proto = ev.baias[0].protocolo || '';
+          Object.keys(grupos).forEach(function(protoKey) {
+            var grupo = grupos[protoKey];
+            grupo.sort(function(a,b){ return a.number - b.number; });
 
-          card.innerHTML =
-            '<div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);font-weight:700;margin-bottom:0.5rem;">'+
-              ev.evNome+
-            '</div>'+
-            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem 0.75rem;">'+
-              '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Titular</div>'+
-                   '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+nome+'</div></div>'+
-              '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Baias</div>'+
-                   '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+nums+'</div></div>'+
-              '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Qtd.</div>'+
-                   '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+qtd+' baia'+(qtd!==1?'s':'')+'</div></div>'+
-              '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Reservado em</div>'+
-                   '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+data+'</div></div>'+
-            '</div>'+
-            '<div style="margin-top:0.65rem;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">'+
-              '<div style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.72rem;font-weight:700;'+
-                   'padding:0.22rem 0.65rem;border-radius:999px;background:rgba(34,196,122,.12);color:#22C47A;border:1px solid rgba(34,196,122,.25);">'+
-                '✓ Confirmada'+
+            var nome  = grupo[0].holderName || '—';
+            var nums  = grupo.map(function(b){ return String(b.number).padStart(3,'0'); }).join(', ');
+            var qtd   = grupo[0].requestedStalls || grupo.length;
+            var data  = grupo[0].reservedAt ? new Date(grupo[0].reservedAt).toLocaleString('pt-BR') : '—';
+            var proto = protoKey !== '_sem_proto' ? protoKey : '';
+
+            var card = document.createElement('div');
+            card.style.cssText = 'background:rgba(255,255,255,.04);border:1px solid var(--border-sub);border-radius:12px;padding:1rem 1.1rem;';
+            card.innerHTML =
+              '<div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);font-weight:700;margin-bottom:0.5rem;">'+
+                ev.evNome+
               '</div>'+
-              (proto ? '<div style="font-size:0.7rem;color:rgba(200,160,39,.7);font-weight:700;letter-spacing:0.06em;">'+proto+'</div>' : '')+
-            '</div>';
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem 0.75rem;">'+
+                '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Titular</div>'+
+                     '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+nome+'</div></div>'+
+                '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Baias</div>'+
+                     '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+nums+'</div></div>'+
+                '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Qtd.</div>'+
+                     '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+qtd+' baia'+(qtd!==1?'s':'')+'</div></div>'+
+                '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Reservado em</div>'+
+                     '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+data+'</div></div>'+
+              '</div>'+
+              '<div style="margin-top:0.65rem;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">'+
+                '<div style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.72rem;font-weight:700;'+
+                     'padding:0.22rem 0.65rem;border-radius:999px;background:rgba(34,196,122,.12);color:#22C47A;border:1px solid rgba(34,196,122,.25);">'+
+                  '✓ Confirmada'+
+                '</div>'+
+                (proto ? '<div style="font-size:0.7rem;color:rgba(200,160,39,.7);font-weight:700;letter-spacing:0.06em;">'+proto+'</div>' : '')+
+              '</div>';
 
-          lookupResults.appendChild(card);
+            lookupResults.appendChild(card);
+          });
         });
 
         lookupResults.hidden = false;
