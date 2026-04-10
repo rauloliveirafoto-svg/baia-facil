@@ -370,6 +370,33 @@
       .log-item__action { color: var(--gold); font-weight: 600; }
       .log-empty { font-size: 0.82rem; color: var(--muted); font-style: italic; text-align: center; padding: 0.75rem 0; }
 
+      /* ── MODAL PLACAS QR ──────────────────────────── */
+      .qr-modal {
+        position: fixed; inset: 0; z-index: 70;
+        display: grid; place-items: center;
+        background: rgba(3,9,6,.88); padding: 1rem;
+        backdrop-filter: blur(8px);
+      }
+      .qr-modal__box {
+        width: min(460px, 100%);
+        background: #0F2419;
+        border: 1px solid rgba(200,160,39,.2);
+        border-radius: 16px; padding: 1.75rem 1.5rem;
+        box-shadow: 0 24px 64px rgba(0,0,0,.75);
+        display: flex; flex-direction: column; gap: 1rem;
+      }
+      .qr-modal__title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 700; color: #F2EFE6; margin: 0; text-transform: uppercase; letter-spacing: 0.03em; }
+      .qr-range-row { display: flex; align-items: center; gap: 0.75rem; }
+      .qr-range-row label { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+      .qr-range-row input[type=number] { width: 70px; }
+
+      /* ── PAINEL CHECK-IN ───────────────────────────── */
+      .checkin-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+      .checkin-table th, .checkin-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border-sub); text-align: left; color: var(--text); }
+      .checkin-table th { color: var(--gold); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em; }
+      .chip-checkin { background: rgba(34,196,122,.12); color: #22C47A; border: 1px solid rgba(34,196,122,.25); padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+      .chip-pendente { background: rgba(255,255,255,.05); color: var(--muted); border: 1px solid rgba(255,255,255,.08); padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; }
+
       @media (max-width: 1100px) { .org-layout { grid-template-columns: 1fr; } }
 
       /* ── TABLET (≤900px) ───────────────────────────── */
@@ -653,6 +680,7 @@
             <button id="exportCsv"   class="btn" type="button">Exportar CSV</button>
             <button id="exportPdf"   class="btn" type="button">Exportar PDF</button>
             <button id="printMap"    class="btn" type="button">🖨 Imprimir mapa</button>
+            <button id="btnGerarPlacas" class="btn" type="button">📋 Gerar placas QR</button>
           </div>
           <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:0.75rem;">
             <p style="font-size:0.78rem;color:var(--muted);margin:0 0 0.5rem;">Ao encerrar, um relatório PDF completo é gerado e a prova fica inacessível para novos competidores.</p>
@@ -678,6 +706,20 @@
           </div>
         </div>
 
+        <!-- Check-in -->
+        <div class="panel">
+          <h2 class="panel__title" style="display:flex;justify-content:space-between;align-items:center;">
+            Check-in
+            <span id="checkinSummary" style="font-size:0.75rem;color:var(--muted);font-weight:400;">—</span>
+          </h2>
+          <div style="overflow-x:auto;max-height:240px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(200,160,39,.2) transparent;">
+            <table class="checkin-table">
+              <thead><tr><th>Baia</th><th>Titular</th><th>Contato</th><th>Check-in</th><th>Horário</th></tr></thead>
+              <tbody id="checkinTableBody"><tr><td colspan="5" style="color:var(--muted);font-style:italic;text-align:center;padding:1rem;">Nenhum check-in ainda.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Histórico de ações -->
         <div class="panel">
           <h2 class="panel__title" style="display:flex;justify-content:space-between;align-items:center;">
@@ -700,6 +742,25 @@
         <div class="confirm-modal__actions">
           <button class="confirm-modal__cancel" id="confirmCancel" type="button">Cancelar</button>
           <button class="confirm-modal__ok"     id="confirmOk"     type="button">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MODAL PLACAS QR ────────────────────────── -->
+    <div id="qrModal" class="qr-modal" hidden>
+      <div class="qr-modal__box">
+        <h2 class="qr-modal__title">Gerar placas QR</h2>
+        <p style="font-size:0.82rem;color:var(--muted);margin:0;">Escolha o intervalo de baias. Serão geradas 4 placas por página, prontas para imprimir e fixar nas portas.</p>
+        <div class="qr-range-row">
+          <label>Baia inicial</label>
+          <input id="qrFrom" type="number" min="1" max="140" value="1" />
+          <label>até</label>
+          <input id="qrTo"   type="number" min="1" max="140" value="140" />
+        </div>
+        <p id="qrFeedback" style="font-size:0.82rem;color:var(--danger);min-height:1rem;margin:0;"></p>
+        <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
+          <button id="qrCancel"  class="btn"            type="button">Cancelar</button>
+          <button id="qrConfirm" class="btn btn--primary" type="button">Gerar PDF</button>
         </div>
       </div>
     </div>
@@ -767,6 +828,8 @@
       <button class="stall" type="button"><span class="stall__number"></span></button>
     </template>
 
+    <!-- QRCode.js para geração de placas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>

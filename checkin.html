@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Check-in | Baia Fácil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:    #060f08;
+      --card:  #0d2b10;
+      --gold:  #c9a84c;
+      --cream: #F2EFE6;
+      --muted: #7a9e7e;
+      --green: #22C47A;
+      --danger:#EE7070;
+      --border:rgba(200,160,39,.2);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Manrope',sans-serif; background:var(--bg); color:var(--cream); min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1.5rem; }
+
+    .card {
+      width:min(420px,100%); background:var(--card);
+      border:1px solid var(--border); border-radius:20px;
+      padding:2rem 1.75rem;
+      box-shadow:0 24px 64px rgba(0,0,0,.6);
+    }
+
+    .brand { text-align:center; margin-bottom:1.75rem; }
+    .brand__name { font-size:1.1rem; font-weight:800; color:var(--gold); letter-spacing:.08em; text-transform:uppercase; }
+    .brand__sub  { font-size:.75rem; color:var(--muted); margin-top:.2rem; }
+
+    .baia-num {
+      text-align:center; margin-bottom:1.5rem;
+    }
+    .baia-num__label { font-size:.7rem; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); }
+    .baia-num__val   { font-size:4.5rem; font-weight:800; color:var(--cream); line-height:1; margin-top:.25rem; letter-spacing:.04em; }
+
+    .field { display:flex; flex-direction:column; gap:.4rem; margin-bottom:.9rem; }
+    .field label { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--gold); }
+    .field input  {
+      background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+      border-radius:10px; padding:.75rem 1rem; font-family:'Manrope',sans-serif;
+      font-size:1rem; color:var(--cream); outline:none; transition:border-color .2s;
+    }
+    .field input:focus { border-color:rgba(200,160,39,.5); }
+    .field input::placeholder { color:rgba(255,255,255,.2); }
+
+    .btn-primary {
+      width:100%; padding:.9rem; background:linear-gradient(135deg,var(--gold),#a07828);
+      border:none; border-radius:12px; color:#1a1200; font-family:'Manrope',sans-serif;
+      font-size:1rem; font-weight:700; cursor:pointer; margin-top:.25rem;
+      transition:opacity .2s, transform .15s;
+    }
+    .btn-primary:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-primary:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+
+    .error-msg { color:var(--danger); font-size:.83rem; font-weight:600; min-height:1.2rem; margin-top:.35rem; }
+
+    /* Estado de sucesso */
+    .success-card { text-align:center; }
+    .success-icon {
+      width:72px; height:72px; margin:0 auto 1.25rem;
+    }
+    .success-title { font-size:1.5rem; font-weight:800; color:var(--green); margin-bottom:.4rem; }
+    .success-sub   { font-size:.9rem; color:var(--muted); line-height:1.6; }
+    .success-proto { font-size:1.1rem; font-weight:700; color:var(--gold); margin-top:.75rem; letter-spacing:.04em; }
+    .success-details { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:1rem 1.1rem; margin-top:1.25rem; text-align:left; }
+    .success-details .row { display:flex; justify-content:space-between; font-size:.85rem; padding:.3rem 0; border-bottom:1px solid rgba(255,255,255,.05); }
+    .success-details .row:last-child { border:none; }
+    .success-details .row span:first-child { color:var(--muted); }
+    .success-details .row span:last-child  { font-weight:600; }
+
+    /* Estado de erro / não encontrado */
+    .not-found { text-align:center; color:var(--danger); }
+    .not-found__icon { font-size:2.5rem; margin-bottom:.75rem; }
+    .not-found__msg  { font-size:.9rem; color:var(--muted); line-height:1.6; }
+
+    /* Loading */
+    .loading { text-align:center; color:var(--muted); font-size:.9rem; }
+    .spinner {
+      width:32px; height:32px; border:3px solid rgba(200,160,39,.2);
+      border-top-color:var(--gold); border-radius:50%;
+      animation:spin .7s linear infinite; margin:0 auto 1rem;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="brand__name">Baia Fácil</div>
+      <div class="brand__sub">Check-in de competidor</div>
+    </div>
+
+    <!-- Número da baia -->
+    <div class="baia-num" id="baiaDisplay">
+      <div class="baia-num__label">Baia</div>
+      <div class="baia-num__val" id="baiaNumVal">—</div>
+    </div>
+
+    <!-- Formulário -->
+    <div id="formSection">
+      <div class="field">
+        <label for="telInput">Seu telefone de contato</label>
+        <input id="telInput" type="tel" placeholder="(11) 99999-9999" autocomplete="tel" inputmode="tel" />
+      </div>
+      <div class="error-msg" id="errMsg"></div>
+      <button id="btnCheckin" class="btn-primary" type="button">Confirmar check-in</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingSection" class="loading hidden">
+      <div class="spinner"></div>
+      Verificando reserva...
+    </div>
+
+    <!-- Sucesso -->
+    <div id="successSection" class="success-card hidden">
+      <div class="success-icon">
+        <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="36" cy="36" r="34" stroke="#22C47A" stroke-width="2" opacity="0.3"/>
+          <circle cx="36" cy="36" r="34" stroke="#22C47A" stroke-width="2" stroke-dasharray="213" stroke-dashoffset="213" style="animation:circleIn .6s ease forwards .1s;transform-origin:center;transform:rotate(-90deg)"/>
+          <polyline points="22,36 32,46 50,26" stroke="#22C47A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="40" stroke-dashoffset="40" style="animation:checkIn .4s ease forwards .7s"/>
+          <style>@keyframes circleIn{to{stroke-dashoffset:0}}@keyframes checkIn{to{stroke-dashoffset:0}}</style>
+        </svg>
+      </div>
+      <div class="success-title">Check-in confirmado!</div>
+      <div class="success-sub">Sua presença foi registrada com sucesso.</div>
+      <div class="success-details" id="successDetails"></div>
+    </div>
+
+    <!-- Não encontrado -->
+    <div id="notFoundSection" class="not-found hidden">
+      <div class="not-found__icon">⚠️</div>
+      <div style="font-size:1rem;font-weight:700;color:var(--danger);margin-bottom:.5rem;" id="notFoundTitle">Reserva não encontrada</div>
+      <div class="not-found__msg" id="notFoundMsg">Não encontramos uma reserva para este telefone nesta baia. Verifique o número digitado ou procure o organizador.</div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    // ── Init Firebase ────────────────────────────────────────────
+    firebase.initializeApp({
+      apiKey:            'AIzaSyBlzdSYuhpVoDQgDtmXaDf6q_sdHXrotxI',
+      authDomain:        'baia-facil.firebaseapp.com',
+      projectId:         'baia-facil',
+      storageBucket:     'baia-facil.firebasestorage.app',
+      messagingSenderId: '884178519628',
+      appId:             '1:884178519628:web:de4343fc588e2cb18416e9',
+    });
+    var db = firebase.firestore();
+
+    // ── Params da URL ────────────────────────────────────────────
+    var params   = new URLSearchParams(window.location.search);
+    var evId     = params.get('ev')   || '';
+    var baiaNum  = Number(params.get('baia') || 0);
+
+    var baiaNumEl      = document.getElementById('baiaNumVal');
+    var telInput       = document.getElementById('telInput');
+    var errMsg         = document.getElementById('errMsg');
+    var btnCheckin     = document.getElementById('btnCheckin');
+    var formSection    = document.getElementById('formSection');
+    var loadingSection = document.getElementById('loadingSection');
+    var successSection = document.getElementById('successSection');
+    var notFoundSection= document.getElementById('notFoundSection');
+    var successDetails = document.getElementById('successDetails');
+    var notFoundTitle  = document.getElementById('notFoundTitle');
+    var notFoundMsg    = document.getElementById('notFoundMsg');
+
+    // Exibir número da baia
+    if (baiaNum) {
+      baiaNumEl.textContent = String(baiaNum).padStart(3,'0');
+    } else {
+      baiaNumEl.textContent = '???';
+      errMsg.textContent = 'QR code inválido. Parâmetros ausentes.';
+      btnCheckin.disabled = true;
+    }
+
+    // Máscara de telefone
+    telInput.addEventListener('input', function() {
+      var d = telInput.value.replace(/\D/g,'').slice(0,11);
+      if (d.length<=2)       telInput.value = d;
+      else if (d.length<=6)  telInput.value = '('+d.slice(0,2)+') '+d.slice(2);
+      else if (d.length<=10) telInput.value = '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6);
+      else                   telInput.value = '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);
+    });
+
+    telInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') btnCheckin.click();
+    });
+
+    function show(section) {
+      ['formSection','loadingSection','successSection','notFoundSection'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', id !== section);
+      });
+    }
+
+    btnCheckin.addEventListener('click', async function() {
+      errMsg.textContent = '';
+      var tel = telInput.value.replace(/\D/g,'');
+      if (tel.length < 8) { errMsg.textContent = 'Digite um telefone válido.'; return; }
+      if (!evId || !baiaNum) { errMsg.textContent = 'QR code inválido.'; return; }
+
+      show('loadingSection');
+
+      try {
+        var result = await realizarCheckin(evId, baiaNum, tel);
+
+        if (result.ok) {
+          // Montar detalhes
+          successDetails.innerHTML =
+            '<div class="row"><span>Baia</span><span>'+String(baiaNum).padStart(3,'0')+'</span></div>'+
+            '<div class="row"><span>Titular</span><span>'+escHtml(result.holderName)+'</span></div>'+
+            '<div class="row"><span>Evento</span><span>'+escHtml(result.eventName)+'</span></div>'+
+            '<div class="row"><span>Horário</span><span>'+new Date().toLocaleTimeString('pt-BR')+'</span></div>';
+          show('successSection');
+        } else {
+          notFoundTitle.textContent = result.jaFeito ? 'Check-in já realizado' : 'Reserva não encontrada';
+          notFoundMsg.textContent   = result.jaFeito
+            ? 'O check-in desta baia já foi registrado anteriormente.'
+            : 'Não encontramos uma reserva para este telefone nesta baia. Verifique o número ou fale com o organizador.';
+          show('notFoundSection');
+        }
+      } catch(e) {
+        console.error(e);
+        show('formSection');
+        errMsg.textContent = 'Erro de conexão. Verifique seu sinal e tente novamente.';
+      }
+    });
+
+    async function realizarCheckin(evId, baiaNum, tel) {
+      var docRef = db.collection('provas').doc(String(evId));
+      var resultado = { ok: false };
+
+      await db.runTransaction(async function(tx) {
+        var snap = await tx.get(docRef);
+        if (!snap.exists) throw new Error('Prova não encontrada');
+
+        var data   = snap.data();
+        var stalls = data.stalls || [];
+        var stall  = stalls.find(function(s){ return s.number === baiaNum; });
+
+        if (!stall || stall.status !== 'reserved') {
+          resultado = { ok: false }; return;
+        }
+
+        var telNorm = tel.replace(/\D/g,'');
+        var stallTel = (stall.contactPhone||'').replace(/\D/g,'');
+        if (stallTel !== telNorm) {
+          resultado = { ok: false }; return;
+        }
+
+        if (stall.checkinAt) {
+          resultado = { ok: false, jaFeito: true }; return;
+        }
+
+        stall.checkinAt = new Date().toISOString();
+        data.updatedAt  = stall.checkinAt;
+        tx.set(docRef, data, { merge: true });
+
+        resultado = { ok: true, holderName: stall.holderName, eventName: data.eventName || 'Evento' };
+      });
+
+      return resultado;
+    }
+
+    function escHtml(s) {
+      return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>
