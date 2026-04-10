@@ -1103,6 +1103,8 @@
 
     function goHome() {
       sairModoVisualizacao();
+      // Garantir que flag interna do competidor.js também é resetada
+      if (typeof window._desativarModoVisualizacao === 'function') window._desativarModoVisualizacao();
       if (window.BAIA_STATE) {
         if (typeof window.updateState==='function') {
           // Liberar selectedStalls E suggestedSequence — ambos podem ter baias presas no Firebase
@@ -1192,9 +1194,6 @@
       });
       if (viewModeBanner) viewModeBanner.hidden = true;
     }
-
-    // Interceptar openEvent para modo visualização
-    var _openEventOriginal = null; // guardado abaixo após definição
 
     // Expor flag para openEvent verificar
     window._getModoVisualizacao = function() { return _modoVisualizacao; };
