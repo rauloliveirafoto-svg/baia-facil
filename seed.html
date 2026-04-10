@@ -1,82 +1,206 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"/><title>Baia Fácil — Seed</title>
-<style>body{font-family:monospace;background:#060f08;color:#e8dfc8;padding:2rem}button{background:#c9a84c;color:#1a1200;border:none;padding:1rem 2rem;font-size:1rem;border-radius:8px;cursor:pointer;display:block;margin:1rem 0}pre{background:#0d2b10;padding:1rem;border-radius:8px;white-space:pre-wrap;max-height:400px;overflow:auto}.ok{color:#4daa6a}.err{color:#e07070}</style>
+<style>
+  body{font-family:monospace;background:#060f08;color:#e8dfc8;padding:2rem}
+  button{background:#c9a84c;color:#1a1200;border:none;padding:1rem 2rem;font-size:1rem;border-radius:8px;cursor:pointer;display:block;margin:1rem 0}
+  button.secondary{background:rgba(200,160,39,.15);color:#c9a84c;border:1px solid rgba(200,160,39,.3);}
+  pre{background:#0d2b10;padding:1rem;border-radius:8px;white-space:pre-wrap;max-height:400px;overflow:auto}
+  .ok{color:#4daa6a}.err{color:#e07070}.warn{color:#c9a84c}
+  h2{color:#c9a84c;margin:1.5rem 0 0.5rem;font-size:1rem;}
+</style>
 </head>
 <body>
-<h1>🐎 Baia Fácil — Inicializar Banco</h1>
-<p>Execute apenas uma vez para criar as 9 provas com 140 baias cada (Blocos 1–4: 30 baias, Bloco 5: 20 baias).</p>
-<button id="btn">Inicializar banco de dados</button>
+<h1>🐎 Baia Fácil — Banco de Dados</h1>
+
+<h2>Provas originais (1–9) — 140 baias, 5 blocos</h2>
+<button id="btnSeed">Inicializar provas 1–9</button>
+
+<h2>Novas provas (10–13) — configurações individuais</h2>
+<button id="btnNovas">Criar provas 10–13</button>
+
+<h2>Utilitários</h2>
+<button id="btnReset" class="secondary">⚠ Resetar prova específica (limpar todas as reservas)</button>
+
 <pre id="log">Aguardando...</pre>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-if (!firebase.apps.length) {
-  firebase.initializeApp({
-    apiKey:'AIzaSyBlzdSYuhpVoDQgDtmXaDf6q_sdHXrotxI',
-    authDomain:'baia-facil.firebaseapp.com',
-    projectId:'baia-facil',
-    storageBucket:'baia-facil.firebasestorage.app',
-    messagingSenderId:'884178519628',
-    appId:'1:884178519628:web:de4343fc588e2cb18416e9'
-  });
-}
+firebase.initializeApp({
+  apiKey:'AIzaSyBlzdSYuhpVoDQgDtmXaDf6q_sdHXrotxI',
+  authDomain:'baia-facil.firebaseapp.com',
+  projectId:'baia-facil',
+  storageBucket:'baia-facil.firebasestorage.app',
+  messagingSenderId:'884178519628',
+  appId:'1:884178519628:web:de4343fc588e2cb18416e9'
+});
 var db = firebase.firestore();
-
-var BLOCOS = [
-  {id:1,stalls:30,start:1},
-  {id:2,stalls:30,start:31},
-  {id:3,stalls:30,start:61},
-  {id:4,stalls:30,start:91},
-  {id:5,stalls:20,start:121},
-];
-
-var PROVAS = [
-  {id:'1',name:'CSN Parque Equestre',date:'28–30 Mar 2025',loc:'São Paulo, SP',icon:'🏆'},
-  {id:'2',name:'Copa Brasil de Saltos',date:'05–07 Abr 2025',loc:'Campinas, SP',icon:'🥇'},
-  {id:'3',name:'Torneio Haras das Palmeiras',date:'12–13 Abr 2025',loc:'Jundiaí, SP',icon:'🌴'},
-  {id:'4',name:'Circuito Equestre Sul',date:'19–21 Abr 2025',loc:'Curitiba, PR',icon:'🐎'},
-  {id:'5',name:'Grande Prêmio Itapeva',date:'26–27 Abr 2025',loc:'Itapeva, SP',icon:'🎖️'},
-  {id:'6',name:'Festival de Adestramento',date:'03–04 Mai 2025',loc:'Belo Horizonte, MG',icon:'🎠'},
-  {id:'7',name:'Troféu Primavera',date:'10–11 Mai 2025',loc:'Brasília, DF',icon:'🌸'},
-  {id:'8',name:'Copa Nordeste Equestre',date:'17–18 Mai 2025',loc:'Recife, PE',icon:'⭐'},
-  {id:'9',name:'Campeonato Mineiro de Saltos',date:'24–25 Mai 2025',loc:'Uberlândia, MG',icon:'🏅'},
-];
-
-function gerarBaias() {
-  var baias = [];
-  BLOCOS.forEach(function(bloco) {
-    for (var i = 0; i < bloco.stalls; i++) {
-      baias.push({
-        number: bloco.start + i,
-        block: bloco.id,
-        status: 'available',
-        holderName: '', contactPhone: '', requestedStalls: 0, reservedAt: ''
-      });
-    }
-  });
-  return baias;
-}
 
 var log = document.getElementById('log');
 function print(m,c){log.innerHTML+='<span class="'+(c||'')+'">'+m+'</span>\n';log.scrollTop=log.scrollHeight;}
+function clear(){log.innerHTML='';}
 
-document.getElementById('btn').addEventListener('click',async function(){
-  log.innerHTML='';
-  print('Iniciando...\n');
-  for(var i=0;i<PROVAS.length;i++){
-    var p=PROVAS[i];
-    try{
-      // Forçar recriação para atualizar estrutura de baias
-      var stalls = gerarBaias();
+// ── Helper: montar stalls a partir dos blocos ─────────────────
+function montarStalls(blocos) {
+  var stalls = [];
+  blocos.forEach(function(b) {
+    for (var i = 0; i < b.stalls; i++) {
+      stalls.push({
+        number: b.start + i, block: b.id, status:'available',
+        holderName:'', contactPhone:'', requestedStalls:0,
+        reservedAt:'', selectedAt:'', sessionId:'',
+      });
+    }
+  });
+  return stalls;
+}
+
+// ── Provas originais 1–9 ──────────────────────────────────────
+var BLOCOS_PADRAO = [
+  {id:1, label:'Bloco 1', stalls:30, start:1},
+  {id:2, label:'Bloco 2', stalls:30, start:31},
+  {id:3, label:'Bloco 3', stalls:30, start:61},
+  {id:4, label:'Bloco 4', stalls:30, start:91},
+  {id:5, label:'Bloco 5', stalls:20, start:121},
+];
+
+var PROVAS_ORIGINAIS = [
+  {id:'1',  name:'Copa Brasil Três Tambores'},
+  {id:'2',  name:'Prova de Três Tambores — Troféu de Ouro'},
+  {id:'3',  name:'Campeonato Laço de Ouro — Team Roping'},
+  {id:'4',  name:'Campeonato Três Tambores'},
+  {id:'5',  name:'Grande Desafio — Team Roping'},
+  {id:'6',  name:'Circuito Estadual Três Tambores'},
+  {id:'7',  name:'Festa dos Campeões — Três Tambores'},
+  {id:'8',  name:'Revoredo Cup — Team Roping'},
+  {id:'9',  name:'Prova dos Três Tambores'},
+];
+
+// ── Novas provas 10–13 ────────────────────────────────────────
+// Cada uma com configuração própria de blocos
+var PROVAS_NOVAS = [
+  {
+    id: '10',
+    name: 'Copa Rural de 3 Tambores',
+    blocos: [
+      {id:1, label:'Bloco 1', stalls:31, start:1},
+      {id:2, label:'Bloco 2', stalls:31, start:32},
+      {id:3, label:'Bloco 3', stalls:31, start:63},
+      {id:4, label:'Bloco 4', stalls:29, start:94},
+    ],
+  },
+  {
+    id: '11',
+    name: 'Circuito Norte Equestre',
+    blocos: [
+      {id:1, label:'Bloco 1', stalls:25, start:1},
+      {id:2, label:'Bloco 2', stalls:25, start:26},
+      {id:3, label:'Bloco 3', stalls:25, start:51},
+    ],
+  },
+  {
+    id: '12',
+    name: 'Desafio do Sertão — Team Roping',
+    blocos: [
+      {id:1, label:'Bloco A', stalls:40, start:1},
+      {id:2, label:'Bloco B', stalls:40, start:41},
+      {id:3, label:'Bloco C', stalls:40, start:81},
+      {id:4, label:'Bloco D', stalls:40, start:121},
+      {id:5, label:'Bloco E', stalls:40, start:161},
+    ],
+  },
+  {
+    id: '13',
+    name: 'Torneio Outono Gaúcho',
+    blocos: [
+      {id:1, label:'Bloco 1', stalls:35, start:1},
+      {id:2, label:'Bloco 2', stalls:35, start:36},
+      {id:3, label:'Bloco 3', stalls:35, start:71},
+    ],
+  },
+];
+
+// ── Seed provas 1–9 ───────────────────────────────────────────
+document.getElementById('btnSeed').addEventListener('click', async function() {
+  clear();
+  print('Iniciando provas 1–9...\n');
+  var stalls = montarStalls(BLOCOS_PADRAO);
+  for (var i = 0; i < PROVAS_ORIGINAIS.length; i++) {
+    var p = PROVAS_ORIGINAIS[i];
+    try {
+      var snap = await db.collection('provas').doc(p.id).get();
+      if (snap.exists) { print('⏭ Prova '+p.id+' ('+p.name+') — já existe. Pulando.','warn'); continue; }
       await db.collection('provas').doc(p.id).set({
-        eventName:p.name, date:p.date, location:p.loc, icon:p.icon,
-        stalls:stalls, reservations:[], updatedAt:new Date().toISOString()
+        eventName:  p.name,
+        stalls:     stalls.map(function(s){ return Object.assign({},s); }),
+        reservations: [],
+        blocos:     BLOCOS_PADRAO,
+        totalStalls: stalls.length,
+        updatedAt:  new Date().toISOString(),
       });
       print('✓ Prova '+p.id+' ('+p.name+') — criada com '+stalls.length+' baias.','ok');
-    }catch(e){print('✗ Erro: '+e.message,'err');}
+    } catch(e) { print('✗ Erro prova '+p.id+': '+e.message,'err'); }
   }
-  print('\n✅ Concluído!','ok');
+  print('\n✅ Provas 1–9 concluídas.','ok');
+});
+
+// ── Seed provas 10–13 ─────────────────────────────────────────
+document.getElementById('btnNovas').addEventListener('click', async function() {
+  clear();
+  print('Criando provas 10–13...\n');
+  for (var i = 0; i < PROVAS_NOVAS.length; i++) {
+    var p = PROVAS_NOVAS[i];
+    var stalls = montarStalls(p.blocos);
+    var total  = stalls.length;
+    try {
+      var snap = await db.collection('provas').doc(p.id).get();
+      if (snap.exists) {
+        print('⏭ Prova '+p.id+' ('+p.name+') — já existe. Use Reset para recriar.','warn');
+        continue;
+      }
+      await db.collection('provas').doc(p.id).set({
+        eventName:    p.name,
+        stalls:       stalls,
+        reservations: [],
+        blocos:       p.blocos,
+        totalStalls:  total,
+        updatedAt:    new Date().toISOString(),
+      });
+      print('✓ Prova '+p.id+' ('+p.name+') — '+total+' baias em '+p.blocos.length+' blocos.','ok');
+      p.blocos.forEach(function(b){
+        print('  └ '+b.label+': '+b.stalls+' baias ('+b.start+'–'+(b.start+b.stalls-1)+')');
+      });
+    } catch(e) { print('✗ Erro prova '+p.id+': '+e.message,'err'); }
+  }
+  print('\n✅ Novas provas criadas.','ok');
+});
+
+// ── Reset ─────────────────────────────────────────────────────
+document.getElementById('btnReset').addEventListener('click', async function() {
+  var id = prompt('ID da prova para resetar (1–13):');
+  if (!id) return;
+  id = String(id).trim();
+  if (!confirm('Resetar prova '+id+'? Todas as reservas serão apagadas.')) return;
+  clear();
+  print('Resetando prova '+id+'...','warn');
+  try {
+    var snap = await db.collection('provas').doc(id).get();
+    if (!snap.exists) { print('Prova não encontrada.','err'); return; }
+    var data   = snap.data();
+    var blocos = data.blocos || BLOCOS_PADRAO;
+    var stalls = montarStalls(blocos);
+    await db.collection('provas').doc(id).set({
+      eventName:    data.eventName,
+      stalls:       stalls,
+      reservations: [],
+      blocos:       blocos,
+      totalStalls:  stalls.length,
+      updatedAt:    new Date().toISOString(),
+    });
+    print('✓ Prova '+id+' resetada com '+stalls.length+' baias.','ok');
+  } catch(e) { print('✗ Erro: '+e.message,'err'); }
 });
 </script>
-</body></html>
+</body>
+</html>
