@@ -58,6 +58,59 @@ function updateState(fn) {
 // CORREÇÃO: expor updateState globalmente para que index.html possa chamar ao voltar para home
 window.updateState = updateState;
 
+// ── Retry offline em background ───────────────────────────────
+// Quando reservarAtomico falha por falta de sinal, salva a intenção
+// no localStorage e tenta novamente a cada 30s enquanto o browser estiver aberto.
+var _retryKey    = 'baiafacil_retry_pendente';
+var _retryTimer  = null;
+
+function salvarRetryPendente(evId, numeros, titular, telefone, qtd) {
+  try {
+    localStorage.setItem(_retryKey, JSON.stringify({
+      evId:evId, numeros:numeros, titular:titular,
+      telefone:telefone, qtd:qtd, ts:Date.now()
+    }));
+  } catch(e) {}
+}
+
+function limparRetryPendente() {
+  try { localStorage.removeItem(_retryKey); } catch(e) {}
+  if (_retryTimer) { clearInterval(_retryTimer); _retryTimer = null; }
+}
+
+function iniciarRetryLoop(onSuccess, onFail) {
+  if (_retryTimer) return; // já está tentando
+  _retryTimer = setInterval(async function() {
+    if (!navigator.onLine) return; // sem sinal, aguardar
+    var raw = null;
+    try { raw = localStorage.getItem(_retryKey); } catch(e) {}
+    if (!raw) { limparRetryPendente(); return; }
+
+    var p;
+    try { p = JSON.parse(raw); } catch(e) { limparRetryPendente(); return; }
+
+    // Desistir após 30 minutos
+    if (Date.now() - p.ts > 30 * 60 * 1000) {
+      limparRetryPendente();
+      if (onFail) onFail();
+      return;
+    }
+
+    try {
+      var res = await window.FB.reservarAtomico(p.evId, p.numeros, p.titular, p.telefone, p.qtd);
+      if (res.ok) {
+        limparRetryPendente();
+        if (onSuccess) onSuccess(res);
+      }
+      // se conflito, desistir — baias já foram para outro
+      if (!res.ok && !res.encerrada) {
+        limparRetryPendente();
+        if (onFail) onFail();
+      }
+    } catch(e) { /* sem sinal ainda — tentar na próxima rodada */ }
+  }, 30000); // a cada 30 segundos
+}
+
 // ── Chamado pelo index.html ao entrar numa prova ──────────────
 window.entrarProva = async function(evId, evNome) {
   _evId   = String(evId);
@@ -138,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
     state.holderName=''; state.requestedStalls=0; state.contactPhone='';
     state.selectedStalls=[]; state.suggestedSequence=[];
     state.mode=null; state.remainingSeconds=300; state.receipt=null; state._receiptUsed=false;
+    limparRetryPendente(); // cancelar retry pendente ao voltar para home
     // Garantir que modo visualização é desativado ao resetar
     if (typeof window._desativarModoVisualizacao === 'function') window._desativarModoVisualizacao();
     window.BAIA_STATE.selectedStalls    = state.selectedStalls;
@@ -450,8 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
       res = await window.FB.reservarAtomico(_evId, numeros, state.holderName, state.contactPhone, state.requestedStalls);
     } catch(e) {
       console.error('[finalizar]', e);
-      // Fallback offline: gerar protocolo temporário marcado com T (Temporário)
-      // O competidor é informado que o protocolo pode mudar ao sincronizar
+      // Fallback offline — gerar protocolo temporário e iniciar retry em background
       var d = now;
       var dd = String(d.getDate()).padStart(2,'0');
       var mm = String(d.getMonth()+1).padStart(2,'0');
@@ -466,6 +519,26 @@ document.addEventListener('DOMContentLoaded', function() {
           s.reservedAt=now.toISOString();
         });
       });
+      // Salvar para retry e tentar novamente quando o sinal voltar
+      salvarRetryPendente(_evId, numeros, state.holderName, state.contactPhone, state.requestedStalls);
+      iniciarRetryLoop(
+        function(resOk) {
+          // Sucesso no retry — atualizar protocolo no comprovante se ainda estiver visível
+          if (state.receipt && state.receipt.offline) {
+            state.receipt.protocolo = resOk.protocolo || state.receipt.protocolo;
+            state.receipt.offline   = false;
+            var el = document.getElementById('receiptProtocol');
+            if (el) el.textContent = state.receipt.protocolo;
+            var feed = document.getElementById('feedback');
+            if (feed) feed.textContent = 'Reserva sincronizada! Protocolo: ' + state.receipt.protocolo;
+          }
+        },
+        function() {
+          // Desistiu após 30min — avisar
+          var feed = document.getElementById('feedback');
+          if (feed) feed.textContent = 'Não foi possível confirmar a reserva. Procure o organizador.';
+        }
+      );
       res = { ok:true, data:getState(), protocolo: protoTemp, offline: true };
     }
 
