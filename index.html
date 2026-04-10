@@ -1314,6 +1314,7 @@
           var nums  = ev.baias.map(function(b){ return String(b.number).padStart(3,'0'); }).join(', ');
           var qtd   = ev.baias[0].requestedStalls || ev.baias.length;
           var data  = ev.baias[0].reservedAt ? new Date(ev.baias[0].reservedAt).toLocaleString('pt-BR') : '—';
+          var proto = ev.baias[0].protocolo || '';
 
           card.innerHTML =
             '<div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--gold);font-weight:700;margin-bottom:0.5rem;">'+
@@ -1329,9 +1330,12 @@
               '<div><div style="font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Reservado em</div>'+
                    '<div style="font-size:0.9rem;color:var(--cream);font-weight:600;">'+data+'</div></div>'+
             '</div>'+
-            '<div style="margin-top:0.65rem;display:inline-flex;align-items:center;gap:0.35rem;font-size:0.72rem;font-weight:700;'+
-                 'padding:0.22rem 0.65rem;border-radius:999px;background:rgba(34,196,122,.12);color:#22C47A;border:1px solid rgba(34,196,122,.25);">'+
-              '✓ Confirmada'+
+            '<div style="margin-top:0.65rem;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">'+
+              '<div style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.72rem;font-weight:700;'+
+                   'padding:0.22rem 0.65rem;border-radius:999px;background:rgba(34,196,122,.12);color:#22C47A;border:1px solid rgba(34,196,122,.25);">'+
+                '✓ Confirmada'+
+              '</div>'+
+              (proto ? '<div style="font-size:0.7rem;color:rgba(200,160,39,.7);font-weight:700;letter-spacing:0.06em;">'+proto+'</div>' : '')+
             '</div>';
 
           lookupResults.appendChild(card);
