@@ -722,7 +722,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function gerarRelatorioPDF(dados, evNome, historico) {
-    // jsPDF via CDN — carregado dinamicamente se não estiver disponível
     if (typeof window.jspdf === 'undefined') {
       await new Promise(function(resolve, reject) {
         var script = document.createElement('script');
@@ -734,140 +733,171 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var jsPDF = window.jspdf.jsPDF;
     var doc   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    var W     = 210; var M = 14; var y = 0;
+    var W = 210; var M = 14; var y = 0;
 
-    var stalls   = dados.stalls || [];
-    var total    = stalls.length;
-    var reserv   = stalls.filter(function(s){ return s.status==='reserved'; });
-    var bloq     = stalls.filter(function(s){ return s.status==='blocked'||s.status==='maintenance'; });
-    var disp     = stalls.filter(function(s){ return s.status==='available'; });
-    var pctOcup  = total > 0 ? Math.round(reserv.length/total*100) : 0;
-    var now      = new Date();
+    var stalls  = dados.stalls || [];
+    var total   = stalls.length;
+    var reserv  = stalls.filter(function(s){ return s.status==='reserved'; });
+    var bloq    = stalls.filter(function(s){ return s.status==='blocked'||s.status==='maintenance'; });
+    var disp    = stalls.filter(function(s){ return s.status==='available'; });
+    var pct     = total > 0 ? Math.round(reserv.length/total*100) : 0;
+    var now     = new Date();
 
-    // ── Cabeçalho ───────────────────────────────────────────────
-    doc.setFillColor(6, 15, 8);
-    doc.rect(0, 0, W, 38, 'F');
-    doc.setTextColor(201, 168, 76);
-    doc.setFontSize(18); doc.setFont('helvetica','bold');
-    doc.text('BAIA FÁCIL', M, 14);
-    doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.setTextColor(180, 180, 180);
-    doc.text('Relatório de Encerramento', M, 20);
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(12); doc.setFont('helvetica','bold');
-    doc.text(evNome, M, 28);
-    doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.setTextColor(160, 160, 160);
-    doc.text('Gerado em: ' + now.toLocaleString('pt-BR') + '   |   Encerrado por: ' + sessUser, M, 34);
-    y = 46;
-
-    // ── Resumo estatístico ───────────────────────────────────────
-    doc.setFillColor(230, 245, 235);
-    doc.roundedRect(M, y, W-M*2, 28, 3, 3, 'F');
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('RESUMO DE OCUPAÇÃO', M+4, y+7);
-    doc.setFontSize(11); doc.setFont('helvetica','bold');
-    var cols = [
-      { label:'Total', val: String(total),          x: M+4   },
-      { label:'Reservadas', val: String(reserv.length)+' ('+pctOcup+'%)', x: M+42  },
-      { label:'Disponíveis', val: String(disp.length),  x: M+95  },
-      { label:'Bloqueadas', val: String(bloq.length),   x: M+140 },
-    ];
-    cols.forEach(function(c) {
-      doc.setTextColor(20, 20, 20); doc.setFont('helvetica','bold'); doc.setFontSize(13);
-      doc.text(c.val, c.x, y+19);
-      doc.setTextColor(100, 100, 100); doc.setFont('helvetica','normal'); doc.setFontSize(7);
-      doc.text(c.label, c.x, y+25);
-    });
-    y += 36;
-
-    // ── Tabela de reservas ───────────────────────────────────────
-    doc.setFontSize(10); doc.setFont('helvetica','bold');
-    doc.setTextColor(20, 20, 20);
-    doc.text('BAIAS RESERVADAS (' + reserv.length + ')', M, y);
-    y += 5;
-
-    // Cabeçalho tabela
-    doc.setFillColor(6, 15, 8);
-    doc.rect(M, y, W-M*2, 7, 'F');
-    doc.setTextColor(201, 168, 76); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
-    var hCols = [{t:'Baia',x:M+2},{t:'Titular',x:M+20},{t:'Qtd.',x:M+100},{t:'Contato',x:M+120},{t:'Reservado em',x:M+155}];
-    hCols.forEach(function(c){ doc.text(c.t, c.x, y+4.8); });
-    y += 7;
-
-    reserv.sort(function(a,b){ return a.number-b.number; });
-    var altRow = false;
-    reserv.forEach(function(s) {
-      if (y > 270) { doc.addPage(); y = 20; }
-      if (altRow) { doc.setFillColor(248,252,249); doc.rect(M, y, W-M*2, 6.5, 'F'); }
-      altRow = !altRow;
-      doc.setTextColor(30, 30, 30); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
-      doc.text(String(s.number).padStart(3,'0'), M+2, y+4.5);
-      doc.text((s.holderName||'—').slice(0,28), M+20, y+4.5);
-      doc.text(String(s.requestedStalls||'—'), M+100, y+4.5);
-      doc.text((s.contactPhone||'—').slice(0,20), M+120, y+4.5);
-      doc.text(s.reservedAt ? new Date(s.reservedAt).toLocaleString('pt-BR') : '—', M+155, y+4.5);
-      y += 6.5;
-    });
-
-    if (!reserv.length) {
-      doc.setTextColor(150,150,150); doc.setFontSize(8);
-      doc.text('Nenhuma baia reservada.', M+2, y+5); y += 10;
+    // helpers
+    function novaPaginaSe(limite) {
+      if (y > limite) { doc.addPage(); y = 20; }
     }
-    y += 6;
+    function secao(titulo) {
+      novaPaginaSe(260);
+      doc.setFillColor(6,15,8);
+      doc.rect(M, y, W-M*2, 8, 'F');
+      doc.setTextColor(201,168,76); doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.text(titulo, M+3, y+5.5);
+      y += 11;
+    }
+    function linha(txt, cor, tam) {
+      novaPaginaSe(275);
+      doc.setTextColor.apply(doc, cor||[40,40,40]);
+      doc.setFontSize(tam||8); doc.setFont('helvetica','normal');
+      doc.text(txt, M+3, y);
+      y += 5.5;
+    }
+    function wrap(txt, maxLen) {
+      // quebra texto longo em múltiplas linhas
+      var words = txt.split(' '); var line = ''; var lines = [];
+      words.forEach(function(w){
+        if ((line+w).length > maxLen) { if(line) lines.push(line.trim()); line = w+' '; }
+        else line += w+' ';
+      });
+      if (line.trim()) lines.push(line.trim());
+      return lines;
+    }
 
-    // ── Baias disponíveis ────────────────────────────────────────
-    if (y > 250) { doc.addPage(); y = 20; }
-    doc.setFontSize(10); doc.setFont('helvetica','bold');
-    doc.setTextColor(20,20,20);
-    doc.text('BAIAS NÃO RESERVADAS (' + disp.length + ')', M, y); y += 5;
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-    var dispNums = disp.sort(function(a,b){return a.number-b.number;})
-                       .map(function(s){return String(s.number).padStart(3,'0');});
-    var linhaDisp = ''; var linhasDisp = [];
-    dispNums.forEach(function(n,i){
-      linhaDisp += n + (i<dispNums.length-1?', ':'');
-      if (linhaDisp.length > 100) { linhasDisp.push(linhaDisp); linhaDisp = ''; }
+    // ── Cabeçalho ────────────────────────────────────────────────
+    doc.setFillColor(6,15,8);
+    doc.rect(0, 0, W, 40, 'F');
+    doc.setTextColor(201,168,76);
+    doc.setFontSize(20); doc.setFont('helvetica','bold');
+    doc.text('BAIA FÁCIL', M, 14);
+    doc.setFontSize(8); doc.setTextColor(160,160,160); doc.setFont('helvetica','normal');
+    doc.text('Relatório de Encerramento', M, 20);
+    doc.setFontSize(13); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text(evNome.slice(0,60), M, 29);
+    doc.setFontSize(7.5); doc.setTextColor(140,140,140); doc.setFont('helvetica','normal');
+    doc.text('Gerado em ' + now.toLocaleString('pt-BR') + '  ·  Encerrado por: ' + sessUser, M, 36);
+    y = 50;
+
+    // ── Resumo de ocupação ───────────────────────────────────────
+    doc.setFillColor(235,248,240);
+    doc.roundedRect(M, y, W-M*2, 22, 2, 2, 'F');
+    var rs = [
+      {v:String(total),         l:'Total de baias',  x:M+6},
+      {v:String(reserv.length), l:'Reservadas',       x:M+52},
+      {v:pct+'%',               l:'Taxa de ocupação', x:M+94},
+      {v:String(disp.length),   l:'Disponíveis',      x:M+138},
+      {v:String(bloq.length),   l:'Bloqueadas',       x:M+170},
+    ];
+    rs.forEach(function(r){
+      doc.setTextColor(20,20,20); doc.setFontSize(14); doc.setFont('helvetica','bold');
+      doc.text(r.v, r.x, y+13);
+      doc.setTextColor(100,100,100); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+      doc.text(r.l, r.x, y+19);
     });
-    if (linhaDisp) linhasDisp.push(linhaDisp);
-    linhasDisp.forEach(function(l){
-      if (y > 278) { doc.addPage(); y = 20; }
-      doc.text(l, M, y); y += 5;
+    y += 30;
+
+    // ── Lista de competidores ────────────────────────────────────
+    // Agrupar baias por titular (um competidor pode ter múltiplas reservas)
+    var porTitular = {};
+    reserv.forEach(function(s) {
+      var nome = (s.holderName||'Sem nome').trim();
+      if (!porTitular[nome]) {
+        porTitular[nome] = { baias:[], tel: s.contactPhone||'—', reservadoEm: s.reservedAt };
+      }
+      porTitular[nome].baias.push(s.number);
     });
-    y += 6;
+
+    var titulares = Object.keys(porTitular).sort();
+
+    secao('COMPETIDORES E BAIAS RESERVADAS (' + titulares.length + ' titular(es) · ' + reserv.length + ' baia(s))');
+
+    if (!titulares.length) {
+      linha('Nenhuma baia reservada.', [150,150,150]);
+    } else {
+      titulares.forEach(function(nome, i) {
+        novaPaginaSe(265);
+        var info = porTitular[nome];
+        info.baias.sort(function(a,b){return a-b;});
+        var numBaias = info.baias.map(function(n){ return String(n).padStart(3,'0'); }).join(', ');
+        var dataRes  = info.reservadoEm ? new Date(info.reservadoEm).toLocaleString('pt-BR') : '—';
+
+        // Linha colorida alternada
+        if (i%2===0) { doc.setFillColor(248,252,249); doc.rect(M, y-1, W-M*2, 22, 'F'); }
+
+        doc.setTextColor(20,20,20); doc.setFontSize(9.5); doc.setFont('helvetica','bold');
+        doc.text((i+1)+'. '+nome.slice(0,50), M+3, y+5);
+
+        doc.setTextColor(80,80,80); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+        doc.text('Qtd.: '+info.baias.length+'  ·  Tel.: '+info.tel+'  ·  Reservado em: '+dataRes, M+3, y+11);
+
+        // Baias em destaque
+        doc.setTextColor(30,100,60); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+        var lsBaias = wrap('Baias: ' + numBaias, 115);
+        lsBaias.forEach(function(l, li) {
+          novaPaginaSe(275);
+          doc.text(l, M+3, y+17+(li*5));
+        });
+        y += 22 + Math.max(0, (lsBaias.length-1)*5);
+      });
+    }
+    y += 4;
+
+    // ── Baias não reservadas ─────────────────────────────────────
+    novaPaginaSe(250);
+    secao('BAIAS NÃO RESERVADAS (' + disp.length + ')');
+    if (!disp.length) {
+      linha('Todas as baias foram reservadas.', [80,80,80]);
+    } else {
+      var nums = disp.sort(function(a,b){return a.number-b.number;})
+                     .map(function(s){return String(s.number).padStart(3,'0');}).join(', ');
+      wrap(nums, 115).forEach(function(l){
+        novaPaginaSe(275);
+        linha(l, [80,80,80]);
+      });
+    }
+    y += 4;
+
+    // ── Baias bloqueadas / manutenção ────────────────────────────
+    if (bloq.length > 0) {
+      novaPaginaSe(250);
+      secao('BAIAS BLOQUEADAS / MANUTENÇÃO (' + bloq.length + ')');
+      bloq.sort(function(a,b){return a.number-b.number;}).forEach(function(s){
+        novaPaginaSe(275);
+        doc.setTextColor(80,80,80); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+        doc.text(String(s.number).padStart(3,'0')+'  '+statusLabel(s.status), M+3, y);
+        y += 5.5;
+      });
+      y += 4;
+    }
 
     // ── Histórico de ações ───────────────────────────────────────
-    if (y > 250) { doc.addPage(); y = 20; }
-    doc.setFontSize(10); doc.setFont('helvetica','bold');
-    doc.setTextColor(20,20,20);
-    doc.text('HISTÓRICO DE AÇÕES (' + historico.length + ')', M, y); y += 5;
-
-    doc.setFillColor(6, 15, 8);
-    doc.rect(M, y, W-M*2, 7, 'F');
-    doc.setTextColor(201, 168, 76); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
-    [{t:'Data/Hora',x:M+2},{t:'Usuário',x:M+45},{t:'Ação',x:M+72},{t:'Baia',x:M+120},{t:'Detalhe',x:M+138}]
-      .forEach(function(c){ doc.text(c.t, c.x, y+4.8); });
-    y += 7;
-
-    var altH = false;
-    var histCron = historico.slice().sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
-    histCron.forEach(function(a) {
-      if (y > 272) { doc.addPage(); y = 20; }
-      if (altH) { doc.setFillColor(248,252,249); doc.rect(M, y, W-M*2, 6.5, 'F'); }
-      altH = !altH;
-      doc.setTextColor(30,30,30); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
-      var dataH = a.at ? new Date(a.at).toLocaleString('pt-BR') : '—';
-      doc.text(dataH.slice(0,18), M+2, y+4.5);
-      doc.text((a.usuario||'org').slice(0,12), M+45, y+4.5);
-      doc.text((a.acao||'').slice(0,22), M+72, y+4.5);
-      doc.text(a.baia ? String(a.baia).padStart(3,'0') : '—', M+120, y+4.5);
-      doc.text((a.extra||'').slice(0,28), M+138, y+4.5);
-      y += 6.5;
-    });
-    if (!histCron.length) {
-      doc.setTextColor(150,150,150); doc.setFontSize(8);
-      doc.text('Nenhuma ação registrada.', M+2, y+5); y += 10;
+    novaPaginaSe(240);
+    secao('HISTÓRICO DE AÇÕES (' + historico.length + ')');
+    if (!historico.length) {
+      linha('Nenhuma ação registrada.', [150,150,150]);
+    } else {
+      var histCron = historico.slice().sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
+      histCron.forEach(function(a, i) {
+        novaPaginaSe(270);
+        if (i%2===0) { doc.setFillColor(250,250,250); doc.rect(M, y-1, W-M*2, 9, 'F'); }
+        var dataH = a.at ? new Date(a.at).toLocaleString('pt-BR') : '—';
+        var baiaH = a.baia ? ' · Baia '+String(a.baia).padStart(3,'0') : '';
+        var extraH = a.extra ? ' · '+a.extra : '';
+        doc.setTextColor(30,30,30); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+        doc.text((a.acao||'').slice(0,30)+baiaH.slice(0,20), M+3, y+5);
+        doc.setFont('helvetica','normal'); doc.setTextColor(120,120,120);
+        doc.text(dataH+'  ·  '+( a.usuario||'org')+extraH.slice(0,30), M+3, y+9.5);
+        y += 13;
+      });
     }
 
     // ── Rodapé ───────────────────────────────────────────────────
