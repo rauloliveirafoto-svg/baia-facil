@@ -315,9 +315,66 @@
     }
   }
 
+  // ── Histórico por prova (documento único por prova) ─────────
+  // Documento: provas/{id}/historico/log
+  // Campo: acoes[] — array que cresce a cada ação
+  function refHistorico(evId) {
+    return db.collection('provas').doc(String(evId))
+             .collection('historico').doc('log');
+  }
+
+  async function registrarAcao(evId, acao, baia, extra, usuario) {
+    var entrada = {
+      at:      new Date().toISOString(),
+      ts:      Date.now(),
+      usuario: usuario || 'organizador',
+      acao:    acao,
+      baia:    baia || null,
+      extra:   extra || '',
+    };
+    try {
+      // Usar update com arrayUnion para appender sem sobrescrever
+      await refHistorico(evId).set(
+        { acoes: firebase.firestore.FieldValue.arrayUnion(entrada) },
+        { merge: true }
+      );
+    } catch(e) {
+      console.warn('[registrarAcao]', e.message);
+    }
+  }
+
+  async function getHistorico(evId) {
+    try {
+      var snap = await refHistorico(evId).get();
+      if (!snap.exists) return [];
+      var acoes = snap.data().acoes || [];
+      // Ordenar por ts decrescente
+      acoes.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+      return acoes;
+    } catch(e) {
+      console.warn('[getHistorico]', e.message);
+      return [];
+    }
+  }
+
+  // ── Encerrar prova ────────────────────────────────────────────
+  async function encerrarProva(evId, usuario) {
+    var agora = new Date().toISOString();
+    // 1. Marcar prova como encerrada
+    await ref(evId).update({
+      status:      'encerrada',
+      encerradaAt: agora,
+      encerradaPor: usuario || 'organizador',
+    });
+    // 2. Registrar no histórico
+    await registrarAcao(evId, 'Prova encerrada', null, '', usuario);
+    return agora;
+  }
+
   window.FB = {
     initProva, getProvas, salvar, escutar, reservarAtomico,
     buscarReservasPorTelefone, buscarReservasPorProtocolo,
     registrarAcesso, getAcessos,
+    registrarAcao, getHistorico, encerrarProva,
   };
 })();

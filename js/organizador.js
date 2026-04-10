@@ -106,7 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
   function iniciarListener() {
     if (_unsub) { _unsub(); _unsub = null; }
     _unsub = window.FB.escutar(evId, function(data) { cache = data; renderTudo(); });
-    carregarAcessos(); // W: recarregar acessos ao trocar prova
+    carregarAcessos();
+    carregarHistorico(); // carregar histórico persistido do Firestore
   }
 
   // ── Filtros ────────────────────────────────────────────────
@@ -202,6 +203,19 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   $('exportCsv').addEventListener('click', exportCSV);
+
+  // Encerrar prova
+  if ($('btnEncerrarProva')) {
+    $('btnEncerrarProva').addEventListener('click', function() {
+      if (!cache) return;
+      var evNome = elSel.options[elSel.selectedIndex] ? elSel.options[elSel.selectedIndex].text : 'Evento';
+      confirmar(
+        'Encerrar prova',
+        'Encerrar "' + evNome + '"? Esta ação é irreversível. Um relatório PDF será gerado automaticamente.',
+        function() { executarEncerramento(evNome); }
+      );
+    });
+  }
 
   // W: carregar log de acessos ao trocar de evento
   carregarAcessos();
@@ -376,18 +390,24 @@ document.addEventListener('DOMContentLoaded', function() {
   window.addEventListener('offline', function() { setConn('offline'); });
   setConn(navigator.onLine ? 'online' : 'offline');
 
-  // ── Histórico de ações ──────────────────────────────────────
+  // ── Histórico de ações (Firestore + local) ──────────────────
   function addLog(acao, numero, extra) {
     var now = new Date();
-    logEntries.unshift({
+    var entrada = {
       time:   now.toLocaleTimeString('pt-BR'),
       acao:   acao,
       numero: numero ? fmt(numero) : null,
       extra:  extra || '',
       user:   sessUser,
-    });
-    if (logEntries.length > 100) logEntries.pop();
+    };
+    // Adicionar no topo da lista local para UX imediato
+    logEntries.unshift(entrada);
+    if (logEntries.length > 200) logEntries.pop();
     renderLog();
+    // Persistir no Firestore — não bloqueia UI
+    if (window.FB && window.FB.registrarAcao) {
+      window.FB.registrarAcao(evId, acao, numero, extra, sessUser);
+    }
   }
 
   function renderLog() {
@@ -398,12 +418,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     elLogList.innerHTML = logEntries.map(function(e) {
       return '<div class="log-item">' +
-        '<div class="log-item__time">' + e.time + ' · ' + e.user + '</div>' +
-        '<span class="log-item__action">' + e.acao + '</span>' +
+        '<div class="log-item__time">' + e.time + ' · ' + esc(e.user||'org') + '</div>' +
+        '<span class="log-item__action">' + esc(e.acao) + '</span>' +
         (e.numero ? ' — Baia ' + e.numero : '') +
         (e.extra  ? ' · ' + esc(e.extra)  : '') +
         '</div>';
     }).join('');
+  }
+
+  // Carregar histórico do Firestore ao trocar de prova
+  function carregarHistorico() {
+    if (!window.FB || !window.FB.getHistorico) return;
+    window.FB.getHistorico(evId).then(function(acoes) {
+      logEntries = acoes.map(function(a) {
+        return {
+          time:   a.at ? new Date(a.at).toLocaleTimeString('pt-BR') : '—',
+          acao:   a.acao || '',
+          numero: a.baia ? fmt(a.baia) : null,
+          extra:  a.extra || '',
+          user:   a.usuario || 'org',
+        };
+      });
+      renderLog();
+    }).catch(function(){});
   }
 
   function reqSel(cb) {
@@ -655,6 +692,199 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     fecharManual(); renderTudo();
     addLog('Reserva manual', null, manSel.map(fmt).join(', ')+' → '+nome); msg('Reserva criada: '+manSel.map(fmt).join(', ')+' → '+nome+'.');
+  }
+
+  // ── Encerramento da prova ────────────────────────────────────
+  async function executarEncerramento(evNome) {
+    if (!cache) return;
+    var btnEnc = $('btnEncerrarProva');
+    if (btnEnc) { btnEnc.disabled = true; btnEnc.textContent = 'Encerrando...'; }
+
+    try {
+      // 1. Marcar como encerrada no Firestore
+      await window.FB.encerrarProva(evId, sessUser);
+
+      // 2. Gerar PDF do relatório final
+      var historico = await window.FB.getHistorico(evId);
+      await gerarRelatorioPDF(cache, evNome, historico);
+
+      msg('Prova encerrada. Relatório gerado.');
+      addLog('Prova encerrada', null, evNome);
+
+      // 3. Atualizar UI — badge de encerrada
+      if (btnEnc) { btnEnc.textContent = '✓ Encerrada'; btnEnc.disabled = true; }
+
+    } catch(e) {
+      console.error('[encerramento]', e);
+      msg('Erro ao encerrar. Tente novamente.', true);
+      if (btnEnc) { btnEnc.disabled = false; btnEnc.textContent = '⏹ Encerrar prova'; }
+    }
+  }
+
+  async function gerarRelatorioPDF(dados, evNome, historico) {
+    // jsPDF via CDN — carregado dinamicamente se não estiver disponível
+    if (typeof window.jspdf === 'undefined') {
+      await new Promise(function(resolve, reject) {
+        var script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = resolve; script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    var jsPDF = window.jspdf.jsPDF;
+    var doc   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    var W     = 210; var M = 14; var y = 0;
+
+    var stalls   = dados.stalls || [];
+    var total    = stalls.length;
+    var reserv   = stalls.filter(function(s){ return s.status==='reserved'; });
+    var bloq     = stalls.filter(function(s){ return s.status==='blocked'||s.status==='maintenance'; });
+    var disp     = stalls.filter(function(s){ return s.status==='available'; });
+    var pctOcup  = total > 0 ? Math.round(reserv.length/total*100) : 0;
+    var now      = new Date();
+
+    // ── Cabeçalho ───────────────────────────────────────────────
+    doc.setFillColor(6, 15, 8);
+    doc.rect(0, 0, W, 38, 'F');
+    doc.setTextColor(201, 168, 76);
+    doc.setFontSize(18); doc.setFont('helvetica','bold');
+    doc.text('BAIA FÁCIL', M, 14);
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    doc.setTextColor(180, 180, 180);
+    doc.text('Relatório de Encerramento', M, 20);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12); doc.setFont('helvetica','bold');
+    doc.text(evNome, M, 28);
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.setTextColor(160, 160, 160);
+    doc.text('Gerado em: ' + now.toLocaleString('pt-BR') + '   |   Encerrado por: ' + sessUser, M, 34);
+    y = 46;
+
+    // ── Resumo estatístico ───────────────────────────────────────
+    doc.setFillColor(230, 245, 235);
+    doc.roundedRect(M, y, W-M*2, 28, 3, 3, 'F');
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('RESUMO DE OCUPAÇÃO', M+4, y+7);
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    var cols = [
+      { label:'Total', val: String(total),          x: M+4   },
+      { label:'Reservadas', val: String(reserv.length)+' ('+pctOcup+'%)', x: M+42  },
+      { label:'Disponíveis', val: String(disp.length),  x: M+95  },
+      { label:'Bloqueadas', val: String(bloq.length),   x: M+140 },
+    ];
+    cols.forEach(function(c) {
+      doc.setTextColor(20, 20, 20); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+      doc.text(c.val, c.x, y+19);
+      doc.setTextColor(100, 100, 100); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+      doc.text(c.label, c.x, y+25);
+    });
+    y += 36;
+
+    // ── Tabela de reservas ───────────────────────────────────────
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.setTextColor(20, 20, 20);
+    doc.text('BAIAS RESERVADAS (' + reserv.length + ')', M, y);
+    y += 5;
+
+    // Cabeçalho tabela
+    doc.setFillColor(6, 15, 8);
+    doc.rect(M, y, W-M*2, 7, 'F');
+    doc.setTextColor(201, 168, 76); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    var hCols = [{t:'Baia',x:M+2},{t:'Titular',x:M+20},{t:'Qtd.',x:M+100},{t:'Contato',x:M+120},{t:'Reservado em',x:M+155}];
+    hCols.forEach(function(c){ doc.text(c.t, c.x, y+4.8); });
+    y += 7;
+
+    reserv.sort(function(a,b){ return a.number-b.number; });
+    var altRow = false;
+    reserv.forEach(function(s) {
+      if (y > 270) { doc.addPage(); y = 20; }
+      if (altRow) { doc.setFillColor(248,252,249); doc.rect(M, y, W-M*2, 6.5, 'F'); }
+      altRow = !altRow;
+      doc.setTextColor(30, 30, 30); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+      doc.text(String(s.number).padStart(3,'0'), M+2, y+4.5);
+      doc.text((s.holderName||'—').slice(0,28), M+20, y+4.5);
+      doc.text(String(s.requestedStalls||'—'), M+100, y+4.5);
+      doc.text((s.contactPhone||'—').slice(0,20), M+120, y+4.5);
+      doc.text(s.reservedAt ? new Date(s.reservedAt).toLocaleString('pt-BR') : '—', M+155, y+4.5);
+      y += 6.5;
+    });
+
+    if (!reserv.length) {
+      doc.setTextColor(150,150,150); doc.setFontSize(8);
+      doc.text('Nenhuma baia reservada.', M+2, y+5); y += 10;
+    }
+    y += 6;
+
+    // ── Baias disponíveis ────────────────────────────────────────
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.setTextColor(20,20,20);
+    doc.text('BAIAS NÃO RESERVADAS (' + disp.length + ')', M, y); y += 5;
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+    var dispNums = disp.sort(function(a,b){return a.number-b.number;})
+                       .map(function(s){return String(s.number).padStart(3,'0');});
+    var linhaDisp = ''; var linhasDisp = [];
+    dispNums.forEach(function(n,i){
+      linhaDisp += n + (i<dispNums.length-1?', ':'');
+      if (linhaDisp.length > 100) { linhasDisp.push(linhaDisp); linhaDisp = ''; }
+    });
+    if (linhaDisp) linhasDisp.push(linhaDisp);
+    linhasDisp.forEach(function(l){
+      if (y > 278) { doc.addPage(); y = 20; }
+      doc.text(l, M, y); y += 5;
+    });
+    y += 6;
+
+    // ── Histórico de ações ───────────────────────────────────────
+    if (y > 250) { doc.addPage(); y = 20; }
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.setTextColor(20,20,20);
+    doc.text('HISTÓRICO DE AÇÕES (' + historico.length + ')', M, y); y += 5;
+
+    doc.setFillColor(6, 15, 8);
+    doc.rect(M, y, W-M*2, 7, 'F');
+    doc.setTextColor(201, 168, 76); doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    [{t:'Data/Hora',x:M+2},{t:'Usuário',x:M+45},{t:'Ação',x:M+72},{t:'Baia',x:M+120},{t:'Detalhe',x:M+138}]
+      .forEach(function(c){ doc.text(c.t, c.x, y+4.8); });
+    y += 7;
+
+    var altH = false;
+    var histCron = historico.slice().sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
+    histCron.forEach(function(a) {
+      if (y > 272) { doc.addPage(); y = 20; }
+      if (altH) { doc.setFillColor(248,252,249); doc.rect(M, y, W-M*2, 6.5, 'F'); }
+      altH = !altH;
+      doc.setTextColor(30,30,30); doc.setFontSize(7.5); doc.setFont('helvetica','normal');
+      var dataH = a.at ? new Date(a.at).toLocaleString('pt-BR') : '—';
+      doc.text(dataH.slice(0,18), M+2, y+4.5);
+      doc.text((a.usuario||'org').slice(0,12), M+45, y+4.5);
+      doc.text((a.acao||'').slice(0,22), M+72, y+4.5);
+      doc.text(a.baia ? String(a.baia).padStart(3,'0') : '—', M+120, y+4.5);
+      doc.text((a.extra||'').slice(0,28), M+138, y+4.5);
+      y += 6.5;
+    });
+    if (!histCron.length) {
+      doc.setTextColor(150,150,150); doc.setFontSize(8);
+      doc.text('Nenhuma ação registrada.', M+2, y+5); y += 10;
+    }
+
+    // ── Rodapé ───────────────────────────────────────────────────
+    var pages = doc.getNumberOfPages();
+    for (var p = 1; p <= pages; p++) {
+      doc.setPage(p);
+      doc.setFillColor(240, 240, 240);
+      doc.rect(0, 287, W, 10, 'F');
+      doc.setTextColor(150,150,150); doc.setFontSize(7); doc.setFont('helvetica','normal');
+      doc.text('Baia Fácil · ' + evNome, M, 293);
+      doc.text('Página ' + p + ' de ' + pages, W-M-20, 293);
+    }
+
+    // Download
+    var nomeArq = 'relatorio-' + evNome.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase() + '-' +
+                  now.toISOString().slice(0,10) + '.pdf';
+    doc.save(nomeArq);
   }
 
   // ── W: Log de acessos ────────────────────────────────────────
