@@ -619,11 +619,18 @@ body::after {
   @page { margin: 1.5cm; size: A4 landscape; }
 }
 
+/* Em seleção por outro competidor — laranja vivo, pulsante */
 .stall--taken {
-  background: rgba(180,100,20,.1);
-  border-color: rgba(200,140,30,.25);
-  color: rgba(200,160,39,.38);
-  cursor: not-allowed; opacity: .6;
+  background: rgba(220,120,20,.22);
+  border-color: rgba(230,140,30,.7);
+  color: #F0A030;
+  cursor: not-allowed;
+  animation: takenPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 0 1px rgba(230,140,30,.3), inset 0 0 8px rgba(220,120,20,.15);
+}
+@keyframes takenPulse {
+  0%, 100% { border-color: rgba(230,140,30,.7); box-shadow: 0 0 0 1px rgba(230,140,30,.3); }
+  50%       { border-color: rgba(255,165,40,.95); box-shadow: 0 0 0 2px rgba(255,165,40,.45), 0 0 14px rgba(220,120,20,.3); }
 }
 
 /* ── MAPA VERTICAL DO COMPETIDOR ─────────── */
