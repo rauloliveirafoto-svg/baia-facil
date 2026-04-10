@@ -89,9 +89,18 @@
       var data  = snap.data();
       var dirty = false;
 
+      // Sincronizar blocos da prova para o BAIA_CONFIG global
+      // Permite que map.js e competidor.js usem os blocos corretos desta prova
+      if (data.blocos && Array.isArray(data.blocos)) {
+        if (window.BAIA_CONFIG) {
+          window.BAIA_CONFIG.STALL_BLOCKS  = data.blocos;
+          window.BAIA_CONFIG.TOTAL_STALLS  = data.totalStalls || data.stalls.length;
+        }
+      }
+
       // Migração: campo block ausente
       if (data.stalls && data.stalls.length > 0 && !data.stalls[0].hasOwnProperty('block')) {
-        var blocos = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
+        var blocos = data.blocos || (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
           {id:1,stalls:30,start:1},{id:2,stalls:30,start:31},{id:3,stalls:30,start:61},
           {id:4,stalls:30,start:91},{id:5,stalls:20,start:121},
         ];
@@ -125,7 +134,7 @@
       return data;
     }
 
-    // Criar prova nova
+    // Criar prova nova — blocos vêm do config global (já sincronizado se necessário)
     var blocos = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
       {id:1,stalls:30,start:1},{id:2,stalls:30,start:31},{id:3,stalls:30,start:61},
       {id:4,stalls:30,start:91},{id:5,stalls:20,start:121},
@@ -138,7 +147,10 @@
           reservedAt:'', selectedAt:'', sessionId:'' });
       }
     });
-    var data = { eventName:evName, stalls:stalls, reservations:[], updatedAt:new Date().toISOString() };
+    var totalStalls = stalls.length;
+    var data = { eventName:evName, stalls:stalls, reservations:[],
+                 blocos:blocos, totalStalls:totalStalls,
+                 updatedAt:new Date().toISOString() };
     await ref(evId).set(data);
     cacheSalvar(evId, data);
     return data;

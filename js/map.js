@@ -1,5 +1,14 @@
 (function initBaiaMap(global) {
-  function getBlocksLayout() {
+  // Aceita layout externo (da prova no Firestore) ou usa o config.js como fallback
+  function getBlocksLayout(blocos) {
+    if (Array.isArray(blocos) && blocos.length) {
+      return blocos.map((block, index) => ({
+        id:     Number(block.id)     || index + 1,
+        label:  block.label          || ('Bloco ' + (index + 1)),
+        stalls: Number(block.stalls) || 0,
+        start:  Number(block.start)  || 1,
+      }));
+    }
     const config = global.BAIA_CONFIG || {};
     if (Array.isArray(config.STALL_BLOCKS) && config.STALL_BLOCKS.length) {
       return config.STALL_BLOCKS.map((block, index) => ({
@@ -58,9 +67,9 @@
   }
 
   // Mapa completo em GRID HORIZONTAL — organizador
-  function buildStallMap({ mapElement, template, onStallClick }) {
+  function buildStallMap({ mapElement, template, onStallClick, blocos }) {
     if (!mapElement || !template) { console.warn('[buildStallMap] ausente'); return; }
-    const layout = getBlocksLayout();
+    const layout = getBlocksLayout(blocos);
     mapElement.innerHTML = '';
     layout.forEach((block, blockIndex) => {
       const blockEl = document.createElement('section');
@@ -97,9 +106,9 @@
   // Constrói todos os blocos LADO A LADO numa grade horizontal
   // Cada bloco tem 2 colunas verticais de baias (quadradas)
   // Corredor vertical entre os blocos
-  function buildStallMapVertical({ mapElement, template, onStallClick }) {
+  function buildStallMapVertical({ mapElement, template, onStallClick, blocos }) {
     if (!mapElement || !template) { console.warn('[buildStallMapVertical] ausente'); return; }
-    const layout = getBlocksLayout();
+    const layout = getBlocksLayout(blocos);
     mapElement.innerHTML = '';
 
     // Container principal — todos os blocos na horizontal
