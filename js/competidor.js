@@ -398,8 +398,8 @@ document.addEventListener('DOMContentLoaded', function() {
   rejectBtn.addEventListener('click', ctrlSelecao.rejectSequence);
   closeReceiptBtn.addEventListener('click', function() {
     receiptModal.hidden = true;
-    // Redirecionar para home apenas se: usou download/whatsapp E não está em modo visualização
-    if (state._receiptUsed && !_viewMode && typeof window._goHomeCallback === 'function') {
+    // Sempre voltar para home ao fechar o comprovante (exceto em modo visualização)
+    if (!_viewMode && typeof window._goHomeCallback === 'function') {
       setTimeout(window._goHomeCallback, 300);
     }
   });
