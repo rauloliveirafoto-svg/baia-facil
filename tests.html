@@ -184,9 +184,14 @@ window.FB = {
 };
 
 // ════════════════════════════════════════════════════════
-//  FUNÇÕES EXTRAÍDAS PARA TESTE (copiadas de firebase.js)
-//  Não dependem do Firestore real
+//  FUNÇÕES EXTRAÍDAS PARA TESTE
+//  Copiadas dos módulos reais — não dependem do Firestore
 // ════════════════════════════════════════════════════════
+
+// ── De competidor.js ─────────────────────────────────────
+function fmt(n)      { return String(n).padStart(3,'0'); }
+function maskTel(v)  { var d=v.replace(/\D/g,'').slice(0,11); if(d.length<=2)return d; if(d.length<=6)return'('+d.slice(0,2)+') '+d.slice(2); if(d.length<=10)return'('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6); return'('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7); }
+function telValido(v){ return v.replace(/\D/g,'').length>=8; }
 
 function gerarProtocolo(data, now) {
   var d       = now || new Date();
