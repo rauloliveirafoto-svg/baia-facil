@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Baia Fácil — Testes</title>
+  <style>
+    :root {
+      --bg:      #060f08;
+      --card:    #0d2b10;
+      --gold:    #c9a84c;
+      --cream:   #F2EFE6;
+      --muted:   #7a9e7e;
+      --green:   #22C47A;
+      --red:     #EE7070;
+      --amber:   #C8A027;
+      --border:  rgba(200,160,39,.18);
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Courier New',monospace; background:var(--bg); color:var(--cream); padding:2rem; min-height:100dvh; }
+    h1 { font-size:1.4rem; color:var(--gold); margin-bottom:0.25rem; }
+    .subtitle { font-size:0.78rem; color:var(--muted); margin-bottom:2rem; }
+
+    /* ── Suítes ── */
+    .suite { margin-bottom:1.5rem; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    .suite-header { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; background:rgba(200,160,39,.06); cursor:pointer; user-select:none; }
+    .suite-name { font-size:0.9rem; font-weight:700; color:var(--gold); }
+    .suite-badge { font-size:0.72rem; font-weight:700; padding:0.2rem 0.6rem; border-radius:999px; }
+    .badge-pass { background:rgba(34,196,122,.15); color:var(--green); }
+    .badge-fail { background:rgba(238,112,112,.15); color:var(--red); }
+    .badge-run  { background:rgba(200,160,39,.12);  color:var(--amber); }
+
+    /* ── Testes ── */
+    .test { display:flex; align-items:flex-start; gap:0.75rem; padding:0.6rem 1rem; border-top:1px solid rgba(255,255,255,.04); font-size:0.82rem; }
+    .test-icon { flex-shrink:0; font-size:1rem; line-height:1.4; }
+    .test-body { flex:1; min-width:0; }
+    .test-name { color:var(--cream); line-height:1.5; }
+    .test-err  { color:var(--red); font-size:0.75rem; margin-top:0.3rem; white-space:pre-wrap; word-break:break-all; }
+    .test-ok   { color:var(--green); }
+    .test-skip { color:var(--muted); }
+
+    /* ── Sumário ── */
+    .summary { display:flex; gap:1.5rem; padding:1rem 0; margin-bottom:1.5rem; border-bottom:1px solid var(--border); font-size:0.88rem; }
+    .summary-item { display:flex; flex-direction:column; gap:0.1rem; }
+    .summary-num  { font-size:1.6rem; font-weight:700; line-height:1; }
+    .summary-lbl  { font-size:0.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    .num-pass { color:var(--green); }
+    .num-fail { color:var(--red); }
+    .num-total{ color:var(--cream); }
+
+    /* ── Botões ── */
+    .btn-run { background:linear-gradient(135deg,var(--gold),#9A7618); border:none; border-radius:10px; color:#06100C; font-family:'Courier New',monospace; font-size:0.9rem; font-weight:700; padding:0.75rem 1.75rem; cursor:pointer; margin-bottom:1.5rem; transition:opacity .2s; }
+    .btn-run:hover { opacity:.88; }
+    .btn-run:disabled { opacity:.4; cursor:not-allowed; }
+    .elapsed { font-size:0.75rem; color:var(--muted); margin-left:1rem; }
+  </style>
+</head>
+<body>
+
+<h1>🧪 Baia Fácil — Test Suite</h1>
+<p class="subtitle">Testes unitários das funções críticas — roda no browser, sem dependências externas</p>
+
+<button class="btn-run" id="btnRun" onclick="runAll()">▶ Executar todos os testes</button>
+<span class="elapsed" id="elapsed"></span>
+
+<div class="summary" id="summary" style="display:none;">
+  <div class="summary-item"><span class="summary-num num-pass" id="sumPass">0</span><span class="summary-lbl">Passou</span></div>
+  <div class="summary-item"><span class="summary-num num-fail" id="sumFail">0</span><span class="summary-lbl">Falhou</span></div>
+  <div class="summary-item"><span class="summary-num num-total" id="sumTotal">0</span><span class="summary-lbl">Total</span></div>
+</div>
+
+<div id="suites"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  FRAMEWORK MÍNIMO DE TESTES
+// ════════════════════════════════════════════════════════
+var _suites = [];
+var _current = null;
+
+function describe(name, fn) {
+  _current = { name:name, tests:[] };
+  _suites.push(_current);
+  fn();
+  _current = null;
+}
+
+function it(name, fn) {
+  if (!_current) return;
+  _current.tests.push({ name:name, fn:fn });
+}
+
+function expect(val) {
+  return {
+    toBe: function(exp) {
+      if (val !== exp) throw new Error('Esperado ' + JSON.stringify(exp) + ', recebeu ' + JSON.stringify(val));
+    },
+    toEqual: function(exp) {
+      var a = JSON.stringify(val), b = JSON.stringify(exp);
+      if (a !== b) throw new Error('Esperado ' + b + ', recebeu ' + a);
+    },
+    toMatch: function(re) {
+      if (!re.test(String(val))) throw new Error(JSON.stringify(val) + ' não bate com ' + re);
+    },
+    toBeGreaterThan: function(n) {
+      if (!(val > n)) throw new Error(val + ' não é maior que ' + n);
+    },
+    toBeTruthy: function() {
+      if (!val) throw new Error('Esperado truthy, recebeu ' + JSON.stringify(val));
+    },
+    toBeFalsy: function() {
+      if (val) throw new Error('Esperado falsy, recebeu ' + JSON.stringify(val));
+    },
+    toContain: function(sub) {
+      if (String(val).indexOf(sub) === -1) throw new Error(JSON.stringify(val) + ' não contém ' + JSON.stringify(sub));
+    },
+    toHaveLength: function(n) {
+      if ((val||[]).length !== n) throw new Error('Esperado length ' + n + ', recebeu ' + (val||[]).length);
+    },
+    not: {
+      toBe: function(exp) { if (val === exp) throw new Error('Não esperado: ' + JSON.stringify(exp)); },
+      toContain: function(sub) { if (String(val).indexOf(sub) !== -1) throw new Error(JSON.stringify(val) + ' contém ' + JSON.stringify(sub) + ' (não esperado)'); },
+    },
+  };
+}
+
+// ════════════════════════════════════════════════════════
+//  MOCKS
+// ════════════════════════════════════════════════════════
+
+// Mock do BAIA_CONFIG
+window.BAIA_CONFIG = {
+  TOTAL_STALLS: 10,
+  HOLD_DURATION_SECONDS: 300,
+  STALL_BLOCKS: [
+    { id:1, label:'Bloco 1', stalls:5, start:1 },
+    { id:2, label:'Bloco 2', stalls:5, start:6 },
+  ],
+};
+
+// Mock do BAIA_STATE
+window.BAIA_STATE = {
+  stalls:[], selectedStalls:[], competitorCredits:0,
+  formData:{ holderName:'', requestedStalls:0, contactPhone:'' },
+  timer:{ isActive:false, remainingSeconds:300 },
+  reservation:{ status:'inactive' },
+  competitor:{ holderName:'', requestedStalls:0, contactPhone:'', selectedStalls:[],
+    suggestedSequence:[], mode:null, timerId:null, remainingSeconds:300, receipt:null },
+  organizer:{ selectedStallNumber:null },
+};
+
+// Fábrica de prova em memória (simula o Firestore)
+function criarProva(opts) {
+  opts = opts || {};
+  var n = opts.totalStalls || 10;
+  var stalls = [];
+  for (var i = 1; i <= n; i++) {
+    stalls.push({
+      number:i, block:i<=5?1:2, status:'available',
+      holderName:'', contactPhone:'', requestedStalls:0,
+      reservedAt:'', selectedAt:'', sessionId:'', obs:'',
+    });
+  }
+  return {
+    eventName: opts.name || 'Prova Teste',
+    stalls:    stalls,
+    reservations: [],
+    protoSeq:  opts.protoSeq || {},
+    updatedAt: new Date().toISOString(),
+    status:    opts.status || undefined,
+    blocos:    window.BAIA_CONFIG.STALL_BLOCKS,
+    totalStalls: n,
+  };
+}
+
+// Mock do Firebase.salvar — captura chamadas
+var _saveLog = [];
+window.FB = {
+  salvar: function(evId, data) {
+    _saveLog.push({ evId:evId, data:JSON.parse(JSON.stringify(data)) });
+    return Promise.resolve();
+  },
+  registrarAcao: function() { return Promise.resolve(); },
+};
+
+// ════════════════════════════════════════════════════════
+//  FUNÇÕES EXTRAÍDAS PARA TESTE (copiadas de firebase.js)
+//  Não dependem do Firestore real
+// ════════════════════════════════════════════════════════
+
+function gerarProtocolo(data, now) {
+  var d       = now || new Date();
+  var dd      = String(d.getDate()).padStart(2,'0');
+  var mm      = String(d.getMonth()+1).padStart(2,'0');
+  var aaaa    = String(d.getFullYear());
+  var dataStr = dd + mm + aaaa;
+  if (!data.protoSeq) data.protoSeq = {};
+  var seq = (data.protoSeq[dataStr] || 0) + 1;
+  data.protoSeq[dataStr] = seq;
+  return 'BF-' + dataStr + '-' + String(seq).padStart(4,'0');
+}
+
+function reservarAtomicoMock(data, numeros, titular, telefone, qtd) {
+  // Replica a lógica de reservarAtomico sem Firestore
+  var stalls = data.stalls;
+  if (data.status === 'encerrada') return { ok:false, encerrada:true, conflito:[] };
+  var conflito = numeros.filter(function(n) {
+    var s = stalls.find(function(x){ return x.number === n; });
+    if (!s) return true;
+    return s.status === 'reserved' || s.status === 'maintenance';
+  });
+  if (conflito.length > 0) return { ok:false, conflito:conflito };
+  var now = new Date().toISOString();
+  stalls.forEach(function(s) {
+    if (s.status==='selected'||s.status==='blocked') {
+      s.status='available'; s.holderName=''; s.contactPhone='';
+      s.requestedStalls=0; s.reservedAt=''; s.selectedAt=''; s.sessionId='';
+    }
+  });
+  numeros.forEach(function(n) {
+    var s = stalls.find(function(x){ return x.number===n; });
+    if (!s) return;
+    s.status='reserved'; s.holderName=titular;
+    s.contactPhone=telefone; s.requestedStalls=qtd; s.reservedAt=now;
+  });
+  var proto = gerarProtocolo(data, new Date());
+  data.updatedAt = now;
+  data.reservations = stalls.filter(function(s){ return s.status==='reserved'; })
+    .map(function(s){ return { stallNumber:s.number, holderName:s.holderName,
+      contactPhone:s.contactPhone, requestedStalls:s.requestedStalls,
+      status:'Confirmada', reservedAt:s.reservedAt, protocolo:proto }; });
+  return { ok:true, data:data, protocolo:proto };
+}
+
+function liberarOrfas(data, ttlMs) {
+  ttlMs = ttlMs || 10 * 60 * 1000;
+  var agora = Date.now();
+  var dirty = false;
+  (data.stalls||[]).forEach(function(s) {
+    if ((s.status==='selected'||s.status==='blocked') && s.selectedAt) {
+      if (agora - new Date(s.selectedAt).getTime() > ttlMs) {
+        s.status='available'; s.holderName=''; s.contactPhone='';
+        s.requestedStalls=0; s.reservedAt=''; s.selectedAt=''; s.sessionId='';
+        dirty = true;
+      }
+    }
+  });
+  return dirty;
+}
+
+function encerrarProvaMock(data, usuario) {
+  if (data.status === 'encerrada') return { jaEncerrada: true };
+  data.status      = 'encerrada';
+  data.encerradaAt = new Date().toISOString();
+  data.encerradaPor= usuario || 'organizador';
+  return { ok:true, encerradaAt:data.encerradaAt };
+}
+
+// ════════════════════════════════════════════════════════
+//  SUÍTES DE TESTE
+// ════════════════════════════════════════════════════════
+
+// ── 1. Protocolo sequencial ──────────────────────────────
+describe('Protocolo sequencial', function() {
+  it('formato correto BF-DDMMAAAA-NNNN', function() {
+    var data = {};
+    var d    = new Date('2025-04-09T12:00:00');
+    var p    = gerarProtocolo(data, d);
+    expect(p).toMatch(/^BF-\d{8}-\d{4}$/);
+  });
+
+  it('data correta no protocolo', function() {
+    var data = {};
+    var d    = new Date('2025-04-09T12:00:00');
+    var p    = gerarProtocolo(data, d);
+    expect(p).toContain('BF-09042025-');
+  });
+
+  it('sequência começa em 0001', function() {
+    var data = {};
+    var d    = new Date('2025-06-15T10:00:00');
+    var p    = gerarProtocolo(data, d);
+    expect(p).toBe('BF-15062025-0001');
+  });
+
+  it('sequência incrementa corretamente', function() {
+    var data = {};
+    var d    = new Date('2025-06-15T10:00:00');
+    gerarProtocolo(data, d);
+    gerarProtocolo(data, d);
+    var p = gerarProtocolo(data, d);
+    expect(p).toBe('BF-15062025-0003');
+  });
+
+  it('contadores independentes por dia', function() {
+    var data = {};
+    var d1   = new Date('2025-06-15T10:00:00');
+    var d2   = new Date('2025-06-16T10:00:00');
+    gerarProtocolo(data, d1); // 15062025-0001
+    gerarProtocolo(data, d1); // 15062025-0002
+    var p = gerarProtocolo(data, d2); // 16062025-0001 — reinicia
+    expect(p).toBe('BF-16062025-0001');
+  });
+
+  it('protoSeq isolado — não cria campos extras no doc raiz', function() {
+    var data = { eventName:'Teste', stalls:[] };
+    gerarProtocolo(data, new Date());
+    var keys = Object.keys(data);
+    expect(keys).toContain('protoSeq');
+    // Não deve ter campos como proto_seq_DDMMAAAA no raiz
+    var temCampoSolto = keys.some(function(k){ return k.startsWith('proto_seq_'); });
+    expect(temCampoSolto).toBeFalsy();
+  });
+});
+
+// ── 2. Reserva atômica ────────────────────────────────────
+describe('Reserva atômica', function() {
+  it('reserva baias disponíveis com sucesso', function() {
+    var prova  = criarProva();
+    var res    = reservarAtomicoMock(prova, [1,2,3], 'João Silva', '(43) 99999-0001', 3);
+    expect(res.ok).toBeTruthy();
+    expect(res.protocolo).toMatch(/^BF-/);
+  });
+
+  it('retorna conflito ao tentar reservar baia já reservada', function() {
+    var prova = criarProva();
+    reservarAtomicoMock(prova, [1], 'Ana', '(43) 11111-0001', 1);
+    var res = reservarAtomicoMock(prova, [1], 'Beto', '(43) 22222-0002', 1);
+    expect(res.ok).toBeFalsy();
+    expect(res.conflito).toContain(1);
+  });
+
+  it('conflito parcial — retorna só as baias conflitantes', function() {
+    var prova = criarProva();
+    reservarAtomicoMock(prova, [3], 'Ana', '(43) 11111-0001', 1);
+    var res = reservarAtomicoMock(prova, [2,3,4], 'Beto', '(43) 22222-0002', 3);
+    expect(res.ok).toBeFalsy();
+    expect(res.conflito).toHaveLength(1);
+    expect(res.conflito).toContain(3);
+  });
+
+  it('baia marcada como reserved após confirmar', function() {
+    var prova = criarProva();
+    reservarAtomicoMock(prova, [5], 'Carlos', '(43) 33333-0001', 1);
+    var baia = prova.stalls.find(function(s){ return s.number===5; });
+    expect(baia.status).toBe('reserved');
+    expect(baia.holderName).toBe('Carlos');
+  });
+
+  it('reservations atualizado com protocolo', function() {
+    var prova = criarProva();
+    var res   = reservarAtomicoMock(prova, [1,2], 'Maria', '(43) 44444-0001', 2);
+    expect(prova.reservations).toHaveLength(2);
+    expect(prova.reservations[0].protocolo).toBe(res.protocolo);
+  });
+
+  it('baias selected/blocked são liberadas antes de confirmar', function() {
+    var prova = criarProva();
+    // Simular baia 7 em seleção por outro competidor
+    prova.stalls.find(function(s){ return s.number===7; }).status = 'selected';
+    prova.stalls.find(function(s){ return s.number===7; }).holderName = 'Outro';
+    // Reservar 1,2 — deve liberar a 7
+    reservarAtomicoMock(prova, [1,2], 'Pedro', '(43) 55555-0001', 2);
+    var baia7 = prova.stalls.find(function(s){ return s.number===7; });
+    expect(baia7.status).toBe('available');
+    expect(baia7.holderName).toBe('');
+  });
+
+  it('bloqueia reserva em prova encerrada', function() {
+    var prova = criarProva({ status:'encerrada' });
+    var res   = reservarAtomicoMock(prova, [1], 'Alguém', '(43) 99999-9999', 1);
+    expect(res.ok).toBeFalsy();
+    expect(res.encerrada).toBeTruthy();
+  });
+
+  it('protocolo é único por reserva na mesma prova', function() {
+    var prova = criarProva();
+    var r1 = reservarAtomicoMock(prova, [1], 'A', '(43) 11111-1111', 1);
+    var r2 = reservarAtomicoMock(prova, [2], 'B', '(43) 22222-2222', 1);
+    expect(r1.protocolo).not.toBe(r2.protocolo);
+  });
+});
+
+// ── 3. Liberação de baias órfãs ───────────────────────────
+describe('Liberação de baias órfãs', function() {
+  it('libera baia selected com mais de 10 min', function() {
+    var prova = criarProva();
+    var baia  = prova.stalls.find(function(s){ return s.number===3; });
+    baia.status     = 'selected';
+    baia.holderName = 'Fantasma';
+    baia.selectedAt = new Date(Date.now() - 11*60*1000).toISOString(); // 11 min atrás
+    var dirty = liberarOrfas(prova, 10*60*1000);
+    expect(dirty).toBeTruthy();
+    expect(baia.status).toBe('available');
+    expect(baia.holderName).toBe('');
+  });
+
+  it('não libera baia selected recente', function() {
+    var prova = criarProva();
+    var baia  = prova.stalls.find(function(s){ return s.number===4; });
+    baia.status     = 'selected';
+    baia.holderName = 'Ativo';
+    baia.selectedAt = new Date(Date.now() - 2*60*1000).toISOString(); // 2 min atrás
+    var dirty = liberarOrfas(prova, 10*60*1000);
+    expect(dirty).toBeFalsy();
+    expect(baia.status).toBe('selected');
+  });
+
+  it('não libera baias reserved (nunca são órfãs)', function() {
+    var prova = criarProva();
+    var baia  = prova.stalls.find(function(s){ return s.number===5; });
+    baia.status     = 'reserved';
+    baia.holderName = 'Confirmado';
+    baia.selectedAt = new Date(Date.now() - 60*60*1000).toISOString(); // 1 hora atrás
+    var dirty = liberarOrfas(prova, 10*60*1000);
+    expect(dirty).toBeFalsy();
+    expect(baia.status).toBe('reserved');
+  });
+
+  it('libera baia blocked órfã', function() {
+    var prova = criarProva();
+    var baia  = prova.stalls.find(function(s){ return s.number===2; });
+    baia.status     = 'blocked';
+    baia.selectedAt = new Date(Date.now() - 15*60*1000).toISOString();
+    var dirty = liberarOrfas(prova, 10*60*1000);
+    expect(dirty).toBeTruthy();
+    expect(baia.status).toBe('available');
+  });
+
+  it('múltiplas órfãs liberadas em batch', function() {
+    var prova = criarProva();
+    var ts    = new Date(Date.now() - 20*60*1000).toISOString();
+    [1,2,3].forEach(function(n) {
+      var b   = prova.stalls.find(function(s){ return s.number===n; });
+      b.status     = 'selected';
+      b.selectedAt = ts;
+    });
+    liberarOrfas(prova, 10*60*1000);
+    [1,2,3].forEach(function(n) {
+      var b = prova.stalls.find(function(s){ return s.number===n; });
+      expect(b.status).toBe('available');
+    });
+  });
+});
+
+// ── 4. Encerramento de prova ──────────────────────────────
+describe('Encerramento de prova', function() {
+  it('encerra prova ativa corretamente', function() {
+    var prova = criarProva();
+    var res   = encerrarProvaMock(prova, 'organizador');
+    expect(res.ok).toBeTruthy();
+    expect(prova.status).toBe('encerrada');
+    expect(prova.encerradaPor).toBe('organizador');
+  });
+
+  it('idempotência — não encerra duas vezes', function() {
+    var prova = criarProva();
+    encerrarProvaMock(prova, 'organizador');
+    var res2  = encerrarProvaMock(prova, 'organizador');
+    expect(res2.jaEncerrada).toBeTruthy();
+  });
+
+  it('bloqueia reserva após encerramento', function() {
+    var prova = criarProva();
+    encerrarProvaMock(prova, 'sistema');
+    var res = reservarAtomicoMock(prova, [1], 'Alguém', '(43) 99999-9999', 1);
+    expect(res.encerrada).toBeTruthy();
+    expect(res.ok).toBeFalsy();
+  });
+
+  it('encerradaAt é um ISO string válido', function() {
+    var prova = criarProva();
+    var res   = encerrarProvaMock(prova, 'organizador');
+    expect(new Date(res.encerradaAt).getTime()).toBeGreaterThan(0);
+  });
+
+  it('reservas existentes são preservadas após encerramento', function() {
+    var prova = criarProva();
+    reservarAtomicoMock(prova, [1,2], 'Ana', '(43) 11111-1111', 2);
+    encerrarProvaMock(prova, 'organizador');
+    var baia1 = prova.stalls.find(function(s){ return s.number===1; });
+    expect(baia1.status).toBe('reserved');
+    expect(baia1.holderName).toBe('Ana');
+  });
+});
+
+// ── 5. Helpers do competidor ──────────────────────────────
+describe('Helpers do competidor', function() {
+  // fmt
+  it('fmt: número simples formatado com 3 dígitos', function() {
+    expect(fmt(1)).toBe('001');
+    expect(fmt(12)).toBe('012');
+    expect(fmt(123)).toBe('123');
+  });
+
+  it('fmt: número acima de 999 não trunca', function() {
+    expect(fmt(1000)).toBe('1000');
+  });
+
+  // maskTel
+  it('maskTel: formata celular 11 dígitos', function() {
+    expect(maskTel('43999990001')).toBe('(43) 99999-0001');
+  });
+
+  it('maskTel: formata telefone fixo 10 dígitos', function() {
+    expect(maskTel('4333330001')).toBe('(43) 3333-0001');
+  });
+
+  it('maskTel: ignora não-dígitos', function() {
+    expect(maskTel('(43) 99999-0001')).toBe('(43) 99999-0001');
+  });
+
+  it('maskTel: limita em 11 dígitos', function() {
+    var r = maskTel('439999900011234');
+    expect(r).toBe('(43) 99999-0001');
+  });
+
+  // telValido
+  it('telValido: aceita 8+ dígitos', function() {
+    expect(telValido('33330001')).toBeTruthy();
+    expect(telValido('(43) 99999-0001')).toBeTruthy();
+  });
+
+  it('telValido: rejeita menos de 8 dígitos', function() {
+    expect(telValido('1234567')).toBeFalsy();
+    expect(telValido('')).toBeFalsy();
+  });
+});
+
+// ── 6. Busca de reservas por telefone ─────────────────────
+describe('Busca por telefone', function() {
+  function simularBusca(provas, tel) {
+    var telNorm = tel.replace(/\D/g,'');
+    var resultados = [];
+    provas.forEach(function(p) {
+      var baias = (p.stalls||[]).filter(function(s) {
+        return s.status==='reserved' && s.contactPhone &&
+               s.contactPhone.replace(/\D/g,'') === telNorm;
+      });
+      if (baias.length > 0) {
+        baias = baias.map(function(b) {
+          var res = (p.reservations||[]).find(function(r){ return r.stallNumber===b.number; });
+          return Object.assign({}, b, { protocolo: res ? res.protocolo : '' });
+        });
+        resultados.push({ evId:p.id, evNome:p.name, baias:baias });
+      }
+    });
+    return resultados;
+  }
+
+  it('encontra reserva pelo telefone exato', function() {
+    var prova = criarProva({ name:'Prova A' }); prova.id = '1';
+    reservarAtomicoMock(prova, [1,2], 'João', '(43) 99999-0001', 2);
+    var res = simularBusca([prova], '(43) 99999-0001');
+    expect(res).toHaveLength(1);
+    expect(res[0].baias).toHaveLength(2);
+  });
+
+  it('normaliza telefone com e sem máscara', function() {
+    var prova = criarProva({ name:'Prova B' }); prova.id = '2';
+    reservarAtomicoMock(prova, [3], 'Maria', '43999990002', 1);
+    var res = simularBusca([prova], '(43) 99999-0002');
+    expect(res).toHaveLength(1);
+  });
+
+  it('não retorna baias de outro telefone', function() {
+    var prova = criarProva({ name:'Prova C' }); prova.id = '3';
+    reservarAtomicoMock(prova, [1], 'João',  '(43) 11111-0001', 1);
+    reservarAtomicoMock(prova, [2], 'Maria', '(43) 22222-0002', 1);
+    var res = simularBusca([prova], '(43) 11111-0001');
+    expect(res[0].baias).toHaveLength(1);
+    expect(res[0].baias[0].number).toBe(1);
+  });
+
+  it('retorna vazio para telefone não cadastrado', function() {
+    var prova = criarProva({ name:'Prova D' }); prova.id = '4';
+    var res = simularBusca([prova], '(43) 99999-9999');
+    expect(res).toHaveLength(0);
+  });
+
+  it('enriquece resultado com protocolo da reservation', function() {
+    var prova = criarProva({ name:'Prova E' }); prova.id = '5';
+    var r = reservarAtomicoMock(prova, [1], 'Pedro', '(43) 55555-0001', 1);
+    var res = simularBusca([prova], '(43) 55555-0001');
+    expect(res[0].baias[0].protocolo).toBe(r.protocolo);
+  });
+});
+
+// ── 7. Cache localStorage ─────────────────────────────────
+describe('Cache localStorage', function() {
+  var PREFIX = 'baiafacil_cache_ev_';
+
+  function cacheSalvar(evId, data) {
+    try { localStorage.setItem(PREFIX+evId, JSON.stringify({ data:data, savedAt:Date.now() })); } catch(e) {}
+  }
+  function cacheCarregar(evId, ttl) {
+    try {
+      var raw = localStorage.getItem(PREFIX+evId);
+      if (!raw) return null;
+      var obj = JSON.parse(raw);
+      if (Date.now() - obj.savedAt > (ttl||24*60*60*1000)) return null;
+      return obj.data;
+    } catch(e) { return null; }
+  }
+
+  it('salva e carrega dados', function() {
+    var data = { eventName:'Teste', stalls:[{number:1}] };
+    cacheSalvar('test1', data);
+    var loaded = cacheCarregar('test1');
+    expect(loaded.eventName).toBe('Teste');
+  });
+
+  it('retorna null se TTL expirado', function() {
+    var data = { eventName:'Expirado' };
+    cacheSalvar('test2', data);
+    // TTL de 1ms — já expirou
+    var loaded = cacheCarregar('test2', 1);
+    // Pequeno sleep para garantir
+    var start = Date.now(); while(Date.now()-start < 5) {}
+    loaded = cacheCarregar('test2', 1);
+    expect(loaded).toBeFalsy();
+  });
+
+  it('retorna null para chave inexistente', function() {
+    var loaded = cacheCarregar('chave_que_nao_existe_xyz');
+    expect(loaded).toBeFalsy();
+  });
+
+  it('limpeza: remove entradas com mais de 7 dias', function() {
+    var PREFIX = 'baiafacil_cache_ev_';
+    var MAX = 7*24*60*60*1000;
+    localStorage.setItem(PREFIX+'limpeza_test', JSON.stringify({
+      data:{}, savedAt: Date.now() - MAX - 1000
+    }));
+    // Executar limpeza
+    var agora = Date.now();
+    Object.keys(localStorage).forEach(function(k) {
+      if (!k.startsWith(PREFIX)) return;
+      try {
+        var obj = JSON.parse(localStorage.getItem(k));
+        if (obj && obj.savedAt && (agora - obj.savedAt) > MAX) localStorage.removeItem(k);
+      } catch(e) {}
+    });
+    expect(localStorage.getItem(PREFIX+'limpeza_test')).toBeFalsy();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+//  RUNNER
+// ════════════════════════════════════════════════════════
+async function runAll() {
+  var btn = document.getElementById('btnRun');
+  btn.disabled = true;
+  btn.textContent = '⏳ Executando...';
+  document.getElementById('suites').innerHTML = '';
+  document.getElementById('summary').style.display = 'none';
+
+  var totalPass = 0, totalFail = 0;
+  var t0 = performance.now();
+
+  for (var si = 0; si < _suites.length; si++) {
+    var suite = _suites[si];
+    var suiteEl = document.createElement('div');
+    suiteEl.className = 'suite';
+
+    var header = document.createElement('div');
+    header.className = 'suite-header';
+    var nameEl = document.createElement('span');
+    nameEl.className = 'suite-name';
+    nameEl.textContent = suite.name;
+    var badge = document.createElement('span');
+    badge.className = 'suite-badge badge-run';
+    badge.textContent = 'executando...';
+    header.appendChild(nameEl);
+    header.appendChild(badge);
+    suiteEl.appendChild(header);
+    document.getElementById('suites').appendChild(suiteEl);
+
+    var sPass = 0, sFail = 0;
+    for (var ti = 0; ti < suite.tests.length; ti++) {
+      var test = suite.tests[ti];
+      var testEl = document.createElement('div');
+      testEl.className = 'test';
+      var icon = document.createElement('span');
+      icon.className = 'test-icon';
+      var body = document.createElement('div');
+      body.className = 'test-body';
+      var nameSpan = document.createElement('div');
+      nameSpan.className = 'test-name';
+      nameSpan.textContent = test.name;
+      body.appendChild(nameSpan);
+      testEl.appendChild(icon);
+      testEl.appendChild(body);
+      suiteEl.appendChild(testEl);
+
+      try {
+        var result = test.fn();
+        if (result && typeof result.then === 'function') await result;
+        icon.textContent = '✓';
+        nameSpan.classList.add('test-ok');
+        sPass++; totalPass++;
+      } catch(e) {
+        icon.textContent = '✗';
+        var errEl = document.createElement('div');
+        errEl.className = 'test-err';
+        errEl.textContent = e.message;
+        body.appendChild(errEl);
+        sFail++; totalFail++;
+      }
+      // Yield para não travar a UI
+      await new Promise(function(r){ setTimeout(r,0); });
+    }
+
+    badge.textContent = (sFail===0 ? '✓ ' : '✗ ') + sPass + ' passou' + (sFail>0?' · '+sFail+' falhou':'');
+    badge.className = 'suite-badge ' + (sFail===0?'badge-pass':'badge-fail');
+  }
+
+  var elapsed = ((performance.now() - t0)/1000).toFixed(2);
+  document.getElementById('elapsed').textContent = elapsed + 's';
+  document.getElementById('sumPass').textContent  = totalPass;
+  document.getElementById('sumFail').textContent  = totalFail;
+  document.getElementById('sumTotal').textContent = totalPass + totalFail;
+  document.getElementById('summary').style.display = 'flex';
+
+  btn.disabled = false;
+  btn.textContent = '▶ Executar novamente';
+}
+</script>
+</body>
+</html>
