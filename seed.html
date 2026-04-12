@@ -20,7 +20,9 @@
 <button id="btnNovas">Criar provas 10–13</button>
 
 <h2>Utilitários</h2>
+<button id="btnResetAll" style="background:rgba(220,69,69,.15);color:#EE7070;border:1px solid rgba(220,69,69,.35);border-radius:8px;padding:1rem 2rem;font-size:1rem;cursor:pointer;display:block;margin:1rem 0;">⚠ Resetar TODAS as provas (limpar todas as reservas)</button>
 <button id="btnReset" class="secondary">⚠ Resetar prova específica (limpar todas as reservas)</button>
+<button id="btnResetProto" class="secondary">🔄 Zerar contador de protocolo global</button>
 
 <pre id="log">Aguardando...</pre>
 
@@ -176,7 +178,61 @@ document.getElementById('btnNovas').addEventListener('click', async function() {
   print('\n✅ Novas provas criadas.','ok');
 });
 
-// ── Reset ─────────────────────────────────────────────────────
+// ── Reset TODAS ───────────────────────────────────────────────
+document.getElementById('btnResetAll').addEventListener('click', async function() {
+  if (!confirm('Resetar TODAS as provas? Todas as reservas serão apagadas. Esta ação não pode ser desfeita.')) return;
+  clear();
+  print('Resetando todas as provas...','warn');
+  var TODAS = [
+    {id:'1', blocos:BLOCOS_PADRAO},
+    {id:'2', blocos:BLOCOS_PADRAO},
+    {id:'3', blocos:BLOCOS_PADRAO},
+    {id:'4', blocos:BLOCOS_PADRAO},
+    {id:'5', blocos:BLOCOS_PADRAO},
+    {id:'6', blocos:BLOCOS_PADRAO},
+    {id:'7', blocos:BLOCOS_PADRAO},
+    {id:'8', blocos:BLOCOS_PADRAO},
+    {id:'9', blocos:BLOCOS_PADRAO},
+  ];
+  PROVAS_NOVAS.forEach(function(p){ TODAS.push({id:p.id, blocos:p.blocos}); });
+
+  for (var i = 0; i < TODAS.length; i++) {
+    var p = TODAS[i];
+    try {
+      var snap = await db.collection('provas').doc(p.id).get();
+      if (!snap.exists) { print('⏭ Prova '+p.id+' — não existe, pulando.','warn'); continue; }
+      var data   = snap.data();
+      var blocos = data.blocos || p.blocos;
+      var stalls = montarStalls(blocos);
+      await db.collection('provas').doc(p.id).set({
+        eventName:    data.eventName,
+        stalls:       stalls,
+        reservations: [],
+        blocos:       blocos,
+        totalStalls:  stalls.length,
+        updatedAt:    new Date().toISOString(),
+        // Remover status de encerramento
+        status:       null,
+        encerradaAt:  null,
+        encerradaPor: null,
+      });
+      print('✓ Prova '+p.id+' ('+data.eventName+') — limpa com '+stalls.length+' baias.','ok');
+    } catch(e) { print('✗ Erro prova '+p.id+': '+e.message,'err'); }
+  }
+  print('
+✅ Todas as provas resetadas.','ok');
+});
+
+// ── Zerar protocolo global ─────────────────────────────────────
+document.getElementById('btnResetProto').addEventListener('click', async function() {
+  if (!confirm('Zerar o contador de protocolo global? O próximo protocolo será BF-HOJE-0001.')) return;
+  try {
+    await db.collection('config').doc('protocolo').delete();
+    print('✓ Contador de protocolo zerado.','ok');
+  } catch(e) { print('✗ Erro: '+e.message,'err'); }
+});
+
+// ── Reset prova específica ─────────────────────────────────────
 document.getElementById('btnReset').addEventListener('click', async function() {
   var id = prompt('ID da prova para resetar (1–13):');
   if (!id) return;
