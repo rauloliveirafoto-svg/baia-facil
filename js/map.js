@@ -43,7 +43,9 @@
     parent.appendChild(row);
   }
 
-  // Layout VERTICAL — 2 colunas lado a lado (usado pelo competidor)
+  // Layout VERTICAL — 2 colunas lado a lado
+  // Regra: colunas sempre com números pares. Se total ímpar, coluna A tem 1 a mais.
+  // Exemplo: 31 baias → colA=16, colB=15. 30 baias → colA=15, colB=15.
   function buildTwoCols(parent, template, start, total, onStallClick) {
     const wrap = document.createElement('div');
     wrap.className = 'stalls-two-cols';
@@ -51,15 +53,19 @@
     colA.className = 'stalls-col';
     const colB = document.createElement('div');
     colB.className = 'stalls-col';
-    const half = Math.ceil(total / 2);
+
+    // Garantir colunas pares: se total ímpar, colA recebe o extra
+    const halfEven = Math.floor(total / 2);
+    const colASize = (total % 2 === 0) ? halfEven : halfEven + 1;
+
     for (let i = 0; i < total; i++) {
       const stallNumber = start + i;
       const btn = template.content.firstElementChild.cloneNode(true);
       btn.dataset.stallNumber = stallNumber;
       btn.querySelector('.stall__number').textContent = String(stallNumber).padStart(3, '0');
       btn.addEventListener('click', () => onStallClick(stallNumber));
-      if (i < half) colA.appendChild(btn);
-      else          colB.appendChild(btn);
+      if (i < colASize) colA.appendChild(btn);
+      else              colB.appendChild(btn);
     }
     wrap.appendChild(colA);
     wrap.appendChild(colB);

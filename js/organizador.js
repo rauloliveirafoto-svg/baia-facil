@@ -329,7 +329,11 @@ document.addEventListener('DOMContentLoaded', function() {
   if ($('btnGerarPlacas')) {
     $('btnGerarPlacas').addEventListener('click', function() {
       if (qrFrom) qrFrom.value = '1';
-      if (qrTo)   qrTo.value   = String((window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140);
+      // Usar totalStalls da prova carregada, fallback para BAIA_CONFIG
+      var totalBaias = (cache && cache.totalStalls) ||
+                       (cache && cache.stalls && cache.stalls.length) ||
+                       (window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140;
+      if (qrTo) qrTo.value = String(totalBaias);
       if (qrFeedback) qrFeedback.textContent = '';
       if (qrModal) qrModal.hidden = false;
     });
@@ -822,16 +826,32 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!qtd||qtd<1)       return err('Informe a quantidade.');
     if (!manSel.length)    return err('Selecione ao menos uma baia.');
     if (manSel.length!==qtd) return err('Selecione exatamente '+qtd+' baia(s). Atual: '+manSel.length+'.');
-    editarCache(function(next) {
-      manSel.forEach(function(n) {
-        var s=next.stalls.find(function(x){return x.number===n;});
-        if (!s) return;
-        s.status='reserved'; s.holderName=nome; s.contactPhone=tel;
-        s.requestedStalls=qtd; s.reservedAt=new Date().toISOString();
+    // Gerar protocolo global antes de salvar
+    window.FB.gerarProtocoloSimples().then(function(proto) {
+      var now = new Date().toISOString();
+      editarCache(function(next) {
+        manSel.forEach(function(n) {
+          var s=next.stalls.find(function(x){return x.number===n;});
+          if (!s) return;
+          s.status='reserved'; s.holderName=nome; s.contactPhone=tel;
+          s.requestedStalls=qtd; s.reservedAt=now;
+        });
+        // Atualizar reservations com protocolo
+        next.reservations = (next.stalls||[]).filter(function(s){ return s.status==='reserved'; })
+          .map(function(s) {
+            var ex = (next.reservations||[]).find(function(r){ return r.stallNumber===s.number; });
+            return { stallNumber:s.number, holderName:s.holderName, contactPhone:s.contactPhone,
+              requestedStalls:s.requestedStalls, status:'Confirmada', reservedAt:s.reservedAt,
+              protocolo: (s.reservedAt===now && manSel.indexOf(s.number)>=0) ? proto : (ex?ex.protocolo:'') };
+          });
       });
+      fecharManual(); renderTudo();
+      addLog('Reserva manual', null, manSel.map(fmt).join(', ')+' → '+nome+' ('+proto+')');
+      msg('Reserva criada: '+manSel.map(fmt).join(', ')+' → '+nome+' · '+proto);
+    }).catch(function(e) {
+      console.error('[confirmarManual proto]', e);
+      msg('Erro ao gerar protocolo. Tente novamente.', true);
     });
-    fecharManual(); renderTudo();
-    addLog('Reserva manual', null, manSel.map(fmt).join(', ')+' → '+nome); msg('Reserva criada: '+manSel.map(fmt).join(', ')+' → '+nome+'.');
   }
 
   // ── Encerramento da prova ────────────────────────────────────
@@ -1198,28 +1218,44 @@ document.addEventListener('DOMContentLoaded', function() {
         doc.setTextColor(100, 100, 100);
         doc.text('BAIA', x0 + colW/2, y0 + padding + 58, { align:'center' });
 
-        // Gerar QR code como imagem via canvas
+        // Gerar QR code como imagem
         var url = baseUrl + '?ev=' + evId + '&baia=' + num;
-        var canvas = document.createElement('canvas');
-        canvas.width = 200; canvas.height = 200;
 
-        await new Promise(function(resolve) {
-          new QRCode(canvas, {
-            text:          url,
-            width:         200,
-            height:        200,
-            colorDark:     '#000000',
-            colorLight:    '#ffffff',
-            correctLevel:  QRCode.CorrectLevel.M,
+        // QRCode.js renderiza via canvas — aguardar com timeout generoso
+        var qrData = await new Promise(function(resolve) {
+          var tempDiv = document.createElement('div');
+          tempDiv.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:200px;height:200px;';
+          document.body.appendChild(tempDiv);
+          new QRCode(tempDiv, {
+            text:         url,
+            width:        200,
+            height:       200,
+            colorDark:    '#000000',
+            colorLight:   '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M,
           });
-          setTimeout(resolve, 150); // aguardar renderização
+          // QRCode.js cria um <canvas> ou <img> dentro do div
+          setTimeout(function() {
+            var qrCanvas = tempDiv.querySelector('canvas');
+            var qrImg    = tempDiv.querySelector('img');
+            var data;
+            if (qrCanvas) {
+              data = qrCanvas.toDataURL('image/png');
+            } else if (qrImg && qrImg.src) {
+              data = qrImg.src;
+            } else {
+              data = null;
+            }
+            document.body.removeChild(tempDiv);
+            resolve(data);
+          }, 300);
         });
-
-        var qrData = canvas.toDataURL('image/png');
-        var qrSize = 45; // mm
-        var qrX = x0 + colW/2 - qrSize/2;
-        var qrY = y0 + padding + 63;
-        doc.addImage(qrData, 'PNG', qrX, qrY, qrSize, qrSize);
+        if (qrData) {
+          var qrSize = 45; // mm
+          var qrX = x0 + colW/2 - qrSize/2;
+          var qrY = y0 + padding + 63;
+          doc.addImage(qrData, 'PNG', qrX, qrY, qrSize, qrSize);
+        }
 
         // Instrução
         doc.setFontSize(6.5); doc.setFont('helvetica', 'normal');

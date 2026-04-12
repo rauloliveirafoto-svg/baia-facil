@@ -18,20 +18,44 @@
 
   function ref(evId) { return db.collection('provas').doc(String(evId)); }
 
-  // ── Gerador de protocolo sequencial ──────────────────────────
+  // ── Gerador de protocolo sequencial GLOBAL ───────────────────
   // Formato: BF-DDMMAAAA-NNNN  ex: BF-09042025-0001
-  // Contadores ficam em data.protoSeq (objeto isolado) — não polui o doc raiz.
-  function gerarProtocolo(data, now) {
-    var d        = now || new Date();
-    var dd       = String(d.getDate()).padStart(2,'0');
-    var mm       = String(d.getMonth()+1).padStart(2,'0');
-    var aaaa     = String(d.getFullYear());
-    var dataStr  = dd + mm + aaaa;
+  // Contador único em db/config/protocolo — garante que não há dois 0001 em provas diferentes.
+  // Deve ser chamado DENTRO de uma transaction para garantir atomicidade.
+  var refProto = db.collection('config').doc('protocolo');
 
-    if (!data.protoSeq) data.protoSeq = {};
-    var seq  = (data.protoSeq[dataStr] || 0) + 1;
-    data.protoSeq[dataStr] = seq;
+  // Versão para uso dentro de transaction (recebe tx como parâmetro)
+  async function gerarProtocoloGlobal(tx, now) {
+    var d       = now || new Date();
+    var dd      = String(d.getDate()).padStart(2,'0');
+    var mm      = String(d.getMonth()+1).padStart(2,'0');
+    var aaaa    = String(d.getFullYear());
+    var dataStr = dd + mm + aaaa;
+
+    var snap = await tx.get(refProto);
+    var doc  = snap.exists ? snap.data() : {};
+    // Resetar sequência a cada novo dia
+    var seq  = (doc.dataStr === dataStr) ? (doc.seq || 0) + 1 : 1;
+    tx.set(refProto, { dataStr: dataStr, seq: seq, updatedAt: d.toISOString() });
     return 'BF-' + dataStr + '-' + String(seq).padStart(4, '0');
+  }
+
+  // Versão fora de transaction (para reservas manuais do organizador)
+  async function gerarProtocoloSimples(now) {
+    var d       = now || new Date();
+    var dd      = String(d.getDate()).padStart(2,'0');
+    var mm      = String(d.getMonth()+1).padStart(2,'0');
+    var aaaa    = String(d.getFullYear());
+    var dataStr = dd + mm + aaaa;
+    var resultado = 'BF-' + dataStr + '-0000';
+    await db.runTransaction(async function(tx) {
+      var snap = await tx.get(refProto);
+      var doc  = snap.exists ? snap.data() : {};
+      var seq  = (doc.dataStr === dataStr) ? (doc.seq || 0) + 1 : 1;
+      tx.set(refProto, { dataStr: dataStr, seq: seq, updatedAt: d.toISOString() });
+      resultado = 'BF-' + dataStr + '-' + String(seq).padStart(4, '0');
+    });
+    return resultado;
   }
 
   // ── H: Cache local (fallback offline) ────────────────────────
@@ -237,8 +261,8 @@
         s.selectedAt=''; s.sessionId='';
       });
 
-      // Gerar protocolo sequencial BF-DDMMAAAA-NNNN
-      var proto = gerarProtocolo(data, now);
+      // Gerar protocolo sequencial global BF-DDMMAAAA-NNNN
+      var proto = await gerarProtocoloGlobal(tx, now);
 
       data.updatedAt    = nowISO;
       data.reservations = stalls.filter(function(s) { return s.status === 'reserved'; })
@@ -427,5 +451,6 @@
     buscarReservasPorTelefone, buscarReservasPorProtocolo,
     registrarAcesso, getAcessos,
     registrarAcao, getHistorico, escutarHistorico, encerrarProva, getProvaSnapshot,
+    gerarProtocoloSimples,
   };
 })();
