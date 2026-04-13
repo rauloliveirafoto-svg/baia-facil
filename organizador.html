@@ -2,10 +2,8 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="img/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Baia Fácil | Organizador</title>
-    <!-- Auth — verificado antes de renderizar qualquer coisa -->
     <script>
       (function() {
         var KEY = 'baia_auth_session';
@@ -27,7 +25,6 @@
               if (hash.indexOf('auth=') === 0) data = JSON.parse(atob(hash.replace('auth=','')));
             } catch(e) {}
           }
-          // Validar: precisa ter user E timestamp at E não expirado
           if (!data || !data.user || !data.at) return null;
           if ((Date.now() - data.at) > TTL) return null;
           return data;
@@ -41,66 +38,45 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@600;700;800&family=Poppins:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="css/main.css" />
-    <link rel="stylesheet" href="css/stalls-layout.css" />
     <style>
       /* ── TOPBAR ORGANIZADOR ───────────────────────── */
       .org-topbar {
         position: sticky; top: 0; z-index: 30;
         display: flex; flex-direction: row; align-items: stretch;
         flex-wrap: wrap;
-        background: linear-gradient(175deg, #112D1F 0%, #071410 100%);
-        backdrop-filter: blur(28px);
-        border-bottom: 3px solid rgba(200,160,39,.35);
-        box-shadow:
-          inset 0 -1px 0 rgba(200,160,39,.08),
-          0 6px 0 rgba(0,0,0,.3),
-          0 12px 60px rgba(0,0,0,.75);
+        background: rgba(6,15,8,0.96);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 4px 24px rgba(0,0,0,.45);
       }
 
       .org-topbar__stat {
-        display: flex; flex-direction: column; align-items: flex-start; gap: 0.05rem;
-        padding: 0.5rem 0.9rem;
-        border-right: 1px solid rgba(255,255,255,.06);
+        display: flex; flex-direction: column; gap: 0.1rem;
+        padding: 0.65rem 1rem;
+        border-right: 1px solid var(--border-sub);
         flex: 1; min-width: 0;
       }
 
       .org-topbar__label {
-        font-size: 0.58rem; text-transform: uppercase;
-        letter-spacing: 0.16em; color: var(--gold); font-weight: 700;
-        font-family: 'Barlow Condensed', sans-serif;
-        white-space: nowrap;
+        font-size: 0.63rem; text-transform: uppercase;
+        letter-spacing: 0.1em; color: var(--gold); font-weight: 500;
       }
 
       .org-topbar__val {
-        font-size: 1.85rem; color: var(--cream); font-weight: 800;
-        font-family: 'Barlow Condensed', sans-serif;
-        letter-spacing: 0.02em; line-height: 1;
+        font-size: 1rem; color: var(--cream); font-weight: 600;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
 
-      /* Primeiro stat — valor menor (nome do evento) */
-      .org-topbar__stat:first-child .org-topbar__val {
-        font-size: 0.95rem; font-weight: 700;
-        font-family: 'Manrope', sans-serif;
-        letter-spacing: 0;
-      }
-
-      /* Cores semânticas nos números */
-      #orgReservedCount  { color: #EE7070; }
-      #orgAvailableCount { color: #4DDDA0; }
-      #orgBlockedCount   { color: #C8A027; }
-
       .org-topbar__logout {
-        padding: 0 1.25rem;
+        padding: 0 1rem;
         display: flex; align-items: center; gap: 0.75rem;
         flex-shrink: 0;
       }
 
       .org-topbar__user { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
 
-      /* Mobile: stats quebram para segunda linha */
       @media (max-width: 700px) {
         .org-topbar__stat:first-child { flex: 1 1 60%; border-bottom: 1px solid var(--border-sub); }
         .org-topbar__logout           { flex: 0 0 auto; border-bottom: 1px solid var(--border-sub); }
@@ -116,7 +92,7 @@
         background: rgba(224,82,82,.12);
         border: 1px solid rgba(224,82,82,.3);
         border-radius: 10px;
-        color: #e07070; font-family: 'Manrope', sans-serif;
+        color: #e07070; font-family: 'DM Sans', sans-serif;
         font-size: 0.86rem; font-weight: 600; cursor: pointer;
         transition: background .2s, border-color .2s, color .2s;
         white-space: nowrap;
@@ -138,8 +114,8 @@
       .ctrl-col { display: flex; flex-direction: column; gap: 0.75rem; }
 
       .col-title {
-        font-family: 'Barlow Condensed', sans-serif;
-        font-size: 1.25rem; color: var(--cream); font-weight: 800; margin: 0 0 0.1rem; text-transform: uppercase; letter-spacing: 0.04em;
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.1rem; color: var(--cream); font-weight: 700; margin: 0 0 0.1rem;
       }
       .col-sub { font-size: 0.82rem; color: var(--muted); margin: 0; }
 
@@ -181,7 +157,7 @@
 
       /* ── TABELA ──────────────────────────────────── */
       .filters-row {
-        display: grid; grid-template-columns: 1.2fr 1fr 0.8fr;
+        display: grid; grid-template-columns: 1.5fr 1fr;
         gap: 0.4rem; margin-bottom: 0.65rem;
       }
 
@@ -230,8 +206,8 @@
       }
 
       .manual-modal__head h2 {
-        font-family: 'Barlow Condensed', sans-serif;
-        font-size: 1.4rem; color: var(--cream); margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 1.2rem; color: var(--cream); margin: 0;
       }
 
       .manual-modal__close {
@@ -252,237 +228,14 @@
         min-height: 1.4rem;
       }
 
-      /* ── TOOLTIP DE BAIA ──────────────────────────── */
-      .stall-tooltip {
-        position: fixed; z-index: 100; pointer-events: none;
-        background: #0B1E16; border: 1px solid rgba(200,160,39,.35);
-        border-radius: 10px; padding: 0.65rem 0.85rem;
-        box-shadow: 0 8px 32px rgba(0,0,0,.6);
-        min-width: 180px; max-width: 240px;
-        opacity: 0; transition: opacity .15s;
-        font-family: 'Manrope', sans-serif;
-      }
-      .stall-tooltip.visible { opacity: 1; }
-      .stall-tooltip__num  { font-size: 0.65rem; color: rgba(200,160,39,.7); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 0.3rem; }
-      .stall-tooltip__row  { font-size: 0.82rem; color: #F2EFE6; margin: 0.15rem 0; }
-      .stall-tooltip__row span { color: rgba(242,239,230,.5); font-size: 0.75rem; }
-      .stall-tooltip__obs  { font-size: 0.78rem; color: rgba(200,160,39,.8); margin-top: 0.35rem; font-style: italic; border-top: 1px solid rgba(255,255,255,.06); padding-top: 0.3rem; }
-
-      /* ── OBSERVAÇÃO POR BAIA ───────────────────────── */
-      .obs-row { margin-top: 0.5rem; }
-      .obs-row textarea {
-        width: 100%; resize: vertical; min-height: 58px;
-        background: rgba(6,15,11,.8); border: 1px solid rgba(255,255,255,.1);
-        border-radius: 9px; padding: 0.55rem 0.75rem;
-        color: #F2EFE6; font-family: 'Manrope', sans-serif; font-size: 0.85rem;
-        transition: border-color .2s; outline: none;
-      }
-      .obs-row textarea:focus { border-color: rgba(200,160,39,.5); }
-      .obs-row textarea::placeholder { color: rgba(107,148,128,.35); }
-
-      /* ── BARRA DE OCUPAÇÃO (E) ────────────────────── */
-      .org-topbar__stat--chart {
-        flex-direction: column; align-items: flex-start; gap: 0.22rem;
-        min-width: 160px; flex: 2;
-      }
-      .occ-bar-wrap {
-        width: 100%; height: 8px; border-radius: 999px;
-        background: rgba(255,255,255,.07); overflow: hidden;
-        display: flex; gap: 1px;
-      }
-      .occ-bar-reserved { height: 100%; background: #EE7070; border-radius: 999px 0 0 999px; transition: width .5s ease; }
-      .occ-bar-blocked  { height: 100%; background: #C8A027; transition: width .5s ease; }
-      .occ-bar-avail    { height: 100%; background: rgba(34,196,122,.4); border-radius: 0 999px 999px 0; transition: width .5s ease; }
-      .occ-legend {
-        display: flex; gap: 0.75rem; font-size: 0.62rem;
-        color: rgba(242,239,230,.5); font-family: 'Manrope', sans-serif;
-      }
-      .occ-legend span { display: flex; align-items: center; gap: 0.3rem; }
-      .occ-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-
-      /* ── MODAL DE CONFIRMAÇÃO (J) ───────────────────── */
-      .confirm-modal {
-        position: fixed; inset: 0; z-index: 70;
-        display: grid; place-items: center;
-        background: rgba(3,9,6,.88); padding: 1rem;
-        backdrop-filter: blur(8px);
-      }
-      .confirm-modal__box {
-        width: min(420px, 100%);
-        background: #0F2419;
-        border: 1px solid rgba(200,160,39,.2);
-        border-top: 3px solid var(--danger);
-        border-radius: 16px; padding: 1.75rem 1.5rem;
-        box-shadow: 0 24px 64px rgba(0,0,0,.75);
-        display: flex; flex-direction: column; gap: 1rem;
-      }
-      .confirm-modal__box.confirm--warn { border-top-color: var(--gold); }
-      .confirm-modal__title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.35rem; font-weight: 800; color: #F2EFE6; margin: 0; text-transform: uppercase; letter-spacing: 0.03em; }
-      .confirm-modal__msg   { font-size: 0.88rem; color: rgba(242,239,230,.65); margin: 0; line-height: 1.6; }
-      .confirm-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
-      .confirm-modal__ok  { background: rgba(220,69,69,.15); border: 1px solid rgba(220,69,69,.4); border-radius: 8px; color: #EE7070; font-family: 'Manrope',sans-serif; font-size: 0.85rem; font-weight: 700; padding: 0.55rem 1.1rem; cursor: pointer; transition: background .18s, border-color .18s; }
-      .confirm-modal__ok:hover { background: rgba(220,69,69,.28); border-color: rgba(220,69,69,.7); }
-      .confirm-modal__ok.confirm--warn-btn { background: rgba(200,160,39,.12); border-color: rgba(200,160,39,.35); color: var(--gold); }
-      .confirm-modal__ok.confirm--warn-btn:hover { background: rgba(200,160,39,.22); border-color: rgba(200,160,39,.6); }
-      .confirm-modal__cancel { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 8px; color: rgba(242,239,230,.6); font-family: 'Manrope',sans-serif; font-size: 0.85rem; font-weight: 600; padding: 0.55rem 1rem; cursor: pointer; transition: background .18s; }
-      .confirm-modal__cancel:hover { background: rgba(255,255,255,.1); }
-
-      /* ── INDICADOR DE CONEXÃO (L) ────────────────────── */
-      .conn-indicator {
-        display: flex; align-items: center; gap: 0.4rem;
-        font-size: 0.7rem; color: rgba(242,239,230,.45);
-        font-family: 'Manrope', sans-serif; padding: 0 0.75rem;
-        white-space: nowrap;
-      }
-      .conn-dot {
-        width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-        background: #22C47A;
-        box-shadow: 0 0 6px rgba(34,196,122,.6);
-        transition: background .4s, box-shadow .4s;
-      }
-      .conn-dot.offline { background: #EE7070; box-shadow: 0 0 6px rgba(220,69,69,.5); }
-      .conn-dot.syncing { background: #C8A027; box-shadow: 0 0 6px rgba(200,160,39,.5); animation: connPulse .8s ease infinite; }
-      @keyframes connPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-      /* ── BUSCA POR NOME NO MAPA (F) ─────────────────── */
-      .name-search-wrap { display: flex; gap: 0.4rem; align-items: center; margin-bottom: 0.5rem; }
-      .name-search-wrap input { flex: 1; }
-      .stall--name-match {
-        outline: 2px solid var(--gold) !important;
-        outline-offset: 1px;
-        animation: nameMatch .6s ease 3;
-      }
-      @keyframes nameMatch {
-        0%,100% { transform: scale(1); }
-        50% { transform: scale(1.12); box-shadow: 0 0 18px rgba(200,160,39,.6); }
-      }
-      .stall--name-dim { opacity: 0.2 !important; }
-
-      /* ── HISTÓRICO ─────────────────────────────────── */
-      .log-list { display: flex; flex-direction: column; gap: 0.35rem; max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(200,160,39,.2) transparent; }
-      .log-item { font-size: 0.79rem; color: rgba(242,239,230,.75); padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(255,255,255,.025); border-left: 2px solid rgba(200,160,39,.2); line-height: 1.5; }
-      .log-item__time { font-size: 0.68rem; color: rgba(107,148,128,.7); }
-      .log-item__action { color: var(--gold); font-weight: 600; }
-      .log-empty { font-size: 0.82rem; color: var(--muted); font-style: italic; text-align: center; padding: 0.75rem 0; }
-
-      /* ── MODAL PLACAS QR ──────────────────────────── */
-      .qr-modal {
-        position: fixed; inset: 0; z-index: 70;
-        display: grid; place-items: center;
-        background: rgba(3,9,6,.88); padding: 1rem;
-        backdrop-filter: blur(8px);
-      }
-      .qr-modal__box {
-        width: min(460px, 100%);
-        background: #0F2419;
-        border: 1px solid rgba(200,160,39,.2);
-        border-radius: 16px; padding: 1.75rem 1.5rem;
-        box-shadow: 0 24px 64px rgba(0,0,0,.75);
-        display: flex; flex-direction: column; gap: 1rem;
-      }
-      .qr-modal__title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 700; color: #F2EFE6; margin: 0; text-transform: uppercase; letter-spacing: 0.03em; }
-      .qr-range-row { display: flex; align-items: center; gap: 0.75rem; }
-      .qr-range-row label { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
-      .qr-range-row input[type=number] { width: 70px; }
-
-      /* ── PAINEL CHECK-IN ───────────────────────────── */
-      .checkin-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-      .checkin-table th, .checkin-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border-sub); text-align: left; color: var(--text); }
-      .checkin-table th { color: var(--gold); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .06em; }
-      .chip-checkin { background: rgba(34,196,122,.12); color: #22C47A; border: 1px solid rgba(34,196,122,.25); padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
-      .chip-pendente { background: rgba(255,255,255,.05); color: var(--muted); border: 1px solid rgba(255,255,255,.08); padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.72rem; }
-
       @media (max-width: 1100px) { .org-layout { grid-template-columns: 1fr; } }
-
-      /* ── TABLET (≤900px) ───────────────────────────── */
       @media (max-width: 900px) {
-        /* Topbar: 2 colunas — prova+logout na primeira linha, stats na segunda */
-        .org-topbar {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          grid-template-rows: auto auto;
-        }
-        /* Prova ativa ocupa toda a primeira linha esquerda */
-        .org-topbar__stat:first-child {
-          grid-column: 1; grid-row: 1;
-          flex-direction: column; align-items: flex-start;
-          border-bottom: 1px solid rgba(255,255,255,.06);
-          border-right: none;
-        }
-        /* Logout alinha à direita na primeira linha */
-        .org-topbar__logout {
-          grid-column: 2; grid-row: 1;
-          border-bottom: 1px solid rgba(255,255,255,.06);
-          padding: 0 1rem;
-        }
-        /* Stats (Total, Reservadas, Disponíveis, Bloqueadas, Ocupação)
-           ficam na segunda linha distribuídas */
-        .org-topbar__stat:not(:first-child) {
-          grid-column: span 1;
-          grid-row: 2;
-          flex-direction: column; align-items: flex-start; gap: 0.1rem;
-          padding: 0.5rem 0.75rem;
-          border-right: 1px solid rgba(255,255,255,.05);
-          border-top: none;
-        }
-        /* Linha toda da segunda row */
-        .org-topbar__stat:nth-child(2) { grid-column: 1 / span 1; }
-        .org-topbar__stat--chart { grid-column: 1 / -1; }
-        /* Esconder conexão e usuário para ganhar espaço */
-        .conn-indicator { display: none; }
-        .org-topbar__val { font-size: 1.4rem; }
-        .filters-row { grid-template-columns: 1fr 1fr; }
+        .filters-row { grid-template-columns: 1fr; }
       }
-
-      /* ── MOBILE (≤640px) ───────────────────────────── */
-      @media (max-width: 640px) {
-        /* Topbar compacta — só essencial */
-        .org-topbar {
-          grid-template-columns: 1fr auto;
-          grid-template-rows: auto auto auto;
-        }
-        /* Linha 1: prova + logout */
-        .org-topbar__stat:first-child { grid-column:1; grid-row:1; padding:0.5rem 0.75rem; }
-        .org-topbar__logout           { grid-column:2; grid-row:1; padding:0 0.75rem; }
-
-        /* Linha 2: Total + Reservadas + Disponíveis numa linha */
-        .org-topbar__stat:nth-child(2),
-        .org-topbar__stat:nth-child(3),
-        .org-topbar__stat:nth-child(4) {
-          grid-row: 2;
-          padding: 0.4rem 0.6rem;
-        }
-        .org-topbar__stat:nth-child(2) { grid-column: 1; }
-        .org-topbar__stat:nth-child(3) { grid-column: 2; }
-        .org-topbar__stat:nth-child(4) { grid-column: 3; }
-
-        /* Linha 3: Bloqueadas + Barra ocupação */
-        .org-topbar__stat:nth-child(5) { grid-row:3; grid-column:1; padding:0.4rem 0.6rem; }
-        .org-topbar__stat--chart       { grid-row:3; grid-column:2 / -1; padding:0.5rem 0.75rem; }
-
-        .org-topbar__val { font-size: 1.2rem; }
-        .org-topbar__user { display: none; }
-        .logout-btn svg { display: none; }
-        .logout-btn { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
-
-        /* Layout geral */
+      @media (max-width: 560px) {
         .action-grid { grid-template-columns: 1fr; }
         .action-grid .btn--primary { grid-column: auto; }
-        .filters-row { grid-template-columns: 1fr; }
         .detail-grid { grid-template-columns: 1fr; }
-
-        /* Busca nome e número: empilhar */
-        .name-search-wrap { flex-wrap: wrap; }
-        .name-search-wrap input { min-width: 0; flex: 1 1 120px; }
-
-        /* Tooltip: desativar em touch */
-        .stall-tooltip { display: none; }
-      }
-
-      /* ── MUITO PEQUENO (≤380px) ──────────────────────── */
-      @media (max-width: 380px) {
-        .org-topbar__stat:nth-child(4) { display: none; }
-        .occ-legend { display: none; }
       }
     </style>
   </head>
@@ -492,9 +245,16 @@
     <header class="org-topbar">
       <div class="org-topbar__stat" style="flex:1.8;">
         <span class="org-topbar__label">Prova ativa</span>
-        <select id="orgEventSelect" style="background:transparent;border:none;color:var(--cream);font-family:'Manrope',sans-serif;font-size:0.92rem;font-weight:700;cursor:pointer;outline:none;width:100%;padding:0;">
-          <!-- Preenchido dinamicamente pelo organizador.js via populateEventSelect() -->
-          <option value="10" style="background:#0b1e16;">Copa Rural de 3 Tambores</option>
+        <select id="orgEventSelect" style="background:transparent;border:none;color:var(--cream);font-family:'Playfair Display',Georgia,serif;font-size:0.92rem;font-weight:700;cursor:pointer;outline:none;width:100%;padding:0;">
+          <option value="1"  style="background:#0d2b10;">CSN Parque Equestre</option>
+          <option value="2"  style="background:#0d2b10;">Copa Brasil de Saltos</option>
+          <option value="3"  style="background:#0d2b10;">Torneio Haras das Palmeiras</option>
+          <option value="4"  style="background:#0d2b10;">Circuito Equestre Sul</option>
+          <option value="5"  style="background:#0d2b10;">Grande Prêmio Itapeva</option>
+          <option value="6"  style="background:#0d2b10;">Festival de Adestramento</option>
+          <option value="7"  style="background:#0d2b10;">Troféu Primavera</option>
+          <option value="8"  style="background:#0d2b10;">Copa Nordeste Equestre</option>
+          <option value="9"  style="background:#0d2b10;">Campeonato Mineiro de Saltos</option>
         </select>
       </div>
       <div class="org-topbar__stat">
@@ -513,27 +273,7 @@
         <span class="org-topbar__label">Bloqueadas</span>
         <span class="org-topbar__val" id="orgBlockedCount">—</span>
       </div>
-      <div class="org-topbar__stat org-topbar__stat--chart">
-        <span class="org-topbar__label">Ocupação</span>
-        <div class="occ-bar-wrap">
-          <div class="occ-bar-reserved" id="occBarReserved" style="width:0%"></div>
-          <div class="occ-bar-blocked"  id="occBarBlocked"  style="width:0%"></div>
-          <div class="occ-bar-avail"    id="occBarAvail"    style="width:100%"></div>
-        </div>
-        <div class="occ-legend">
-          <span><i class="occ-dot" style="background:#EE7070"></i><span id="occPctReserved">0%</span> reserv.</span>
-          <span><i class="occ-dot" style="background:#C8A027"></i><span id="occPctBlocked">0%</span> bloq.</span>
-          <span><i class="occ-dot" style="background:rgba(34,196,122,.7)"></i><span id="occPctAvail">100%</span> disp.</span>
-        </div>
-      </div>
       <div class="org-topbar__logout">
-        <button id="btnRelatorios" type="button" class="btn" style="font-size:0.78rem;padding:0.45rem 0.85rem;white-space:nowrap;">
-          📊 Relatórios
-        </button>
-        <div class="conn-indicator" id="connIndicator">
-          <span class="conn-dot" id="connDot"></span>
-          <span id="connLabel">online</span>
-        </div>
         <span class="org-topbar__user" id="sessionUserLabel">—</span>
         <button class="logout-btn" id="logoutBtn" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -561,9 +301,8 @@
               <span><i class="dot dot--org-maintenance"></i>Manutenção</span>
             </div>
             <div class="map-search-wrap" style="margin:0;">
-              <input id="orgMapSearch" type="search" placeholder="Baia nº ou titular..." />
-              <button id="orgMapSearchBtn" class="btn" type="button">Buscar</button>
-              <button id="nameSearchClear" class="btn" type="button" title="Limpar" style="display:none;">✕</button>
+              <input id="orgMapSearch" type="number" min="1" max="100" placeholder="Ir para baia nº..." />
+              <button id="orgMapSearchBtn" class="btn" type="button">Localizar</button>
             </div>
           </div>
           <div id="organizerStallMap" class="stall-map"></div>
@@ -610,15 +349,9 @@
             <div class="form-row" style="margin-bottom:0.4rem;">
               <label for="moveTargetInput">Mover reserva para baia nº</label>
               <div class="inline-row">
-                <input id="moveTargetInput" type="number" min="1" max="140" placeholder="Ex: 77" />
+                <input id="moveTargetInput" type="number" min="1" max="100" placeholder="Ex: 77" />
                 <button id="btnMoveReservation" class="btn" type="button">Mover</button>
               </div>
-            </div>
-
-            <div class="obs-row form-row" style="margin-bottom:0.4rem;">
-              <label for="stallObsInput">Observação</label>
-              <textarea id="stallObsInput" placeholder="Ex: VIP, patrocinador, estrutura danificada..."></textarea>
-              <button id="btnSaveObs" class="btn" type="button" style="margin-top:0.3rem;width:100%;">💾 Salvar observação</button>
             </div>
           </div>
 
@@ -638,7 +371,6 @@
               <option value="available">Disponível</option>
               <option value="maintenance">Manutenção</option>
             </select>
-            <input id="findStall" type="number" min="1" max="140" placeholder="Nº da baia" />
           </div>
 
           <div class="table-wrap">
@@ -658,109 +390,16 @@
           </div>
         </div>
 
-        <!-- Painéis de relatórios, acessos, check-in e histórico movidos para modal -->
-
-      </div>
-    </div>
-
-    <!-- ── MODAL RELATÓRIOS ──────────────────────────── -->
-    <div id="relatoriosModal" class="manual-modal" hidden>
-      <div class="manual-modal__box" style="max-width:560px;">
-        <div class="manual-modal__head">
-          <h2>Relatórios e ferramentas</h2>
-          <button class="manual-modal__close" id="closeRelatoriosModal" type="button">✕</button>
-        </div>
-
-        <!-- Exportar -->
-        <div>
-          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:0.6rem;">Exportar dados</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-            <button id="exportCsv"      class="btn" type="button">📄 Exportar CSV</button>
-            <button id="exportPdf"      class="btn" type="button">📑 Exportar PDF</button>
-            <button id="printMap"       class="btn" type="button">🖨 Imprimir mapa</button>
-            <button id="btnGerarPlacas" class="btn" type="button">📋 Gerar placas QR</button>
+        <!-- Relatórios -->
+        <div class="panel">
+          <h2 class="panel__title">Relatórios</h2>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button id="exportCsv" class="btn" type="button">Exportar CSV</button>
+            <button id="exportPdf" class="btn" type="button">Exportar PDF</button>
+            <button id="printMap"  class="btn" type="button">Imprimir mapa</button>
           </div>
         </div>
 
-        <!-- Acessos -->
-        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem;">
-          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:0.6rem;">Acessos à prova</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-            <div class="detail-item">
-              <span class="detail-item__label">Total de acessos</span>
-              <span class="detail-item__val" id="acessosCount" style="font-size:1.6rem;font-family:'Barlow Condensed',sans-serif;">—</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-item__label">Último acesso</span>
-              <span class="detail-item__val" style="font-size:0.82rem;" id="acessosLast">—</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Check-in -->
-        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem;">
-          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:0.6rem;">
-            Check-in &nbsp;<span id="checkinSummary" style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">—</span>
-          </p>
-          <div style="overflow-x:auto;max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(200,160,39,.2) transparent;">
-            <table class="checkin-table">
-              <thead><tr><th>Baia</th><th>Titular</th><th>Contato</th><th>Check-in</th><th>Horário</th></tr></thead>
-              <tbody id="checkinTableBody"><tr><td colspan="5" style="color:var(--muted);font-style:italic;text-align:center;padding:1rem;">Nenhum check-in ainda.</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Histórico -->
-        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem;">
-          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:0.6rem;display:flex;justify-content:space-between;align-items:center;">
-            Histórico de ações
-            <button id="btnClearLog" class="btn" type="button" style="font-size:0.72rem;padding:0.25rem 0.6rem;opacity:.6;text-transform:none;letter-spacing:0;">Limpar</button>
-          </p>
-          <div class="log-list" id="logList" style="max-height:160px;overflow-y:auto;">
-            <p class="log-empty">Nenhuma ação registrada.</p>
-          </div>
-        </div>
-
-        <!-- Encerrar prova -->
-        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem;">
-          <p style="font-size:0.78rem;color:var(--muted);margin:0 0 0.5rem;">Ao encerrar, um relatório PDF completo é gerado e a prova fica inacessível para novos competidores.</p>
-          <div style="display:flex;gap:0.4rem;flex-direction:column;">
-            <button id="btnEncerrarProva" class="btn" type="button" style="width:100%;background:rgba(220,69,69,.1);border-color:rgba(220,69,69,.35);color:#EE7070;font-weight:700;">⏹ Encerrar prova</button>
-            <button id="btnBaixarRelatorio" class="btn" type="button" style="width:100%;display:none;">⬇ Baixar relatório</button>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- ── MODAL DE CONFIRMAÇÃO (J) ──────────────────── -->
-    <div id="confirmModal" class="confirm-modal" hidden>
-      <div class="confirm-modal__box" id="confirmBox">
-        <h2 class="confirm-modal__title" id="confirmTitle">Confirmar ação</h2>
-        <p  class="confirm-modal__msg"   id="confirmMsg"></p>
-        <div class="confirm-modal__actions">
-          <button class="confirm-modal__cancel" id="confirmCancel" type="button">Cancelar</button>
-          <button class="confirm-modal__ok"     id="confirmOk"     type="button">Confirmar</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── MODAL PLACAS QR ────────────────────────── -->
-    <div id="qrModal" class="qr-modal" hidden>
-      <div class="qr-modal__box">
-        <h2 class="qr-modal__title">Gerar placas QR</h2>
-        <p style="font-size:0.82rem;color:var(--muted);margin:0;">Escolha o intervalo de baias. Serão geradas 4 placas por página, prontas para imprimir e fixar nas portas.</p>
-        <div class="qr-range-row">
-          <label>Baia inicial</label>
-          <input id="qrFrom" type="number" min="1" max="140" value="1" />
-          <label>até</label>
-          <input id="qrTo"   type="number" min="1" max="140" value="140" />
-        </div>
-        <p id="qrFeedback" style="font-size:0.82rem;color:var(--danger);min-height:1rem;margin:0;"></p>
-        <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
-          <button id="qrCancel"  class="btn"            type="button">Cancelar</button>
-          <button id="qrConfirm" class="btn btn--primary" type="button">Gerar PDF</button>
-        </div>
       </div>
     </div>
 
@@ -783,7 +422,7 @@
           </div>
           <div class="form-row" style="max-width:120px;">
             <label for="manualQty">Qtd. baias *</label>
-            <input id="manualQty" type="number" min="1" max="140" placeholder="Ex: 3" />
+            <input id="manualQty" type="number" min="1" max="100" placeholder="Ex: 3" />
           </div>
         </div>
 
@@ -810,15 +449,6 @@
       </div>
     </div>
 
-    <!-- Tooltip de baia -->
-    <div id="stallTooltip" class="stall-tooltip">
-      <div class="stall-tooltip__num" id="tooltipNum">—</div>
-      <div class="stall-tooltip__row" id="tooltipHolder"></div>
-      <div class="stall-tooltip__row" id="tooltipPhone"></div>
-      <div class="stall-tooltip__row" id="tooltipStatus"></div>
-      <div class="stall-tooltip__obs" id="tooltipObs" hidden></div>
-    </div>
-
     <template id="organizerStallTemplate">
       <button class="stall" type="button"><span class="stall__number"></span></button>
     </template>
@@ -827,8 +457,6 @@
       <button class="stall" type="button"><span class="stall__number"></span></button>
     </template>
 
-    <!-- QRCode.js para geração de placas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
