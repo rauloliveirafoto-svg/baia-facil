@@ -563,7 +563,14 @@ body::after {
   padding: 0.55rem 0.5rem;
   border-bottom: 1px solid rgba(255,255,255,.05);
   text-align: left; color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
 }
+/* Coluna titular pode ser um pouco maior */
+.reservation-table td:nth-child(2),
+.reservation-table th:nth-child(2) { max-width: 160px; }
 .reservation-table th {
   color: var(--gold); font-weight: 800; font-size: 0.65rem;
   text-transform: uppercase; letter-spacing: .14em;
