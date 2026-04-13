@@ -1264,15 +1264,10 @@
       }, 50);
     }
 
-    function atualizarBlocos() {} // mantido para compatibilidade
-    window._atualizarBlocos = atualizarBlocos;
+    // atualizarBlocos removida — mapa aéreo foi removido
+    window._atualizarBlocos = function() {};
 
-    function voltarParaDados() {
-      if (typeof window.pararListenerCompetidor === 'function') window.pararListenerCompetidor();
-      showScreen('reserva');
-      document.getElementById('topbarIntake').hidden = false;
-      document.getElementById('topbarMap').hidden    = true;
-    }
+    // voltarParaDados removida — mapa aéreo foi removido, função não é mais chamada
 
     /* ── Admin ──────────────────────────────────────────── */
     var ADMIN_PASS = '778691060708929305';
@@ -1317,7 +1312,8 @@
     if (mapSearchBtn) {
       mapSearchBtn.addEventListener('click', function() {
         var n = Number(mapSearchInput.value);
-        if (!n||n<1||n>140) return;
+        var maxBaias = (window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 999;
+        if (!n||n<1||n>maxBaias) return;
         var target = document.querySelector('[data-stall-number="'+n+'"]');
         if (!target) return;
         target.scrollIntoView({ behavior:'smooth', block:'center' });
