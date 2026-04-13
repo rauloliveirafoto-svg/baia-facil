@@ -532,6 +532,9 @@
         </div>
       </div>
       <div class="org-topbar__logout">
+        <button id="btnRelatorios" type="button" class="btn" style="font-size:0.78rem;padding:0.45rem 0.85rem;white-space:nowrap;">
+          📊 Relatórios
+        </button>
         <div class="conn-indicator" id="connIndicator">
           <span class="conn-dot" id="connDot"></span>
           <span id="connLabel">online</span>
@@ -660,27 +663,33 @@
           </div>
         </div>
 
-        <!-- Relatórios -->
-        <div class="panel">
-          <h2 class="panel__title">Relatórios</h2>
-          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
-            <button id="exportCsv"   class="btn" type="button">Exportar CSV</button>
-            <button id="exportPdf"   class="btn" type="button">Exportar PDF</button>
-            <button id="printMap"    class="btn" type="button">🖨 Imprimir mapa</button>
+        <!-- Painéis de relatórios, acessos, check-in e histórico movidos para modal -->
+
+      </div>
+    </div>
+
+    <!-- ── MODAL RELATÓRIOS ──────────────────────────── -->
+    <div id="relatoriosModal" class="manual-modal" hidden>
+      <div class="manual-modal__box" style="max-width:560px;">
+        <div class="manual-modal__head">
+          <h2>Relatórios e ferramentas</h2>
+          <button class="manual-modal__close" id="closeRelatoriosModal" type="button">✕</button>
+        </div>
+
+        <!-- Exportar -->
+        <div>
+          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:0.6rem;">Exportar dados</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            <button id="exportCsv"      class="btn" type="button">📄 Exportar CSV</button>
+            <button id="exportPdf"      class="btn" type="button">📑 Exportar PDF</button>
+            <button id="printMap"       class="btn" type="button">🖨 Imprimir mapa</button>
             <button id="btnGerarPlacas" class="btn" type="button">📋 Gerar placas QR</button>
-          </div>
-          <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:0.75rem;">
-            <p style="font-size:0.78rem;color:var(--muted);margin:0 0 0.5rem;">Ao encerrar, um relatório PDF completo é gerado e a prova fica inacessível para novos competidores.</p>
-            <div style="display:flex;gap:0.4rem;flex-direction:column;">
-              <button id="btnEncerrarProva" class="btn" type="button" style="width:100%;background:rgba(220,69,69,.1);border-color:rgba(220,69,69,.35);color:#EE7070;font-weight:700;">⏹ Encerrar prova</button>
-              <button id="btnBaixarRelatorio" class="btn" type="button" style="width:100%;display:none;">⬇ Baixar relatório</button>
-            </div>
           </div>
         </div>
 
-        <!-- Acessos à prova (W) -->
-        <div class="panel">
-          <h2 class="panel__title">Acessos à prova</h2>
+        <!-- Acessos -->
+        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem;">
+          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:0.6rem;">Acessos à prova</p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
             <div class="detail-item">
               <span class="detail-item__label">Total de acessos</span>
@@ -694,12 +703,11 @@
         </div>
 
         <!-- Check-in -->
-        <div class="panel">
-          <h2 class="panel__title" style="display:flex;justify-content:space-between;align-items:center;">
-            Check-in
-            <span id="checkinSummary" style="font-size:0.75rem;color:var(--muted);font-weight:400;">—</span>
-          </h2>
-          <div style="overflow-x:auto;max-height:240px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(200,160,39,.2) transparent;">
+        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem;">
+          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:0.6rem;">
+            Check-in &nbsp;<span id="checkinSummary" style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;">—</span>
+          </p>
+          <div style="overflow-x:auto;max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(200,160,39,.2) transparent;">
             <table class="checkin-table">
               <thead><tr><th>Baia</th><th>Titular</th><th>Contato</th><th>Check-in</th><th>Horário</th></tr></thead>
               <tbody id="checkinTableBody"><tr><td colspan="5" style="color:var(--muted);font-style:italic;text-align:center;padding:1rem;">Nenhum check-in ainda.</td></tr></tbody>
@@ -707,14 +715,23 @@
           </div>
         </div>
 
-        <!-- Histórico de ações -->
-        <div class="panel">
-          <h2 class="panel__title" style="display:flex;justify-content:space-between;align-items:center;">
+        <!-- Histórico -->
+        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem;">
+          <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:0.6rem;display:flex;justify-content:space-between;align-items:center;">
             Histórico de ações
-            <button id="btnClearLog" class="btn" type="button" style="font-size:0.72rem;padding:0.25rem 0.6rem;opacity:.6;">Limpar</button>
-          </h2>
-          <div class="log-list" id="logList">
+            <button id="btnClearLog" class="btn" type="button" style="font-size:0.72rem;padding:0.25rem 0.6rem;opacity:.6;text-transform:none;letter-spacing:0;">Limpar</button>
+          </p>
+          <div class="log-list" id="logList" style="max-height:160px;overflow-y:auto;">
             <p class="log-empty">Nenhuma ação registrada.</p>
+          </div>
+        </div>
+
+        <!-- Encerrar prova -->
+        <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:1rem;">
+          <p style="font-size:0.78rem;color:var(--muted);margin:0 0 0.5rem;">Ao encerrar, um relatório PDF completo é gerado e a prova fica inacessível para novos competidores.</p>
+          <div style="display:flex;gap:0.4rem;flex-direction:column;">
+            <button id="btnEncerrarProva" class="btn" type="button" style="width:100%;background:rgba(220,69,69,.1);border-color:rgba(220,69,69,.35);color:#EE7070;font-weight:700;">⏹ Encerrar prova</button>
+            <button id="btnBaixarRelatorio" class="btn" type="button" style="width:100%;display:none;">⬇ Baixar relatório</button>
           </div>
         </div>
 
