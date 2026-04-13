@@ -998,6 +998,7 @@
 
       try {
         var provas = await window.FB.getProvas();
+        console.log('[carregarEventos] provas encontradas:', provas.length, provas.map(function(p){ return p.id + ':' + p.eventName; }));
 
         // Separar ativas e encerradas, ordenar por data de criação desc
         var ativas     = provas.filter(function(p){ return p.status !== 'encerrada'; });
