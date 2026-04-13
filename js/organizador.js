@@ -82,20 +82,15 @@ function statusLabel(s)   { return {available:'Disponível',reserved:'Reservada'
     var tw = 220;
     var left = r.left + r.width / 2 - tw / 2;
     var top  = r.top - 8;
-
-    // evitar sair da viewport
     if (left < 8) left = 8;
     if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
-
     tip.style.width = tw + 'px';
     tip.style.left  = left + 'px';
-
-    // medir altura após renderizar
     var th = tip.offsetHeight || 80;
     if (top - th < 8) {
-      tip.style.top = (r.bottom + 8) + 'px'; // aparece abaixo
+      tip.style.top = (r.bottom + 8) + 'px';
     } else {
-      tip.style.top = (top - th) + 'px';     // aparece acima
+      tip.style.top = (top - th) + 'px';
     }
   }
 
@@ -133,7 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
   var elMove     = $('moveTargetInput');
   var elSearch   = $('searchCompetitor');
   var elFilter   = $('filterStatus');
-  var elFindN    = $('findStall');
   var elTable    = $('reservationTableBody');
   var elMap      = $('organizerStallMap');
   var elTpl      = $('organizerStallTemplate');
@@ -216,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // ── Filtros ────────────────────────────────────────────────
   elSearch.addEventListener('input',  function() { pagina=1; renderTabela(); });
   elFilter.addEventListener('change', function() { pagina=1; renderTabela(); });
-  elFindN.addEventListener('input',   function() { pagina=1; renderTabela(); });
 
   // ── Botões de ação ─────────────────────────────────────────
   $('btnReleaseStall').addEventListener('click', function() {
@@ -269,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
   $('confirmManualReservation').addEventListener('click', confirmarManual);
   elManQtd.addEventListener('input', atualizarPrevManual);
 
-  // Busca no mapa
+  // ── Busca no mapa ──────────────────────────────────────────
   var elMapSearch    = $('orgMapSearch');
   var elMapSearchBtn = $('orgMapSearchBtn');
   if (elMapSearchBtn) {
@@ -364,12 +357,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!cache||!cache.stalls) return;
     var busca  = elSearch.value.trim().toLowerCase();
     var status = elFilter.value;
-    var numBusca = Number(elFindN.value);
     linhas = cache.stalls.filter(function(s) {
-      var okNome   = busca   ? (s.holderName||'').toLowerCase().includes(busca) : true;
+      var okNome   = busca ? (s.holderName||'').toLowerCase().includes(busca) : true;
       var okStatus = status==='all' ? true : s.status===status;
-      var okNum    = numBusca ? s.number===numBusca : true;
-      return okNome && okStatus && okNum;
+      return okNome && okStatus;
     }).sort(function(a,b){return a.number-b.number;});
     renderPagina();
   }
