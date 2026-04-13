@@ -374,6 +374,23 @@
     }
     @media(max-width:600px) { .aerial-map-iframe { height:340px; } }
 
+    /* Card de boas-vindas / aviso do evento */
+    .welcome-card {
+      width:100%; max-width:960px;
+      background:rgba(13,43,16,0.82);
+      border:1px solid rgba(200,160,39,.25);
+      border-left:3px solid var(--gold);
+      border-radius:14px;
+      padding:0.9rem 1.25rem;
+      display:flex; align-items:flex-start; gap:0.75rem;
+      backdrop-filter:blur(8px);
+      animation:fadeUp .4s ease both;
+    }
+    .welcome-card__icon { font-size:1.2rem; flex-shrink:0; margin-top:0.05rem; }
+    .welcome-card__body { flex:1; min-width:0; }
+    .welcome-card__label { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:var(--gold); margin:0 0 0.25rem; }
+    .welcome-card__text  { font-size:0.88rem; color:rgba(242,239,230,.9); line-height:1.65; margin:0; white-space:pre-wrap; }
+
     /* Dots de ocupação sobre cada pavilhão */
     .block-dot {
       position: absolute;
@@ -690,6 +707,15 @@
     </div>
 
     <div class="aerial-body">
+      <!-- Card de boas-vindas — visível apenas se a prova tiver mensagem configurada -->
+      <div class="welcome-card" id="welcomeCard" hidden>
+        <div class="welcome-card__icon">📢</div>
+        <div class="welcome-card__body">
+          <p class="welcome-card__label">Aviso do organizador</p>
+          <p class="welcome-card__text" id="welcomeText"></p>
+        </div>
+      </div>
+
       <div class="aerial-map-wrap">
         <div class="aerial-map-header">
           <h2 class="aerial-map-title">Mapa do evento</h2>
@@ -904,54 +930,32 @@
 
     document.addEventListener('DOMContentLoaded', function() {
 
-    var EVENTS = [
-      { id:1, name:'Copa Brasil Três Tambores',              date:'28–30 Mar 2025', endDate:'2025-03-30', loc:'São Paulo, SP',      venue:'Parque Equestre',          icon:'🏆', img:'img/events/ev1.png' },
-      { id:2, name:'Prova de Três Tambores — Troféu de Ouro',date:'05–07 Abr 2025', endDate:'2025-04-07', loc:'Campinas, SP',       venue:'Haras das Palmeiras',      icon:'🥇', img:'img/events/ev2.png' },
-      { id:3, name:'Campeonato Laço de Ouro — Team Roping',  date:'12–13 Abr 2025', endDate:'2025-04-13', loc:'Jundiaí, SP',        venue:'Rancho Modelo',            icon:'🌴', img:'img/events/ev3.png' },
-      { id:4, name:'Campeonato Três Tambores',               date:'19–21 Abr 2025', endDate:'2025-04-21', loc:'Curitiba, PR',       venue:'Centro Equestre Sul',      icon:'🐎', img:'img/events/ev4.png' },
-      { id:5, name:'Grande Desafio — Team Roping',           date:'26–27 Abr 2025', endDate:'2025-04-27', loc:'Itapeva, SP',        venue:'Haras Itapeva',            icon:'🎖️', img:'img/events/ev5.png' },
-      { id:6, name:'Circuito Estadual Três Tambores',        date:'03–04 Mai 2025', endDate:'2025-05-04', loc:'Belo Horizonte, MG', venue:'Parque de Exposições',     icon:'🎠', img:'img/events/ev6.png' },
-      { id:7, name:'Festa dos Campeões — Três Tambores',     date:'10–11 Mai 2025', endDate:'2025-05-11', loc:'Brasília, DF',       venue:'Centro Hípico',            icon:'🌸', img:'img/events/ev7.png' },
-      { id:8, name:'Revoredo Cup — Team Roping',             date:'17–18 Mai 2025', endDate:'2025-05-18', loc:'Recife, PE',         venue:'Rancho Revoredo',          icon:'⭐', img:'img/events/ev8.png' },
-      { id:9,  name:'Prova dos Três Tambores',                date:'24–25 Mai 2025', endDate:'2025-05-25', loc:'Uberlândia, MG',     venue:'Haras São Luiz',           icon:'🏅', img:'img/events/ev9.png' },
-      { id:10, name:'Copa Rural de 3 Tambores',               date:'25–28 Jun 2026', endDate:'2026-06-28', loc:'Curitiba, PR',       venue:'P. Expo. Gov. Ney Braga',  icon:'🤠', img:'img/events/ev10.png' },
-      { id:11, name:'Circuito Norte Equestre',                date:'12–14 Jul 2026', endDate:'2026-07-14', loc:'Belém, PA',          venue:'Haras Arapiuns',           icon:'🌿', img:'img/events/ev11.png' },
-      { id:12, name:'Desafio do Sertão — Team Roping',        date:'02–04 Ago 2026', endDate:'2026-08-04', loc:'Petrolina, PE',      venue:'Rancho Caatinga',          icon:'🌵', img:'img/events/ev12.png' },
-      { id:13, name:'Torneio Outono Gaúcho',                  date:'20–22 Set 2026', endDate:'2026-09-22', loc:'Porto Alegre, RS',   venue:'Haras Serra Verde',        icon:'🍂', img:'img/events/ev13.png' },
-    ];
+    // ── Home dinâmica — provas carregadas do Firestore ──────────
+    var _eventsCache = []; // cache local para uso em openEvent etc.
 
-    window._EVENTS_DATA = EVENTS; // expor para verificarEncerramentoPorData
-
-    var BLOCOS = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
-      {id:1,label:'Bloco 1',stalls:30,start:1},
-      {id:2,label:'Bloco 2',stalls:30,start:31},
-      {id:3,label:'Bloco 3',stalls:30,start:61},
-      {id:4,label:'Bloco 4',stalls:30,start:91},
-      {id:5,label:'Bloco 5',stalls:20,start:121},
-    ];
-
-    /* ── Cards da home ─────────────────────────────────── */
-    var grid = document.getElementById('eventsGrid');
-    EVENTS.forEach(function(ev) {
+    function criarCardEvento(ev) {
       var btn = document.createElement('button');
-      btn.className = 'event-card'; btn.type = 'button'; btn.dataset.evId = ev.id;
-      var coverContent = ev.img
-        ? '<img src="'+ev.img+'" alt="'+ev.name+'" onerror="baiaImgFallback(this)" /><span class="ev-icon-fallback" style="font-size:2.6rem;display:none;align-items:center;justify-content:center;width:100%;height:100%;">'+ev.icon+'</span>'
-        : '<span style="font-size:2.6rem;">'+ev.icon+'</span>';
+      btn.className = 'event-card';
+      btn.type = 'button';
+      btn.dataset.evId = ev.id;
+
+      var imgSrc = ev.imgUrl || ('img/events/ev' + ev.id + '.png');
+      var coverContent = '<img src="'+imgSrc+'" alt="'+ev.eventName+'" onerror="baiaImgFallback(this)" />'+
+        '<span class="ev-icon-fallback" style="font-size:2.6rem;display:none;align-items:center;justify-content:center;width:100%;height:100%;">'+
+        (ev.icon||'🐎')+'</span>';
+
       btn.innerHTML =
         '<div class="event-card__cover">'+coverContent+'</div>'+
         '<div class="event-card__right">'+
           '<div class="event-card__body">'+
-            '<div class="event-card__name">'+ev.name+'</div>'+
+            '<div class="event-card__name">'+(ev.eventName||'Evento')+'</div>'+
             '<div class="event-card__meta">'+
-              '<span class="event-card__date">'+
+              (ev.date ? '<span class="event-card__date">'+
                 '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'+
-                ev.date+
-              '</span>'+
-              '<span class="event-card__loc">'+
+                ev.date+'</span>' : '')+
+              (ev.loc ? '<span class="event-card__loc">'+
                 '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+
-                ev.loc+
-              '</span>'+
+                ev.loc+'</span>' : '')+
               (ev.venue ? '<span class="event-card__venue">'+
                 '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'+
                 ev.venue+'</span>' : '')+
@@ -966,29 +970,81 @@
             '<span class="event-card__cta event-card__cta--view" data-view-btn>👁 Ver mapa</span>'+
           '</div>'+
         '</div>';
-      // Clique em "Reservar baias"
+
       btn.addEventListener('click', function(e) {
-        if (e.target.closest('[data-view-btn]')) return; // ignorar — tratado abaixo
+        if (e.target.closest('[data-view-btn]')) return;
         openEvent(ev);
       });
-      // Clique em "Ver mapa"
       btn.querySelector('[data-view-btn]').addEventListener('click', function(e) {
         e.stopPropagation();
         _modoVisualizacao = true;
         openEvent(ev);
       });
-      grid.appendChild(btn);
-    });
+      return btn;
+    }
 
-    var _badgeInterval = setInterval(function() {
-      if (window.FB) {
-        clearInterval(_badgeInterval);
+    async function carregarEventos() {
+      var grid = document.getElementById('eventsGrid');
+      if (!window.FB) return;
+
+      try {
+        var provas = await window.FB.getProvas();
+
+        // Separar ativas e encerradas, ordenar por data de criação desc
+        var ativas     = provas.filter(function(p){ return p.status !== 'encerrada'; });
+        var encerradas = provas.filter(function(p){ return p.status === 'encerrada'; });
+        ativas.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
+        encerradas.sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
+
+        // Limpar skeleton e renderizar
+        grid.innerHTML = '';
+        _eventsCache = [];
+
+        ativas.forEach(function(ev) {
+          _eventsCache.push(ev);
+          grid.appendChild(criarCardEvento(ev));
+        });
+
+        encerradas.forEach(function(ev) {
+          _eventsCache.push(ev);
+          var btn = criarCardEvento(ev);
+          btn.classList.add('event-card--encerrada');
+          btn.style.order = '99';
+          grid.appendChild(btn);
+        });
+
+        window._EVENTS_DATA = _eventsCache;
+
+        // Atualizar badges e verificar encerramento por data
         window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
-        // Verificar encerramento automático por data ao carregar
         setTimeout(function() {
           window.verificarEncerramentoPorData && window.verificarEncerramentoPorData();
-        }, 1500); // aguardar badges renderizarem primeiro
+        }, 1500);
+
+      } catch(e) {
+        console.error('[carregarEventos]', e);
+        grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:2rem;">Erro ao carregar eventos. Verifique sua conexão.</p>';
       }
+    }
+
+    // Mostrar skeleton enquanto carrega
+    (function() {
+      var grid = document.getElementById('eventsGrid');
+      for (var i = 0; i < 4; i++) {
+        var sk = document.createElement('div');
+        sk.className = 'event-card event-card--skeleton';
+        sk.innerHTML = '<div class="event-card__cover" style="background:rgba(255,255,255,.04);"></div>'+
+          '<div class="event-card__right" style="padding:1rem;">'+
+          '<div style="height:16px;background:rgba(255,255,255,.07);border-radius:6px;margin-bottom:8px;width:70%;"></div>'+
+          '<div style="height:11px;background:rgba(255,255,255,.04);border-radius:4px;width:50%;"></div>'+
+          '</div>';
+        grid.appendChild(sk);
+      }
+    })();
+
+    // Aguardar Firebase e carregar
+    var _fbInterval = setInterval(function() {
+      if (window.FB) { clearInterval(_fbInterval); carregarEventos(); }
     }, 300);
 
     /* ── History API ───────────────────────────────────── */

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Baia Fácil | Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:     #060f08; --card:   #0d2b10; --gold:   #c9a84c;
+      --cream:  #F2EFE6; --muted:  #7a9e7e; --green:  #22C47A;
+      --red:    #EE7070; --amber:  #C8A027; --border: rgba(200,160,39,.18);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--cream);min-height:100dvh;}
+
+    /* ── Topbar ── */
+    .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;
+      padding:.65rem 1.5rem;background:rgba(6,15,8,.96);border-bottom:1px solid var(--border);
+      backdrop-filter:blur(12px);}
+    .topbar__brand{font-family:'Barlow Condensed',sans-serif;font-size:1.2rem;font-weight:800;
+      color:var(--gold);letter-spacing:.08em;text-transform:uppercase;}
+    .topbar__sub{font-size:.7rem;color:var(--muted);margin-left:.5rem;font-weight:500;}
+    .logout-btn{background:rgba(238,112,112,.1);border:1px solid rgba(238,112,112,.3);
+      border-radius:8px;color:#EE7070;font-family:'Manrope',sans-serif;font-size:.82rem;
+      font-weight:600;padding:.45rem .9rem;cursor:pointer;transition:background .2s;}
+    .logout-btn:hover{background:rgba(238,112,112,.2);}
+
+    /* ── Layout ── */
+    .layout{max-width:1280px;margin:1.5rem auto 3rem;padding:0 1.25rem;
+      display:grid;grid-template-columns:1fr 380px;gap:1.25rem;align-items:start;}
+
+    /* ── Painel ── */
+    .panel{background:rgba(13,43,16,.8);border:1px solid var(--border);border-radius:16px;
+      padding:1.25rem 1.4rem;backdrop-filter:blur(12px);}
+    .panel__title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+      color:var(--gold);margin-bottom:1rem;}
+
+    /* ── Stats cards ── */
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.25rem;}
+    .stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;
+      padding:.85rem 1rem;}
+    .stat__num{font-size:1.8rem;font-weight:800;color:var(--cream);font-family:'Barlow Condensed',sans-serif;line-height:1;}
+    .stat__lbl{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:.2rem;}
+
+    /* ── Tabela de provas ── */
+    .tbl{width:100%;border-collapse:collapse;font-size:.83rem;}
+    .tbl th,.tbl td{padding:.55rem .5rem;border-bottom:1px solid rgba(255,255,255,.05);text-align:left;color:var(--cream);}
+    .tbl th{color:var(--gold);font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;}
+    .tbl tr:hover td{background:rgba(200,160,39,.03);}
+    .chip{border-radius:999px;padding:.18rem .55rem;font-size:.7rem;font-weight:700;}
+    .chip-ok{background:rgba(34,196,122,.12);color:#22C47A;border:1px solid rgba(34,196,122,.2);}
+    .chip-enc{background:rgba(255,255,255,.06);color:var(--muted);}
+    .tbl-actions{display:flex;gap:.35rem;}
+    .icon-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:7px;
+      color:var(--muted);font-size:.75rem;padding:.3rem .55rem;cursor:pointer;transition:all .18s;white-space:nowrap;}
+    .icon-btn:hover{background:rgba(200,160,39,.1);border-color:rgba(200,160,39,.35);color:var(--gold);}
+    .icon-btn.danger:hover{background:rgba(238,112,112,.1);border-color:rgba(238,112,112,.3);color:var(--red);}
+
+    /* ── Formulário ── */
+    .form-section{margin-bottom:1rem;}
+    .form-section__title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+      color:var(--gold);margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:1px solid rgba(255,255,255,.06);}
+    .field{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.65rem;}
+    .field label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+    .field input,.field textarea,.field select{
+      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;
+      padding:.6rem .85rem;font-family:'Manrope',sans-serif;font-size:.88rem;color:var(--cream);
+      outline:none;transition:border-color .2s;width:100%;}
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:rgba(200,160,39,.5);}
+    .field textarea{resize:vertical;min-height:70px;}
+    .field select option{background:#0d2b10;color:var(--cream);}
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+    .field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;}
+
+    .preview-blocos{font-size:.75rem;color:var(--amber);margin-top:.3rem;min-height:1.1rem;}
+
+    .btn-primary{width:100%;padding:.85rem;background:linear-gradient(135deg,var(--gold),#9A7618);
+      border:none;border-radius:10px;color:#06100C;font-family:'Manrope',sans-serif;
+      font-size:.92rem;font-weight:800;cursor:pointer;transition:opacity .2s;margin-top:.25rem;}
+    .btn-primary:hover{opacity:.88;}
+    .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+    .btn-secondary{width:100%;padding:.7rem;background:transparent;border:1px solid rgba(255,255,255,.12);
+      border-radius:10px;color:var(--muted);font-family:'Manrope',sans-serif;font-size:.88rem;
+      font-weight:600;cursor:pointer;transition:all .18s;margin-top:.4rem;}
+    .btn-secondary:hover{border-color:var(--border);color:var(--cream);}
+
+    .feedback{font-size:.82rem;min-height:1.2rem;margin-top:.5rem;text-align:center;}
+    .feedback-ok{color:var(--green);}
+    .feedback-err{color:var(--red);}
+
+    /* ── Modal confirmação ── */
+    .confirm-overlay{position:fixed;inset:0;z-index:60;background:rgba(3,9,6,.85);
+      display:grid;place-items:center;backdrop-filter:blur(6px);}
+    .confirm-box{width:min(400px,90%);background:#0d2b10;border:1px solid var(--border);
+      border-radius:16px;padding:1.75rem 1.5rem;box-shadow:0 24px 64px rgba(0,0,0,.7);}
+    .confirm-box h3{font-size:1.1rem;color:var(--cream);margin-bottom:.5rem;}
+    .confirm-box p{font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:1.25rem;}
+    .confirm-actions{display:flex;gap:.6rem;}
+    .confirm-actions button{flex:1;padding:.7rem;border-radius:9px;font-family:'Manrope',sans-serif;
+      font-size:.88rem;font-weight:700;cursor:pointer;transition:all .18s;}
+    .confirm-ok{background:rgba(238,112,112,.15);border:1px solid rgba(238,112,112,.35);color:var(--red);}
+    .confirm-ok:hover{background:rgba(238,112,112,.28);}
+    .confirm-cancel{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--muted);}
+    .confirm-cancel:hover{border-color:var(--border);color:var(--cream);}
+
+    @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+    @media(max-width:560px){.stats{grid-template-columns:1fr 1fr;}.field-row,.field-row-3{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:.5rem;">
+      <span class="topbar__brand">Baia Fácil</span>
+      <span class="topbar__sub">Painel de Administração</span>
+    </div>
+    <button class="logout-btn" id="logoutBtn">Sair</button>
+  </header>
+
+  <div class="layout">
+    <!-- Coluna esquerda: lista de provas -->
+    <div>
+      <div class="stats">
+        <div class="stat"><div class="stat__num" id="statTotal">—</div><div class="stat__lbl">Provas total</div></div>
+        <div class="stat"><div class="stat__num" id="statAtivas">—</div><div class="stat__lbl">Ativas</div></div>
+        <div class="stat"><div class="stat__num" id="statEncerradas">—</div><div class="stat__lbl">Encerradas</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">Provas cadastradas</div>
+        <div style="overflow-x:auto;">
+          <table class="tbl">
+            <thead><tr>
+              <th>Nome</th><th>Data</th><th>Baias</th><th>Blocos</th><th>Reservadas</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody id="provasTableBody">
+              <tr><td colspan="7" style="color:var(--muted);text-align:center;padding:1.5rem;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna direita: formulário -->
+    <div class="panel" style="position:sticky;top:80px;">
+      <div class="panel__title" id="formTitle">Nova prova</div>
+      <input type="hidden" id="editingId"/>
+
+      <div class="form-section">
+        <div class="form-section__title">Identificação</div>
+        <div class="field"><label>Nome da prova *</label><input id="fName" type="text" placeholder="Ex: Copa Rural de 3 Tambores"/></div>
+        <div class="field-row">
+          <div class="field"><label>Data de exibição</label><input id="fDate" type="text" placeholder="Ex: 25–28 Jun 2026"/></div>
+          <div class="field"><label>Data de encerramento</label><input id="fEndDate" type="date"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Cidade / UF</label><input id="fLoc" type="text" placeholder="Ex: Curitiba, PR"/></div>
+          <div class="field"><label>Local / Venue</label><input id="fVenue" type="text" placeholder="Ex: P. Expo. Ney Braga"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Ícone (emoji)</label><input id="fIcon" type="text" placeholder="🐎" maxlength="4"/></div>
+          <div class="field"><label>URL da imagem</label><input id="fImg" type="url" placeholder="https://..."/></div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section__title">Baias e blocos</div>
+        <div class="field-row">
+          <div class="field"><label>Total de baias *</label><input id="fTotalBaias" type="number" min="1" max="500" placeholder="Ex: 122"/></div>
+          <div class="field"><label>Número de blocos *</label><input id="fNumBlocos" type="number" min="1" max="20" placeholder="Ex: 4"/></div>
+        </div>
+        <div class="preview-blocos" id="previewBlocos">Preencha total e blocos para ver a distribuição</div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section__title">Mensagem de boas-vindas</div>
+        <div class="field"><label>Texto (opcional)</label>
+          <textarea id="fWelcome" placeholder="Ex: Pagamento na portaria até 18h. Baias 001–030 são cobertas."></textarea>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="form-section__title">Mapa Google</div>
+        <div class="field-row-3">
+          <div class="field"><label>Latitude</label><input id="fLat" type="number" step="any" placeholder="-22.357"/></div>
+          <div class="field"><label>Longitude</label><input id="fLng" type="number" step="any" placeholder="-51.574"/></div>
+          <div class="field"><label>Zoom</label><input id="fZoom" type="number" min="1" max="21" placeholder="19"/></div>
+        </div>
+      </div>
+
+      <p class="feedback" id="formFeedback"></p>
+      <button class="btn-primary" id="btnSalvar">Criar prova</button>
+      <button class="btn-secondary" id="btnCancelar" style="display:none;">Cancelar edição</button>
+    </div>
+  </div>
+
+  <!-- Modal confirmação -->
+  <div class="confirm-overlay" id="confirmOverlay" style="display:none;">
+    <div class="confirm-box">
+      <h3 id="confirmTitle">Confirmar ação</h3>
+      <p id="confirmMsg">Tem certeza?</p>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" id="confirmCancel">Cancelar</button>
+        <button class="confirm-ok"     id="confirmOk">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase.js"></script>
+  <script>
+    // ── Auth simples ────────────────────────────────────────────
+    var ADMIN_USER = 'admin';
+    var ADMIN_PASS = 'baias@2026';
+    var ADMIN_KEY  = 'baia_admin_session';
+
+    function checkAuth() {
+      try { if (localStorage.getItem(ADMIN_KEY) === 'ok') return true; } catch(e) {}
+      var u = prompt('Usuário admin:');
+      var p = prompt('Senha:');
+      if (u === ADMIN_USER && p === ADMIN_PASS) {
+        try { localStorage.setItem(ADMIN_KEY, 'ok'); } catch(e) {}
+        return true;
+      }
+      document.body.innerHTML = '<div style="display:grid;place-items:center;height:100dvh;color:#EE7070;font-family:Manrope,sans-serif;">Acesso negado.</div>';
+      return false;
+    }
+    if (!checkAuth()) throw new Error('auth');
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      try { localStorage.removeItem(ADMIN_KEY); } catch(e) {}
+      location.reload();
+    });
+
+    // ── Estado ──────────────────────────────────────────────────
+    var _provas    = [];
+    var _confirmCb = null;
+
+    // ── Preview de blocos ────────────────────────────────────────
+    var fTotal  = document.getElementById('fTotalBaias');
+    var fBlocos = document.getElementById('fNumBlocos');
+    var preview = document.getElementById('previewBlocos');
+
+    function atualizarPreview() {
+      var total  = Number(fTotal.value);
+      var nblocos= Number(fBlocos.value);
+      if (!total || !nblocos || total < 1 || nblocos < 1) {
+        preview.textContent = 'Preencha total e blocos para ver a distribuição';
+        return;
+      }
+      var base  = Math.floor(total / nblocos);
+      var resto = total - base * nblocos;
+      var desc  = [];
+      for (var i = 0; i < nblocos; i++) {
+        desc.push(i < nblocos - 1 ? base : base + resto);
+      }
+      preview.textContent = 'Distribuição: ' + desc.join(' + ') + ' = ' + total + ' baias';
+    }
+    fTotal.addEventListener('input', atualizarPreview);
+    fBlocos.addEventListener('input', atualizarPreview);
+
+    // ── Carregar provas ──────────────────────────────────────────
+    async function carregarProvas() {
+      try {
+        _provas = await window.FB.adminGetProvas();
+        renderTabela();
+        renderStats();
+      } catch(e) {
+        console.error(e);
+        feedback('Erro ao carregar provas: ' + e.message, true);
+      }
+    }
+
+    function renderStats() {
+      var ativas     = _provas.filter(function(p){ return p.status !== 'encerrada'; }).length;
+      var encerradas = _provas.length - ativas;
+      document.getElementById('statTotal').textContent      = _provas.length;
+      document.getElementById('statAtivas').textContent     = ativas;
+      document.getElementById('statEncerradas').textContent = encerradas;
+    }
+
+    function renderTabela() {
+      var tbody = document.getElementById('provasTableBody');
+      if (!_provas.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:1.5rem;">Nenhuma prova cadastrada.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = _provas.map(function(p) {
+        var enc = p.status === 'encerrada';
+        return '<tr>'+
+          '<td style="font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(p.eventName||'—')+'</td>'+
+          '<td style="color:var(--muted);font-size:.78rem;">'+(p.date||'—')+'</td>'+
+          '<td>'+(p.totalStalls||'—')+'</td>'+
+          '<td>'+(p.numBlocos||'—')+'</td>'+
+          '<td style="color:'+(p._res>0?'#22C47A':'var(--muted)')+';">'+(p._res||0)+'</td>'+
+          '<td><span class="chip '+(enc?'chip-enc':'chip-ok')+'">'+(enc?'Encerrada':'Ativa')+'</span></td>'+
+          '<td><div class="tbl-actions">'+
+            '<button class="icon-btn" onclick="editarProva(\''+p.id+'\')">✏ Editar</button>'+
+            '<button class="icon-btn" onclick="resetarProva(\''+p.id+'\',\''+esc(p.eventName||'')+'\')">↺ Reset</button>'+
+            '<button class="icon-btn danger" onclick="deletarProva(\''+p.id+'\',\''+esc(p.eventName||'')+'\')">✕ Apagar</button>'+
+          '</div></td>'+
+        '</tr>';
+      }).join('');
+    }
+
+    function esc(s){ return String(s).replace(/'/g,"\\'"); }
+
+    // ── Formulário ───────────────────────────────────────────────
+    function feedback(msg, err) {
+      var el = document.getElementById('formFeedback');
+      el.textContent = msg;
+      el.className = 'feedback ' + (err ? 'feedback-err' : 'feedback-ok');
+      if (!err) setTimeout(function(){ el.textContent=''; }, 4000);
+    }
+
+    function limparForm() {
+      document.getElementById('editingId').value  = '';
+      document.getElementById('fName').value      = '';
+      document.getElementById('fDate').value      = '';
+      document.getElementById('fEndDate').value   = '';
+      document.getElementById('fLoc').value       = '';
+      document.getElementById('fVenue').value     = '';
+      document.getElementById('fIcon').value      = '';
+      document.getElementById('fImg').value       = '';
+      document.getElementById('fTotalBaias').value= '';
+      document.getElementById('fNumBlocos').value = '';
+      document.getElementById('fWelcome').value   = '';
+      document.getElementById('fLat').value       = '';
+      document.getElementById('fLng').value       = '';
+      document.getElementById('fZoom').value      = '';
+      document.getElementById('formTitle').textContent = 'Nova prova';
+      document.getElementById('btnSalvar').textContent = 'Criar prova';
+      document.getElementById('btnCancelar').style.display = 'none';
+      document.getElementById('formFeedback').textContent = '';
+      preview.textContent = 'Preencha total e blocos para ver a distribuição';
+    }
+
+    function editarProva(id) {
+      var p = _provas.find(function(x){ return x.id === id; });
+      if (!p) return;
+      document.getElementById('editingId').value   = id;
+      document.getElementById('fName').value       = p.eventName   || '';
+      document.getElementById('fDate').value       = p.date        || '';
+      document.getElementById('fEndDate').value    = p.endDate     || '';
+      document.getElementById('fLoc').value        = p.loc         || '';
+      document.getElementById('fVenue').value      = p.venue       || '';
+      document.getElementById('fIcon').value       = p.icon        || '';
+      document.getElementById('fImg').value        = p.imgUrl      || '';
+      document.getElementById('fTotalBaias').value = p.totalStalls || '';
+      document.getElementById('fNumBlocos').value  = p.numBlocos   || '';
+      document.getElementById('fWelcome').value    = p.welcomeMsg  || '';
+      document.getElementById('fLat').value        = p.mapaLat     || '';
+      document.getElementById('fLng').value        = p.mapaLng     || '';
+      document.getElementById('fZoom').value       = p.mapaZoom    || '';
+      document.getElementById('formTitle').textContent = 'Editando prova';
+      document.getElementById('btnSalvar').textContent = 'Salvar alterações';
+      document.getElementById('btnCancelar').style.display = 'block';
+      atualizarPreview();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('btnCancelar').addEventListener('click', limparForm);
+
+    document.getElementById('btnSalvar').addEventListener('click', async function() {
+      var nome       = document.getElementById('fName').value.trim();
+      var total      = Number(document.getElementById('fTotalBaias').value);
+      var nblocos    = Number(document.getElementById('fNumBlocos').value);
+
+      if (!nome)             { feedback('Nome obrigatório.', true); return; }
+      if (!total || total<1) { feedback('Total de baias inválido.', true); return; }
+      if (!nblocos||nblocos<1){ feedback('Número de blocos inválido.', true); return; }
+      if (nblocos > total)   { feedback('Mais blocos do que baias.', true); return; }
+
+      var dados = {
+        name:        nome,
+        date:        document.getElementById('fDate').value.trim(),
+        endDate:     document.getElementById('fEndDate').value.trim(),
+        loc:         document.getElementById('fLoc').value.trim(),
+        venue:       document.getElementById('fVenue').value.trim(),
+        icon:        document.getElementById('fIcon').value.trim() || '🐎',
+        imgUrl:      document.getElementById('fImg').value.trim(),
+        totalStalls: total,
+        numBlocos:   nblocos,
+        welcomeMsg:  document.getElementById('fWelcome').value.trim(),
+        mapaLat:     Number(document.getElementById('fLat').value)  || -22.357261,
+        mapaLng:     Number(document.getElementById('fLng').value)  || -51.574683,
+        mapaZoom:    Number(document.getElementById('fZoom').value) || 19,
+      };
+
+      var btn = document.getElementById('btnSalvar');
+      btn.disabled = true; btn.textContent = 'Salvando...';
+
+      try {
+        var editId = document.getElementById('editingId').value;
+        if (editId) {
+          await window.FB.adminEditarProva(editId, dados);
+          feedback('Prova atualizada com sucesso!');
+        } else {
+          await window.FB.adminCriarProva(dados);
+          feedback('Prova criada com sucesso!');
+        }
+        limparForm();
+        await carregarProvas();
+      } catch(e) {
+        console.error(e);
+        feedback('Erro: ' + e.message, true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = document.getElementById('editingId').value ? 'Salvar alterações' : 'Criar prova';
+      }
+    });
+
+    // ── Ações na tabela ──────────────────────────────────────────
+    function confirmar(title, msg, cb) {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMsg').textContent   = msg;
+      _confirmCb = cb;
+      document.getElementById('confirmOverlay').style.display = 'grid';
+    }
+
+    document.getElementById('confirmOk').addEventListener('click', function() {
+      document.getElementById('confirmOverlay').style.display = 'none';
+      if (_confirmCb) { _confirmCb(); _confirmCb = null; }
+    });
+    document.getElementById('confirmCancel').addEventListener('click', function() {
+      document.getElementById('confirmOverlay').style.display = 'none';
+      _confirmCb = null;
+    });
+
+    function resetarProva(id, nome) {
+      confirmar('Resetar prova', 'Apagar todas as reservas de "' + nome + '"? As baias voltam para disponível.', async function() {
+        try {
+          await window.FB.adminResetarProva(id);
+          feedback('Reservas de "' + nome + '" apagadas.');
+          await carregarProvas();
+        } catch(e) { feedback('Erro: ' + e.message, true); }
+      });
+    }
+
+    function deletarProva(id, nome) {
+      confirmar('Apagar prova', 'Apagar "' + nome + '" permanentemente? Esta ação não pode ser desfeita.', async function() {
+        try {
+          await window.FB.adminDeletarProva(id);
+          feedback('Prova "' + nome + '" apagada.');
+          await carregarProvas();
+        } catch(e) { feedback('Erro: ' + e.message, true); }
+      });
+    }
+
+    // ── Init ─────────────────────────────────────────────────────
+    var _fbInterval = setInterval(function() {
+      if (window.FB && window.FB.adminGetProvas) {
+        clearInterval(_fbInterval);
+        carregarProvas();
+      }
+    }, 300);
+  </script>
+</body>
+</html>
