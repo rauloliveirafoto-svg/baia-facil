@@ -557,25 +557,13 @@ body::after {
 .filters-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.8rem; }
 .table-wrap { overflow: auto; }
 
-.reservation-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; table-layout: fixed; }
+.reservation-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
 .reservation-table th,
 .reservation-table td {
-  padding: 0.65rem 0.55rem;
+  padding: 0.55rem 0.5rem;
   border-bottom: 1px solid rgba(255,255,255,.05);
   text-align: left; color: var(--text);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-/* Colunas com largura fixa para não quebrar */
-.reservation-table th:nth-child(1),
-.reservation-table td:nth-child(1) { width: 52px; }
-.reservation-table th:nth-child(3),
-.reservation-table td:nth-child(3) { width: 44px; }
-.reservation-table th:nth-child(4),
-.reservation-table td:nth-child(4) { width: 130px; }
-.reservation-table th:nth-child(5),
-.reservation-table td:nth-child(5) { width: 100px; }
-.reservation-table th:nth-child(6),
-.reservation-table td:nth-child(6) { width: 62px; }
 .reservation-table th {
   color: var(--gold); font-weight: 800; font-size: 0.65rem;
   text-transform: uppercase; letter-spacing: .14em;
