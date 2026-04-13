@@ -707,14 +707,7 @@
     </div>
 
     <div class="aerial-body">
-      <!-- Card de boas-vindas — visível apenas se a prova tiver mensagem configurada -->
-      <div class="welcome-card" id="welcomeCard" hidden>
-        <div class="welcome-card__icon">📢</div>
-        <div class="welcome-card__body">
-          <p class="welcome-card__label">Aviso do organizador</p>
-          <p class="welcome-card__text" id="welcomeText"></p>
-        </div>
-      </div>
+      <!-- welcome-card removido — mensagem agora é modal -->
 
       <div class="aerial-map-wrap">
         <div class="aerial-map-header">
@@ -745,6 +738,23 @@
         <button id="aerialAlertGoBtn"  class="btn btn--primary" type="button" hidden>Ir para o bloco disponível</button>
         <button id="aerialAlertClose"  class="btn"              type="button">Fechar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal boas-vindas -->
+  <div id="welcomeModal" class="modal" hidden>
+    <div class="modal__content" style="max-width:520px;text-align:left;">
+      <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+        <div style="width:40px;height:40px;background:rgba(200,160,39,.12);border:1px solid rgba(200,160,39,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">📢</div>
+        <div>
+          <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);font-weight:700;margin-bottom:0.15rem;">Aviso do organizador</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--cream);" id="welcomeModalEvent">—</div>
+        </div>
+      </div>
+      <p id="welcomeModalText" style="font-size:0.9rem;color:rgba(242,239,230,.85);line-height:1.75;white-space:pre-wrap;margin-bottom:1.5rem;"></p>
+      <button id="welcomeModalBtn" class="btn btn--primary" type="button" style="width:100%;padding:0.8rem;font-size:0.95rem;">
+        Entendi, ver o mapa →
+      </button>
     </div>
   </div>
 
@@ -1125,10 +1135,26 @@
       }, 80);
     });
 
+    // ── Modal de boas-vindas ────────────────────────────────────
+    var _welcomeShown = {}; // evitar mostrar 2x na mesma sessão
+
+    document.getElementById('welcomeModalBtn').addEventListener('click', function() {
+      document.getElementById('welcomeModal').hidden = true;
+    });
+
+    function mostrarWelcomeSeNecessario(ev) {
+      var msg = ev && (ev.welcomeMsg || ev.welcome_msg || '');
+      if (!msg || _welcomeShown[ev.id]) return;
+      _welcomeShown[ev.id] = true;
+      document.getElementById('welcomeModalEvent').textContent = ev.eventName || ev.name || '';
+      document.getElementById('welcomeModalText').textContent  = msg;
+      document.getElementById('welcomeModal').hidden = false;
+    }
+
     function abrirMapaAereo() {
       var ev    = window._selectedEvent;
       var state = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      document.getElementById('aerialEventName').textContent      = ev ? ev.name : '—';
+      document.getElementById('aerialEventName').textContent      = ev ? (ev.eventName||ev.name||'—') : '—';
       document.getElementById('aerialCompetitorInfo').textContent = state
         ? state.holderName + ' · ' + state.requestedStalls + ' baia(s)'
         : '—';
@@ -1139,6 +1165,8 @@
       }
       atualizarBlocos();
       showScreen('aerial');
+      // Mostrar modal de boas-vindas se a prova tiver mensagem
+      setTimeout(function() { mostrarWelcomeSeNecessario(window._selectedEvent); }, 300);
     }
 
     /* ── Botão avançar para reservas ───────────────────── */
