@@ -663,23 +663,22 @@
 
     <main class="app">
       <!-- Formulário de dados -->
-      <section id="reservationIntake" class="intake-card">
+      <section id="reservationIntake" class="intake-card" autocomplete="off">
         <button class="intake-back" id="backToHome" type="button">← Voltar às provas</button>
         <p class="intake-event-tag" id="selectedEventLabel"></p>
         <h1>Cadastro da reserva</h1>
         <p>Preencha seus dados para liberar o mapa de baias.</p>
         <div class="form-row">
           <label for="intakeHolder">Titular da reserva *</label>
-          <input id="intakeHolder" type="text" placeholder="Nome do titular" required />
+          <input id="intakeHolder" type="text" placeholder="Nome do titular" required autocomplete="nope"/>
         </div>
         <div class="form-row">
           <label for="intakeQuantity">Quantidade de baias *</label>
-          <input id="intakeQuantity" type="number" min="1" step="1" placeholder="Ex: 3" required />
+          <input id="intakeQuantity" type="number" min="1" step="1" placeholder="Ex: 3" required autocomplete="nope"/>
         </div>
         <div class="form-row">
           <label for="intakePhone">Telefone de contato *</label>
-          <input id="intakePhone" type="tel" placeholder="(11) 99999-9999" required autocomplete="off"
-            style="-webkit-text-fill-color:var(--cream);background:rgba(6,15,11,.8)!important;"/>
+          <input id="intakePhone" type="tel" placeholder="(11) 99999-9999" required autocomplete="nope"/>
         </div>
         <p id="intakeError" class="validation-error" role="alert" aria-live="assertive"></p>
         <button id="startReservationFlow" class="btn btn--primary" type="button">Continuar para o mapa →</button>
