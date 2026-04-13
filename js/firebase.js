@@ -582,13 +582,18 @@
 
   // Buscar todas as provas com contagem de vagas (para o painel admin)
   async function adminGetProvas() {
-    var snap = await db.collection('provas').orderBy('createdAt', 'desc').get();
+    // Sem orderBy — evita erro de índice e compatibilidade com docs sem createdAt
+    var snap = await db.collection('provas').get();
     var list = [];
     snap.forEach(function(d) {
       var data = d.data();
       var av   = (data.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
       var res  = (data.stalls || []).filter(function(s){ return s.status === 'reserved'; }).length;
       list.push(Object.assign({ id: d.id, _av: av, _res: res }, data));
+    });
+    // Ordenar no frontend: mais recente primeiro
+    list.sort(function(a, b) {
+      return (b.createdAt || b.id || '').localeCompare(a.createdAt || a.id || '');
     });
     return list;
   }

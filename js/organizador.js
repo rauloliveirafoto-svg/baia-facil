@@ -151,6 +151,10 @@ document.addEventListener('DOMContentLoaded', function() {
         evId = String(ativas[0].id);
         elSel.value = evId;
         localStorage.setItem('baia_org_ev', evId);
+      } else if (encerradas.length) {
+        evId = String(encerradas[0].id);
+        elSel.value = evId;
+        localStorage.setItem('baia_org_ev', evId);
       }
 
       iniciarListener();
