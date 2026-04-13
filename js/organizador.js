@@ -342,6 +342,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (elSearchClear) elSearchClear.addEventListener('click', limparBusca);
   }
 
+  // ── Modal de relatórios ─────────────────────────────────────
+  if ($('btnRelatorios')) {
+    $('btnRelatorios').addEventListener('click', function() {
+      if ($('relatoriosModal')) $('relatoriosModal').hidden = false;
+    });
+  }
+  if ($('closeRelatoriosModal')) {
+    $('closeRelatoriosModal').addEventListener('click', function() {
+      $('relatoriosModal').hidden = true;
+    });
+  }
+  if ($('relatoriosModal')) {
+    $('relatoriosModal').addEventListener('click', function(e) {
+      if (e.target === $('relatoriosModal')) $('relatoriosModal').hidden = true;
+    });
+  }
+
   $('exportCsv').addEventListener('click', exportCSV);
 
   // Encerrar prova
