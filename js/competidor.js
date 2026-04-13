@@ -120,9 +120,8 @@ window.entrarProva = async function(evId, evNome) {
   window.BAIA_STATE.stalls = _cache.stalls || [];
   // W: registrar acesso anônimo para estatísticas
   // W: tipo distingue acesso de reserva de acesso de visualização
-  var _tipoAcesso = (typeof window._getModoVisualizacao === 'function' && window._getModoVisualizacao())
-    ? 'visualizacao' : 'reserva';
-  if (window.FB && window.FB.registrarAcesso) window.FB.registrarAcesso(_evId, _tipoAcesso);
+  // _getModoVisualizacao não existe — tipo sempre 'reserva' neste contexto
+  if (window.FB && window.FB.registrarAcesso) window.FB.registrarAcesso(_evId, 'reserva');
 };
 
 window.iniciarListenerCompetidor = function(onUpdate) {
@@ -131,6 +130,7 @@ window.iniciarListenerCompetidor = function(onUpdate) {
   _unsub = window.FB.escutar(_evId, function(data) {
     if (!_cache) return;
     _cache = data;
+    if (data.eventName) _evNome = data.eventName; // manter nome sincronizado
     window.BAIA_STATE.stalls = data.stalls || [];
 
     // RISCO 5: se a prova foi encerrada enquanto o competidor estava selecionando,
@@ -478,8 +478,12 @@ document.addEventListener('DOMContentLoaded', function() {
     stopTimer(); refreshMap();
   }
 
+  var _finalizando = false; // proteção contra duplo clique
+
   async function finalizar() {
+    if (_finalizando) return;
     if (!state.selectedStalls||!state.selectedStalls.length||!state.requestedStalls) return;
+    _finalizando = true;
     var numeros = state.mode==='sequence'
       ? state.selectedStalls.concat(state.suggestedSequence).slice(0, state.requestedStalls)
       : state.selectedStalls.slice(0, state.requestedStalls);
@@ -556,6 +560,7 @@ document.addEventListener('DOMContentLoaded', function() {
       window.BAIA_STATE.selectedStalls = state.selectedStalls;
       if (state.selectedStalls.length===0) { state.mode=null; finishBtn.disabled=true; seqModal.hidden=true; stopTimer(); }
       else { finishBtn.disabled=false; }
+      _finalizando = false;
       refreshMap(); return;
     }
 
@@ -579,6 +584,7 @@ document.addEventListener('DOMContentLoaded', function() {
     state.suggestedSequence=[]; state.mode=null;
     window.BAIA_STATE.reservation.status='finalized';
     seqModal.hidden=true; stopTimer(); refreshMap();
+    _finalizando = false;
   }
 
   function mostrarComprovante() {
@@ -680,7 +686,6 @@ document.addEventListener('DOMContentLoaded', function() {
       lastRender.set(stall.number, sig);
     });
 
-    // Atualizar indicadores do mapa aéreo sempre que o cache mudar
-    if (typeof window._atualizarBlocos === 'function') window._atualizarBlocos();
+    // _atualizarBlocos removido — mapa aéreo foi removido
   }
 });

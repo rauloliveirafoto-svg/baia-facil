@@ -106,7 +106,8 @@
     } catch(e) {
       console.warn('[initProva] Firebase offline, usando cache local:', e.message);
       var cached = cacheCarregar(evId);
-      if (cached) return cached;
+      // Não usar cache se a prova estiver encerrada — pode enganar o competidor
+      if (cached && cached.status !== 'encerrada') return cached;
       throw e;
     }
     if (snap.exists) {
@@ -158,7 +159,13 @@
       return data;
     }
 
+    // evId não encontrado no Firestore — não criar automaticamente para evitar documentos fantasma
+    // Isso pode acontecer se um ID antigo ficou no localStorage
+    console.warn('[initProva] prova não encontrada:', evId, '— não será criada automaticamente');
+    throw new Error('Prova ' + evId + ' não encontrada no Firestore.');
+
     // Criar prova nova — blocos vêm do config global (já sincronizado se necessário)
+    // (código abaixo mantido mas nunca executado — provas são criadas pelo admin.html)
     var blocos = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
       {id:1,stalls:30,start:1},{id:2,stalls:30,start:31},{id:3,stalls:30,start:61},
       {id:4,stalls:30,start:91},{id:5,stalls:20,start:121},

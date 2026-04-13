@@ -28,24 +28,40 @@
     }));
   }
 
-  // Layout HORIZONTAL — grid de linhas (usado pelo organizador)
-  function buildRowLayout(parent, template, start, total, onStallClick) {
-    const row = document.createElement('div');
-    row.className = 'stalls-row';
-    for (let i = 0; i < total; i++) {
-      const stallNumber = start + i;
-      const btn = template.content.firstElementChild.cloneNode(true);
-      btn.dataset.stallNumber = stallNumber;
-      btn.querySelector('.stall__number').textContent = String(stallNumber).padStart(3, '0');
-      btn.addEventListener('click', () => onStallClick(stallNumber));
-      row.appendChild(btn);
+  // ── Normalizar blocos: todos iguais, resto vai para o último ──
+  // 122 baias / 4 blocos → base=30, resto=2 → [30, 30, 30, 32]
+  // 75  baias / 3 blocos → base=25, resto=0 → [25, 25, 25]
+  // 200 baias / 5 blocos → base=40, resto=0 → [40, 40, 40, 40, 40]
+  // 105 baias / 3 blocos → base=35, resto=0 → [35, 35, 35]
+  function normalizarBlocos(layout) {
+    if (layout.length === 0) return layout;
+
+    const nBlocos = layout.length;
+    const total   = layout.reduce((s, b) => s + b.stalls, 0);
+    const base    = Math.floor(total / nBlocos);
+    const resto   = total - base * nBlocos;
+
+    const result = layout.map((b, i) => ({
+      id:    b.id,
+      label: b.label,
+      // Todos os blocos com base, último recebe o resto
+      stalls: i < nBlocos - 1 ? base : base + resto,
+      start:  0, // recalculado abaixo
+    }));
+
+    // Recalcular starts preservando o start do primeiro bloco original
+    result[0].start = layout[0].start;
+    for (let i = 1; i < result.length; i++) {
+      result[i].start = result[i - 1].start + result[i - 1].stalls;
     }
-    parent.appendChild(row);
+
+    return result;
   }
 
-  // Layout VERTICAL — 2 colunas lado a lado
-  // Regra: colunas sempre com números pares. Se total ímpar, coluna A tem 1 a mais.
-  // Exemplo: 31 baias → colA=16, colB=15. 30 baias → colA=15, colB=15.
+  // ── 2 colunas iguais por bloco ───────────────────────────────
+  // Após normalização: blocos 1..N-1 sempre têm total par (base par ou ímpar acerta no resto)
+  // Coluna A = Math.ceil(total/2), coluna B = Math.floor(total/2)
+  // Assim colunas ficam iguais quando par, e A tem 1 a mais quando ímpar (só no último)
   function buildTwoCols(parent, template, start, total, onStallClick) {
     const wrap = document.createElement('div');
     wrap.className = 'stalls-two-cols';
@@ -54,9 +70,7 @@
     const colB = document.createElement('div');
     colB.className = 'stalls-col';
 
-    // Garantir colunas pares: se total ímpar, colA recebe o extra
-    const halfEven = Math.floor(total / 2);
-    const colASize = (total % 2 === 0) ? halfEven : halfEven + 1;
+    const colASize = Math.ceil(total / 2);
 
     for (let i = 0; i < total; i++) {
       const stallNumber = start + i;
@@ -72,13 +86,14 @@
     parent.appendChild(wrap);
   }
 
-  // Mapa completo — organizador usa o mesmo layout 2 colunas do competidor
+  // buildRowLayout removida — não é usada por nenhum componente ativo
+
+  // ── Mapa completo — organizador e competidor (mesmo layout) ──
   function buildStallMap({ mapElement, template, onStallClick, blocos }) {
     if (!mapElement || !template) { console.warn('[buildStallMap] ausente'); return; }
-    const layout = getBlocksLayout(blocos);
+    const layout = normalizarBlocos(getBlocksLayout(blocos));
     mapElement.innerHTML = '';
 
-    // Container horizontal: todos os blocos lado a lado (igual ao mapa vertical do competidor)
     const grid = document.createElement('div');
     grid.className = 'stalls-grid-horizontal';
     mapElement.appendChild(grid);
@@ -102,10 +117,11 @@
     });
   }
 
-  // Mapa de um único bloco em 2 COLUNAS VERTICAIS — competidor
+  // ── Mapa de um único bloco — competidor ──────────────────────
   function buildStallMapBloco({ mapElement, template, bloco, onStallClick, append }) {
     if (!mapElement || !template) { console.warn('[buildStallMapBloco] ausente'); return; }
     if (!append) mapElement.innerHTML = '';
+    // Normalizar o bloco individual (não muda nada, mas mantém consistência)
     const blockEl = document.createElement('section');
     blockEl.className = 'block';
     const title = document.createElement('h2');
@@ -116,33 +132,26 @@
     mapElement.appendChild(blockEl);
   }
 
-  // Constrói todos os blocos LADO A LADO numa grade horizontal
-  // Cada bloco tem 2 colunas verticais de baias (quadradas)
-  // Corredor vertical entre os blocos
+  // ── Todos os blocos lado a lado — mapa vertical do competidor ──
   function buildStallMapVertical({ mapElement, template, onStallClick, blocos }) {
     if (!mapElement || !template) { console.warn('[buildStallMapVertical] ausente'); return; }
-    const layout = getBlocksLayout(blocos);
+    const layout = normalizarBlocos(getBlocksLayout(blocos));
     mapElement.innerHTML = '';
 
-    // Container principal — todos os blocos na horizontal
     const grid = document.createElement('div');
     grid.className = 'stalls-grid-horizontal';
     mapElement.appendChild(grid);
 
     layout.forEach((block, blockIndex) => {
-      // Bloco
       const blockEl = document.createElement('div');
       blockEl.className = 'block block--vertical';
-
       const title = document.createElement('h2');
       title.className = 'block__title';
       title.textContent = block.label || ('Bloco ' + block.id);
       blockEl.appendChild(title);
-
       buildTwoCols(blockEl, template, block.start, block.stalls, onStallClick);
       grid.appendChild(blockEl);
 
-      // Corredor vertical entre blocos
       if (blockIndex < layout.length - 1) {
         const corridor = document.createElement('div');
         corridor.className = 'corridor corridor--vertical';
@@ -154,6 +163,7 @@
 
   global.BAIA_MAP = {
     getBlocksLayout,
+    normalizarBlocos,
     buildStallMap,
     buildStallMapBloco,
     buildStallMapVertical,
