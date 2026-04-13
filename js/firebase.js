@@ -446,11 +446,161 @@
     }
   }
 
+  // ── Funções de admin ─────────────────────────────────────────
+
+  // Montar stalls a partir de blocos normalizados
+  function montarStalls(blocos) {
+    var stalls = [];
+    blocos.forEach(function(b) {
+      for (var i = 0; i < b.stalls; i++) {
+        stalls.push({
+          number: b.start + i, block: b.id, status: 'available',
+          holderName: '', contactPhone: '', requestedStalls: 0,
+          reservedAt: '', selectedAt: '', sessionId: '', obs: '',
+        });
+      }
+    });
+    return stalls;
+  }
+
+  // Normalizar blocos: todos iguais, resto no último
+  function normalizarBlocos(totalBaias, numBlocos, labelPrefix) {
+    labelPrefix = labelPrefix || 'Bloco';
+    var base  = Math.floor(totalBaias / numBlocos);
+    var resto = totalBaias - base * numBlocos;
+    var blocos = [];
+    var start  = 1;
+    for (var i = 0; i < numBlocos; i++) {
+      var n = (i < numBlocos - 1) ? base : base + resto;
+      blocos.push({ id: i+1, label: labelPrefix + ' ' + (i+1), stalls: n, start: start });
+      start += n;
+    }
+    return blocos;
+  }
+
+  // Criar nova prova no Firestore
+  async function adminCriarProva(dados) {
+    // dados: { name, date, endDate, loc, venue, icon, imgUrl, totalStalls, numBlocos,
+    //          welcomeMsg, mapaLat, mapaLng, mapaZoom }
+    var blocos  = normalizarBlocos(dados.totalStalls, dados.numBlocos);
+    var stalls  = montarStalls(blocos);
+    var agora   = new Date().toISOString();
+
+    // Gerar ID único baseado em timestamp
+    var docId = String(Date.now());
+
+    var doc = {
+      eventName:   dados.name,
+      date:        dados.date        || '',
+      endDate:     dados.endDate     || '',
+      loc:         dados.loc         || '',
+      venue:       dados.venue       || '',
+      icon:        dados.icon        || '🐎',
+      imgUrl:      dados.imgUrl      || '',
+      welcomeMsg:  dados.welcomeMsg  || '',
+      mapaLat:     dados.mapaLat     || -22.357261,
+      mapaLng:     dados.mapaLng     || -51.574683,
+      mapaZoom:    dados.mapaZoom    || 19,
+      totalStalls: dados.totalStalls,
+      numBlocos:   dados.numBlocos,
+      blocos:      blocos,
+      stalls:      stalls,
+      reservations:[],
+      createdAt:   agora,
+      updatedAt:   agora,
+    };
+
+    await db.collection('provas').doc(docId).set(doc);
+    return Object.assign({ id: docId }, doc);
+  }
+
+  // Editar metadados de uma prova (sem mexer nas reservas)
+  async function adminEditarProva(evId, dados) {
+    var snap = await ref(evId).get();
+    if (!snap.exists) throw new Error('Prova não encontrada');
+    var atual = snap.data();
+
+    var update = {
+      eventName:  dados.name        || atual.eventName,
+      date:       dados.date        !== undefined ? dados.date        : atual.date,
+      endDate:    dados.endDate     !== undefined ? dados.endDate     : atual.endDate,
+      loc:        dados.loc         !== undefined ? dados.loc         : atual.loc,
+      venue:      dados.venue       !== undefined ? dados.venue       : atual.venue,
+      icon:       dados.icon        !== undefined ? dados.icon        : atual.icon,
+      imgUrl:     dados.imgUrl      !== undefined ? dados.imgUrl      : atual.imgUrl,
+      welcomeMsg: dados.welcomeMsg  !== undefined ? dados.welcomeMsg  : atual.welcomeMsg,
+      mapaLat:    dados.mapaLat     !== undefined ? dados.mapaLat     : atual.mapaLat,
+      mapaLng:    dados.mapaLng     !== undefined ? dados.mapaLng     : atual.mapaLng,
+      mapaZoom:   dados.mapaZoom    !== undefined ? dados.mapaZoom    : atual.mapaZoom,
+      updatedAt:  new Date().toISOString(),
+    };
+
+    // Se mudou total de baias ou blocos, recriar stalls (só se não tiver reservas)
+    var temReservas = (atual.stalls || []).some(function(s){ return s.status === 'reserved'; });
+    if (!temReservas && dados.totalStalls && dados.numBlocos) {
+      var blocos = normalizarBlocos(dados.totalStalls, dados.numBlocos);
+      update.blocos      = blocos;
+      update.totalStalls = dados.totalStalls;
+      update.numBlocos   = dados.numBlocos;
+      update.stalls      = montarStalls(blocos);
+      update.reservations= [];
+    }
+
+    await ref(evId).set(update, { merge: true });
+    return update;
+  }
+
+  // Deletar prova
+  async function adminDeletarProva(evId) {
+    await ref(evId).delete();
+    // Limpar sub-collections
+    try { await db.collection('provas').doc(String(evId)).collection('historico').doc('log').delete(); } catch(e) {}
+    try {
+      var acessos = await db.collection('provas').doc(String(evId)).collection('acessos').limit(500).get();
+      var batch = db.batch();
+      acessos.forEach(function(d){ batch.delete(d.ref); });
+      await batch.commit();
+    } catch(e) {}
+  }
+
+  // Resetar reservas de uma prova
+  async function adminResetarProva(evId) {
+    var snap = await ref(evId).get();
+    if (!snap.exists) throw new Error('Prova não encontrada');
+    var data   = snap.data();
+    var blocos = data.blocos || [];
+    var stalls = montarStalls(blocos);
+    await ref(evId).set({
+      stalls:       stalls,
+      reservations: [],
+      updatedAt:    new Date().toISOString(),
+      status:       firebase.firestore.FieldValue.delete(),
+      encerradaAt:  firebase.firestore.FieldValue.delete(),
+      encerradaPor: firebase.firestore.FieldValue.delete(),
+    }, { merge: true });
+  }
+
+  // Buscar todas as provas com contagem de vagas (para o painel admin)
+  async function adminGetProvas() {
+    var snap = await db.collection('provas').orderBy('createdAt', 'desc').get();
+    var list = [];
+    snap.forEach(function(d) {
+      var data = d.data();
+      var av   = (data.stalls || []).filter(function(s){ return s.status === 'available'; }).length;
+      var res  = (data.stalls || []).filter(function(s){ return s.status === 'reserved'; }).length;
+      list.push(Object.assign({ id: d.id, _av: av, _res: res }, data));
+    });
+    return list;
+  }
+
   window.FB = {
     initProva, getProvas, salvar, escutar, reservarAtomico,
     buscarReservasPorTelefone, buscarReservasPorProtocolo,
     registrarAcesso, getAcessos,
     registrarAcao, getHistorico, escutarHistorico, encerrarProva, getProvaSnapshot,
     gerarProtocoloSimples,
+    // Admin
+    adminCriarProva, adminEditarProva, adminDeletarProva, adminResetarProva, adminGetProvas,
+    normalizarBlocos, montarStalls,
   };
 })();
