@@ -562,16 +562,10 @@
               <span><i class="dot dot--org-blocked"></i>Bloqueada</span>
               <span><i class="dot dot--org-maintenance"></i>Manutenção</span>
             </div>
-            <div style="display:flex;flex-direction:column;gap:0.4rem;">
-              <div class="map-search-wrap" style="margin:0;">
-                <input id="orgMapSearch" type="number" min="1" max="140" placeholder="Ir para baia nº..." />
-                <button id="orgMapSearchBtn" class="btn" type="button">Localizar</button>
-              </div>
-              <div class="name-search-wrap">
-                <input id="nameSearchInput" type="search" placeholder="Buscar titular no mapa..." />
-                <button id="nameSearchBtn" class="btn" type="button">Buscar</button>
-                <button id="nameSearchClear" class="btn" type="button" title="Limpar">✕</button>
-              </div>
+            <div class="map-search-wrap" style="margin:0;">
+              <input id="orgMapSearch" type="search" placeholder="Baia nº ou titular..." />
+              <button id="orgMapSearchBtn" class="btn" type="button">Buscar</button>
+              <button id="nameSearchClear" class="btn" type="button" title="Limpar" style="display:none;">✕</button>
             </div>
           </div>
           <div id="organizerStallMap" class="stall-map"></div>
