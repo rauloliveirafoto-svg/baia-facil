@@ -128,7 +128,10 @@
       </div>
 
       <div class="panel">
-        <div class="panel__title">Provas cadastradas</div>
+        <div class="panel__title" style="display:flex;justify-content:space-between;align-items:center;">
+          Provas cadastradas
+          <button onclick="apagarTodasProvas()" style="background:rgba(238,112,112,.1);border:1px solid rgba(238,112,112,.3);border-radius:7px;color:#EE7070;font-size:.72rem;font-weight:700;padding:.3rem .7rem;cursor:pointer;">⚠ Apagar todas</button>
+        </div>
         <div style="overflow-x:auto;">
           <table class="tbl">
             <thead><tr>
@@ -262,11 +265,28 @@
     async function carregarProvas() {
       try {
         _provas = await window.FB.adminGetProvas();
+        console.log('[admin] provas carregadas:', _provas.length, _provas.map(function(p){ return p.id+':'+p.eventName; }));
         renderTabela();
         renderStats();
       } catch(e) {
-        console.error(e);
+        console.error('[admin] erro:', e);
         feedback('Erro ao carregar provas: ' + e.message, true);
+      }
+    }
+
+    // Botão emergencial: apagar TODOS os documentos da coleção provas
+    async function apagarTodasProvas() {
+      if (!confirm('APAGAR TODAS AS PROVAS DO BANCO? Ação irreversível.')) return;
+      feedback('Apagando...', false);
+      try {
+        var snap = await firebase.firestore().collection('provas').get();
+        var batch = firebase.firestore().batch();
+        snap.forEach(function(d){ batch.delete(d.ref); });
+        await batch.commit();
+        feedback('Todas as provas apagadas. Recarregando...', false);
+        await carregarProvas();
+      } catch(e) {
+        feedback('Erro: ' + e.message, true);
       }
     }
 
