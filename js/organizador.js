@@ -6,6 +6,102 @@ function fmt(n)           { return String(n).padStart(3,'0'); }
 function esc(s)           { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function statusLabel(s)   { return {available:'Disponível',reserved:'Reservada',blocked:'Bloqueada',maintenance:'Manutenção',selected:'Selecionada'}[s]||s; }
 
+/* ── Tooltip customizado ─────────────────────────────────────── */
+(function() {
+  var tip = document.createElement('div');
+  tip.id = 'baia-tooltip';
+  tip.style.cssText = [
+    'position:fixed',
+    'z-index:9999',
+    'pointer-events:none',
+    'opacity:0',
+    'transition:opacity .15s',
+    'background:rgba(6,15,8,0.97)',
+    'border:1px solid rgba(201,168,76,0.35)',
+    'border-radius:10px',
+    'padding:0',
+    'box-shadow:0 8px 32px rgba(0,0,0,.55)',
+    'min-width:180px',
+    'max-width:240px',
+    'font-family:"DM Sans",system-ui,sans-serif',
+    'overflow:hidden',
+  ].join(';');
+  document.body.appendChild(tip);
+
+  var COLORS = {
+    available:   {bg:'rgba(77,170,106,.18)',  bd:'rgba(77,170,106,.5)',  text:'#4daa6a',  label:'Disponível'},
+    reserved:    {bg:'rgba(220,80,80,.18)',   bd:'rgba(220,80,80,.5)',   text:'#e07070',  label:'Reservada'},
+    blocked:     {bg:'rgba(232,160,48,.18)',  bd:'rgba(232,160,48,.5)',  text:'#e8a030',  label:'Bloqueada'},
+    maintenance: {bg:'rgba(90,122,94,.18)',   bd:'rgba(90,122,94,.5)',   text:'#5a7a5e',  label:'Manutenção'},
+    selected:    {bg:'rgba(201,168,76,.18)',  bd:'rgba(201,168,76,.5)',  text:'#c9a84c',  label:'Selecionada'},
+  };
+
+  function buildTip(data) {
+    var c = COLORS[data.status] || COLORS.available;
+    var rows = '';
+    if (data.holderName)   rows += row('Titular',  esc(data.holderName));
+    if (data.contactPhone) rows += row('Contato',  esc(data.contactPhone));
+    if (data.requestedStalls && data.requestedStalls > 0)
+                           rows += row('Qtd. baias', data.requestedStalls);
+    if (data.reservedAt)   rows += row('Reservado', fmtDate(data.reservedAt));
+
+    return '<div style="padding:.45rem .75rem;border-bottom:1px solid rgba(201,168,76,.15);display:flex;align-items:center;justify-content:space-between;gap:.5rem;">'
+      + '<span style="font-size:.82rem;font-weight:700;color:#e8dfc8;letter-spacing:.04em;">Baia ' + fmt(data.number) + '</span>'
+      + '<span style="font-size:.7rem;font-weight:600;padding:.15rem .5rem;border-radius:999px;background:'+c.bg+';border:1px solid '+c.bd+';color:'+c.text+';">' + c.label + '</span>'
+      + '</div>'
+      + (rows ? '<div style="padding:.45rem .75rem;display:grid;gap:.25rem;">' + rows + '</div>' : '');
+  }
+
+  function row(label, val) {
+    return '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem;font-size:.78rem;">'
+      + '<span style="color:rgba(201,168,76,.7);white-space:nowrap;">' + label + '</span>'
+      + '<span style="color:#e8dfc8;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px;">' + val + '</span>'
+      + '</div>';
+  }
+
+  function fmtDate(iso) {
+    try { return new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+    catch(e) { return iso; }
+  }
+
+  var hideTimer;
+
+  function showTip(el, data) {
+    clearTimeout(hideTimer);
+    tip.innerHTML = buildTip(data);
+    tip.style.opacity = '1';
+    positionTip(el);
+  }
+
+  function hideTip() {
+    hideTimer = setTimeout(function() { tip.style.opacity = '0'; }, 80);
+  }
+
+  function positionTip(el) {
+    var r  = el.getBoundingClientRect();
+    var tw = 220;
+    var left = r.left + r.width / 2 - tw / 2;
+    var top  = r.top - 8;
+
+    // evitar sair da viewport
+    if (left < 8) left = 8;
+    if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
+
+    tip.style.width = tw + 'px';
+    tip.style.left  = left + 'px';
+
+    // medir altura após renderizar
+    var th = tip.offsetHeight || 80;
+    if (top - th < 8) {
+      tip.style.top = (r.bottom + 8) + 'px'; // aparece abaixo
+    } else {
+      tip.style.top = (top - th) + 'px';     // aparece acima
+    }
+  }
+
+  window.BAIA_TOOLTIP = { showTip: showTip, hideTip: hideTip };
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
   if (document.body.dataset.page !== 'organizador') return;
 
@@ -51,14 +147,12 @@ document.addEventListener('DOMContentLoaded', function() {
   var elManFeed  = $('manualFeedback');
 
   // ── Fixar larguras da tabela via colgroup ──────────────────
-  // Colunas: Baia | Titular | Qtd | Contato | Status | Ação
   (function fixTableCols() {
     var table = elTable && elTable.closest('table');
     if (!table) return;
     var old = table.querySelector('colgroup');
     if (old) old.remove();
     var cg = document.createElement('colgroup');
-    // largura 0 = coluna livre (Titular e Contato dividem o espaço restante)
     [44, 0, 34, 128, 26, 58].forEach(function(w) {
       var col = document.createElement('col');
       if (w) col.style.width = w + 'px';
@@ -87,6 +181,24 @@ document.addEventListener('DOMContentLoaded', function() {
   window.BAIA_MAP.buildStallMap({ mapElement:elMap, template:elTpl, onStallClick:clickBaia });
   elMap.querySelectorAll('.stall').forEach(function(b) { btnMap.set(Number(b.dataset.stallNumber),b); });
   iniciarListener();
+
+  // ── Tooltip nos botões do mapa ─────────────────────────────
+  elMap.addEventListener('mouseover', function(e) {
+    var btn = e.target.closest('.stall');
+    if (!btn || !cache) return;
+    var n = Number(btn.dataset.stallNumber);
+    var s = cache.stalls.find(function(x){return x.number===n;});
+    if (!s) return;
+    window.BAIA_TOOLTIP.showTip(btn, s);
+  });
+  elMap.addEventListener('mouseout', function(e) {
+    if (!e.target.closest('.stall')) return;
+    window.BAIA_TOOLTIP.hideTip();
+  });
+  elMap.addEventListener('mousemove', function(e) {
+    var btn = e.target.closest('.stall');
+    if (btn) window.BAIA_TOOLTIP.showTip(btn, (cache&&cache.stalls||[]).find(function(x){return x.number===Number(btn.dataset.stallNumber);})||{number:Number(btn.dataset.stallNumber),status:'available'});
+  });
 
   // ── Seletor de evento ──────────────────────────────────────
   elSel.addEventListener('change', function() {
@@ -233,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (s.status==='blocked')     b.classList.add('stall--org-blocked');
       if (s.status==='maintenance') b.classList.add('stall--org-maintenance');
       if (s.number===selBaia)       b.classList.add('stall--selected');
-      b.title = fmt(s.number)+' | '+statusLabel(s.status)+' | '+(s.holderName||'—');
+      b.removeAttribute('title');
     });
   }
 
