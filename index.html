@@ -949,10 +949,9 @@
       btn.type = 'button';
       btn.dataset.evId = ev.id;
 
+      // Tentar imgUrl do Firestore, depois img/events/evID.png, depois placeholder
       var imgSrc = ev.imgUrl || ('img/events/ev' + ev.id + '.png');
-      var coverContent = '<img src="'+imgSrc+'" alt="'+ev.eventName+'" onerror="baiaImgFallback(this)" />'+
-        '<span class="ev-icon-fallback" style="font-size:2.6rem;display:none;align-items:center;justify-content:center;width:100%;height:100%;">'+
-        (ev.icon||'🐎')+'</span>';
+      var coverContent = '<img src="'+imgSrc+'" alt="'+ev.eventName+'" onerror="this.onerror=null;this.src='img/no-image.png';" />';
 
       btn.innerHTML =
         '<div class="event-card__cover">'+coverContent+'</div>'+

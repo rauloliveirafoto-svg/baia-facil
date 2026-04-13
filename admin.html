@@ -158,10 +158,7 @@
           <div class="field"><label>Cidade / UF</label><input id="fLoc" type="text" placeholder="Ex: Curitiba, PR"/></div>
           <div class="field"><label>Local / Venue</label><input id="fVenue" type="text" placeholder="Ex: P. Expo. Ney Braga"/></div>
         </div>
-        <div class="field-row">
-          <div class="field"><label>Ícone (emoji)</label><input id="fIcon" type="text" placeholder="🐎" maxlength="4"/></div>
-          <div class="field"><label>URL da imagem</label><input id="fImg" type="url" placeholder="https://..."/></div>
-        </div>
+        <!-- Imagem gerenciada pelo desenvolvedor via upload direto -->
       </div>
 
       <div class="form-section">
@@ -322,8 +319,7 @@
       document.getElementById('fEndDate').value   = '';
       document.getElementById('fLoc').value       = '';
       document.getElementById('fVenue').value     = '';
-      document.getElementById('fIcon').value      = '';
-      document.getElementById('fImg').value       = '';
+      // icon e imgUrl não editáveis no painel
       document.getElementById('fTotalBaias').value= '';
       document.getElementById('fNumBlocos').value = '';
       document.getElementById('fWelcome').value   = '';
@@ -346,8 +342,7 @@
       document.getElementById('fEndDate').value    = p.endDate     || '';
       document.getElementById('fLoc').value        = p.loc         || '';
       document.getElementById('fVenue').value      = p.venue       || '';
-      document.getElementById('fIcon').value       = p.icon        || '';
-      document.getElementById('fImg').value        = p.imgUrl      || '';
+      // icon e imgUrl gerenciados externamente
       document.getElementById('fTotalBaias').value = p.totalStalls || '';
       document.getElementById('fNumBlocos').value  = p.numBlocos   || '';
       document.getElementById('fWelcome').value    = p.welcomeMsg  || '';
@@ -379,8 +374,8 @@
         endDate:     document.getElementById('fEndDate').value.trim(),
         loc:         document.getElementById('fLoc').value.trim(),
         venue:       document.getElementById('fVenue').value.trim(),
-        icon:        document.getElementById('fIcon').value.trim() || '🐎',
-        imgUrl:      document.getElementById('fImg').value.trim(),
+        icon:        '',
+        imgUrl:      '',
         totalStalls: total,
         numBlocos:   nblocos,
         welcomeMsg:  document.getElementById('fWelcome').value.trim(),
