@@ -643,6 +643,13 @@
         <span class="t-label">Baias / Tempo</span>
         <span class="t-val"><span id="stallCredits">0</span> &nbsp;·&nbsp; <span id="timer">--:--</span></span>
       </div>
+      <div class="t-item" style="flex:0 0 auto;">
+        <div style="display:flex;gap:0.4rem;align-items:center;">
+          <input id="mapSearchInput" type="number" min="1" max="999" placeholder="Nº da baia..."
+            style="width:110px;padding:0.45rem 0.7rem;font-size:0.82rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--cream);outline:none;font-family:'Manrope',sans-serif;"/>
+          <button id="mapSearchBtn" class="btn" type="button" style="padding:0.45rem 0.75rem;font-size:0.82rem;white-space:nowrap;">Ir</button>
+        </div>
+      </div>
       <div class="t-action">
         <button id="finishReservation" class="finish-btn" disabled type="button">✓ Finalizar reserva</button>
       </div>
@@ -680,10 +687,6 @@
 
       <!-- Mapa de baias do bloco selecionado -->
       <section id="competitorMapSection" hidden>
-        <div class="map-search-wrap">
-          <input id="mapSearchInput" type="number" min="1" max="140" placeholder="Ir para baia nº..." />
-          <button id="mapSearchBtn" class="btn" type="button">Localizar</button>
-        </div>
         <p class="map-help">Toque em uma baia disponível para iniciar a pré-reserva de 5 minutos.</p>
         <section class="map-wrapper">
           <div class="legend">
