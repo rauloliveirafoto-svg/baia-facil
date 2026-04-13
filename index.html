@@ -935,21 +935,37 @@
 
     document.addEventListener('DOMContentLoaded', function() {
 
-    // Criar inputs do intake dinamicamente para evitar autocomplete do browser
+    // Criar inputs do intake dinamicamente — com honeypots para bloquear autocomplete
     (function() {
-      function criarInput(wrapId, attrs) {
+      var section = document.getElementById('reservationIntake');
+
+      // Honeypots invisíveis ANTES dos campos reais — enganam o Chrome
+      var trap = document.createElement('div');
+      trap.style.cssText = 'position:absolute;left:-9999px;top:-9999px;opacity:0;height:0;overflow:hidden;';
+      trap.innerHTML = '<input type="text" name="username" tabindex="-1"/>' +
+                       '<input type="password" name="password" tabindex="-1"/>' +
+                       '<input type="tel" name="phone" tabindex="-1"/>';
+      if (section) section.insertBefore(trap, section.firstChild);
+
+      function criarInput(wrapId, attrs, style) {
         var wrap = document.getElementById(wrapId);
         if (!wrap) return;
         var inp = document.createElement('input');
         Object.keys(attrs).forEach(function(k){ inp.setAttribute(k, attrs[k]); });
-        inp.setAttribute('autocomplete', 'new-password');
-        inp.setAttribute('data-lpignore', 'true'); // LastPass
-        inp.setAttribute('data-form-type', 'other'); // Dashlane
+        inp.setAttribute('autocomplete', 'off');
+        inp.setAttribute('data-lpignore', 'true');
+        inp.setAttribute('data-form-type', 'other');
+        inp.setAttribute('readonly', '');
+        // Remover readonly no primeiro clique/foco — Chrome não preenche campos readonly
+        inp.addEventListener('focus', function(){ this.removeAttribute('readonly'); }, { once: true });
+        inp.addEventListener('click', function(){ this.removeAttribute('readonly'); }, { once: true });
+        if (style) inp.style.cssText = style;
         wrap.appendChild(inp);
       }
-      criarInput('intakeHolderWrap',   { id:'intakeHolder',   type:'text',   placeholder:'Nome do titular',    required:'', name:'x'+Date.now()+'a' });
-      criarInput('intakeQuantityWrap', { id:'intakeQuantity', type:'number', placeholder:'Ex: 3', min:'1', step:'1', required:'', name:'x'+Date.now()+'b' });
-      criarInput('intakePhoneWrap',    { id:'intakePhone',    type:'text',   placeholder:'(11) 99999-9999',    required:'', name:'x'+Date.now()+'c', inputmode:'numeric' });
+
+      criarInput('intakeHolderWrap',   { id:'intakeHolder',   type:'text',   placeholder:'Nome do titular', required:'' });
+      criarInput('intakeQuantityWrap', { id:'intakeQuantity', type:'number', placeholder:'Ex: 3', min:'1', step:'1', required:'' });
+      criarInput('intakePhoneWrap',    { id:'intakePhone',    type:'text',   placeholder:'(11) 99999-9999', required:'' });
     })();
 
     // ── Home dinâmica — provas carregadas do Firestore ──────────
