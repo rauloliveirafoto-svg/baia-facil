@@ -42,8 +42,31 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-input, select, textarea {
+input:not([type=range]):not([type=checkbox]):not([type=radio]),
+select,
+textarea {
   border-radius: 10px;
+  background: rgba(6,15,11,.8);
+  border: 1px solid rgba(255,255,255,.1);
+  color: var(--text);
+  font-family: 'Manrope', sans-serif;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+input:not([type=range]):not([type=checkbox]):not([type=radio]):focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(200,160,39,.55);
+  box-shadow: 0 0 0 3px rgba(200,160,39,.08);
+}
+input::placeholder, textarea::placeholder {
+  color: rgba(107,148,128,.35);
+}
+/* Selects transparentes na topbar não devem ser afetados */
+select[style*="background:transparent"] {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 body {
