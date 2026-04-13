@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
     state.holderName=''; state.requestedStalls=0; state.contactPhone='';
     state.selectedStalls=[]; state.suggestedSequence=[];
-    state.mode=null; state.remainingSeconds=300; state.receipt=null; state._receiptUsed=false;
+    state.mode=null; state.remainingSeconds=300; state.receipt=null;
     limparRetryPendente(); // cancelar retry pendente ao voltar para home
     // Garantir que modo visualização é desativado ao resetar
     if (typeof window._desativarModoVisualizacao === 'function') window._desativarModoVisualizacao();
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
       btnPorNumero.set(Number(b.dataset.stallNumber), b);
     });
 
-    ctrlSelecao.setTotalStalls(140);
+    ctrlSelecao.setTotalStalls((window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140);
     if (mapSection) mapSection.hidden = false;
     refreshMap();
   };
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // CORREÇÃO: actions agora inclui refreshMap (nome correto) em vez de refreshCompetitorMap
   var ctrlSelecao = window.BAIA_SELECTION.createSelectionController({
     state:     state,
-    constants: { totalStalls: 140 },
+    constants: { totalStalls: (window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140 },
     ui:        { mapSection, sequenceModal:seqModal, sequenceList:seqList, finishButton:finishBtn, feedbackEl: feedbackEl||{textContent:''} },
     helpers:   { formatStall: fmt },
     actions:   { getState, updateState, clearCurrentSelection, refreshMap, startTimer },
@@ -368,7 +368,13 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // ── Listeners ─────────────────────────────────────────────
-  if (intakeTel) intakeTel.addEventListener('input', function() { intakeTel.value = maskTel(intakeTel.value); });
+  // intakeTel pode ser null se os inputs dinâmicos ainda não foram criados
+  // Usar delegação no document para garantir que o listener funciona
+  document.addEventListener('input', function(e) {
+    if (e.target && e.target.id === 'intakePhone') {
+      e.target.value = maskTel(e.target.value);
+    }
+  });
 
   startBtn.addEventListener('click', async function() {
     intakeErro.textContent = '';
@@ -407,7 +413,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (whatsappBtn) {
     whatsappBtn.addEventListener('click', function() {
       if (!state.receipt) return;
-      state._receiptUsed = true;
       var r   = state.receipt;
       var tel = r.contactPhone ? r.contactPhone.replace(/[^0-9]/g, '') : '';
       // Garantir código do Brasil
@@ -433,7 +438,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   downloadBtn.addEventListener('click', function() {
     if (!state.receipt) return;
-    state._receiptUsed = true;
     var html = buildComprovante(state.receipt);
     var blob = new Blob([html], { type:'text/html;charset=utf-8' });
     var url  = URL.createObjectURL(blob);

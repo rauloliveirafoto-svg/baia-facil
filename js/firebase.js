@@ -164,27 +164,6 @@
     console.warn('[initProva] prova não encontrada:', evId, '— não será criada automaticamente');
     throw new Error('Prova ' + evId + ' não encontrada no Firestore.');
 
-    // Criar prova nova — blocos vêm do config global (já sincronizado se necessário)
-    // (código abaixo mantido mas nunca executado — provas são criadas pelo admin.html)
-    var blocos = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [
-      {id:1,stalls:30,start:1},{id:2,stalls:30,start:31},{id:3,stalls:30,start:61},
-      {id:4,stalls:30,start:91},{id:5,stalls:20,start:121},
-    ];
-    var stalls = [];
-    blocos.forEach(function(bloco) {
-      for (var i = 0; i < bloco.stalls; i++) {
-        stalls.push({ number:bloco.start+i, block:bloco.id, status:'available',
-          holderName:'', contactPhone:'', requestedStalls:0,
-          reservedAt:'', selectedAt:'', sessionId:'' });
-      }
-    });
-    var totalStalls = stalls.length;
-    var data = { eventName:evName, stalls:stalls, reservations:[],
-                 blocos:blocos, totalStalls:totalStalls,
-                 updatedAt:new Date().toISOString() };
-    await ref(evId).set(data);
-    cacheSalvar(evId, data);
-    return data;
   }
 
   async function getProvas() {
