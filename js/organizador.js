@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var qrFrom        = $('qrFrom');
   var qrTo          = $('qrTo');
   var qrFeedback    = $('qrFeedback');
-  // elNameSearch removida — campo unificado em orgMapSearch
+  var elNameSearch = $('orgMapSearch'); // campo unificado
   var confirmModal    = $('confirmModal');
   var confirmBox      = $('confirmBox');
   var confirmTitle    = $('confirmTitle');
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var connDot         = $('connDot');
   var connLabel       = $('connLabel');
   var _confirmCb      = null; // callback pendente da confirmação
-  // elNameSearchBtn removida — campo unificado
+  var elNameSearchBtn = $('orgMapSearchBtn'); // unificado
   var elNameClear     = $('nameSearchClear');
   var occReserved     = $('occBarReserved');
   var occBlocked      = $('occBarBlocked');
