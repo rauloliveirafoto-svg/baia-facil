@@ -699,38 +699,8 @@
     </main>
   </div>
 
-  <!-- ══════════ TELA MAPA AÉREO ══════════ -->
-  <div id="aerialScreen" hidden>
-    <div class="aerial-topbar">
-      <img src="img/logo.png" alt="Baia Fácil" />
-      <div class="aerial-topbar__info">
-        <div class="aerial-topbar__event" id="aerialEventName">—</div>
-        <div class="aerial-topbar__sub" id="aerialCompetitorInfo">—</div>
-      </div>
-      <button class="aerial-topbar__back" id="aerialBackBtn" type="button">← Voltar aos dados</button>
-    </div>
-
-    <div class="aerial-body">
-      <!-- welcome-card removido — mensagem agora é modal -->
-
-      <div class="aerial-map-wrap">
-        <div class="aerial-map-header">
-          <h2 class="aerial-map-title">Mapa do evento</h2>
-        </div>
-        <iframe
-          class="aerial-map-iframe"
-          src="https://maps.google.com/maps?q=-22.357261,-51.574683&t=k&z=19&output=embed"
-          allowfullscreen
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          title="Mapa do evento">
-        </iframe>
-      </div>
-      <button id="aerialAdvanceBtn" class="btn btn--primary" style="font-size:1rem;padding:0.85rem 2rem;" type="button">
-        Avançar para reservas →
-      </button>
-    </div>
-  </div>
+  <!-- Tela do mapa aéreo removida — fluxo: formulário → seleção de blocos direto -->
+  <div id="aerialScreen" hidden style="display:none!important;"></div>
 
   <!-- Modal: bloco lotado -->
   <div id="aerialAlert" class="aerial-alert" hidden>
@@ -1117,8 +1087,7 @@
     history.pushState(   { screen:'home' }, '', window.location.pathname);
 
     window.addEventListener('popstate', function() {
-      if (!document.getElementById('aerialScreen').hidden)  { voltarParaDados(); history.pushState({screen:'dados'},'',window.location.pathname); return; }
-      if (!document.getElementById('reservaScreen').hidden) { goHome();          history.pushState({screen:'home'},'',window.location.pathname); }
+      if (!document.getElementById('reservaScreen').hidden) { goHome(); history.pushState({screen:'home'},'',window.location.pathname); }
     });
 
     /* ── Abrir evento → formulário de dados ────────────── */
@@ -1165,7 +1134,7 @@
           if (typeof window._entrarEvento === 'function') window._entrarEvento(ev.name);
           // Habilitar modo somente-leitura no competidor
           if (typeof window._ativarModoVisualizacao === 'function') window._ativarModoVisualizacao();
-          abrirMapaAereo();
+          abrirSelecaoBlocos();
         } else {
           showScreen('reserva');
           if (typeof window.entrarProva === 'function') await window.entrarProva(ev.id, ev.name);
@@ -1177,16 +1146,14 @@
       }
     }
 
-    /* ── Formulário enviado → mapa aéreo ───────────────── */
+    /* ── Formulário enviado → seleção de blocos direto ─── */
     document.getElementById('startReservationFlow').addEventListener('click', function() {
       setTimeout(function() {
-        // competidor.js esconde o intake e mostra o mapa quando válido
-        // se o intake ainda está visível, dados inválidos — não avança
         if (!document.getElementById('reservationIntake').hidden) return;
-        // Se competidor.js já mostrou o mapa de baias (filtro de bloco ativo), não redireciona
         if (!document.getElementById('competitorMapSection').hidden) return;
-        // Ir para mapa aéreo
-        abrirMapaAereo();
+        // Mostrar boas-vindas se tiver mensagem, depois ir para blocos
+        mostrarWelcomeSeNecessario(window._selectedEvent);
+        abrirSelecaoBlocos();
       }, 80);
     });
 
@@ -1207,21 +1174,9 @@
     }
 
     function abrirMapaAereo() {
-      var ev    = window._selectedEvent;
-      var state = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      document.getElementById('aerialEventName').textContent      = ev ? (ev.eventName||ev.name||'—') : '—';
-      document.getElementById('aerialCompetitorInfo').textContent = state
-        ? state.holderName + ' · ' + state.requestedStalls + ' baia(s)'
-        : '—';
-      // Iniciar listener com callback que atualiza os dots de ocupação em tempo real.
-      // Antes passávamos null, o que fazia os dots ficarem estáticos durante a tela aérea.
-      if (typeof window.iniciarListenerCompetidor === 'function') {
-        window.iniciarListenerCompetidor(atualizarBlocos);
-      }
-      atualizarBlocos();
-      showScreen('aerial');
-      // Mostrar modal de boas-vindas se a prova tiver mensagem
-      setTimeout(function() { mostrarWelcomeSeNecessario(window._selectedEvent); }, 300);
+      // Mapa aéreo removido — ir direto para seleção de blocos
+      mostrarWelcomeSeNecessario(window._selectedEvent);
+      abrirSelecaoBlocos();
     }
 
     /* ── Botão avançar para reservas ───────────────────── */
@@ -1307,25 +1262,12 @@
     function atualizarBlocos() {} // mantido para compatibilidade
     window._atualizarBlocos = atualizarBlocos;
 
-    /* ── Voltar do mapa aéreo → dados ──────────────────── */
     function voltarParaDados() {
-      // Parar listener para evitar refreshMap em mapa potencialmente destruído
       if (typeof window.pararListenerCompetidor === 'function') window.pararListenerCompetidor();
       showScreen('reserva');
       document.getElementById('topbarIntake').hidden = false;
       document.getElementById('topbarMap').hidden    = true;
     }
-    document.getElementById('aerialBackBtn').addEventListener('click', function() {
-      var comp = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      var temSelecao = comp && (
-        (comp.selectedStalls && comp.selectedStalls.length > 0) ||
-        (comp.suggestedSequence && comp.suggestedSequence.length > 0)
-      );
-      if (temSelecao && comp.timerId) {
-        if (!confirm('Você tem baias selecionadas. Voltar vai cancelar sua seleção e o timer. Deseja continuar?')) return;
-      }
-      voltarParaDados();
-    });
 
     /* ── Admin ──────────────────────────────────────────── */
     var ADMIN_PASS = '778691060708929305';
