@@ -275,20 +275,71 @@ document.addEventListener('DOMContentLoaded', function() {
   // Busca no mapa
   var elMapSearch    = $('orgMapSearch');
   var elMapSearchBtn = $('orgMapSearchBtn');
+  var elSearchClear  = $('nameSearchClear');
+
   if (elMapSearchBtn) {
     function buscarNoMapa() {
-      var n = Number(elMapSearch.value);
-      var totalBaias = (window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140;
-      if (!n||n<1||n>totalBaias) return;
-      var btn = elMap.querySelector('[data-stall-number="'+n+'"]');
-      if (!btn) return;
-      btn.scrollIntoView({behavior:'smooth',block:'center'});
-      btn.classList.remove('stall--highlight'); void btn.offsetWidth;
-      btn.classList.add('stall--highlight');
-      setTimeout(function(){btn.classList.remove('stall--highlight');},3500);
+      var val = (elMapSearch.value || '').trim();
+      if (!val) return;
+
+      var n = Number(val);
+      var totalBaias = (cache && cache.totalStalls) || (window.BAIA_CONFIG && window.BAIA_CONFIG.TOTAL_STALLS) || 140;
+
+      if (!isNaN(n) && n >= 1 && n <= totalBaias) {
+        // Busca por número de baia
+        limparDestaqueTitular();
+        var btn = elMap.querySelector('[data-stall-number="'+n+'"]');
+        if (!btn) return;
+        btn.scrollIntoView({behavior:'smooth',block:'center'});
+        btn.classList.remove('stall--highlight'); void btn.offsetWidth;
+        btn.classList.add('stall--highlight');
+        setTimeout(function(){btn.classList.remove('stall--highlight');},3500);
+      } else {
+        // Busca por nome do titular
+        buscarPorTitular(val);
+      }
+
+      if (elSearchClear) elSearchClear.style.display = 'inline-block';
     }
+
+    function limparDestaqueTitular() {
+      if (!cache || !cache.stalls) return;
+      cache.stalls.forEach(function(s) {
+        var b = btnMap.get(s.number);
+        if (b) b.style.opacity = '';
+      });
+    }
+
+    function buscarPorTitular(termo) {
+      if (!cache || !cache.stalls) return;
+      termo = termo.toLowerCase();
+      var encontrou = false;
+      var primeiroBtnEncontrado = null;
+
+      cache.stalls.forEach(function(s) {
+        var b = btnMap.get(s.number);
+        if (!b) return;
+        var match = s.holderName && s.holderName.toLowerCase().indexOf(termo) !== -1;
+        b.style.opacity = match ? '1' : '0.2';
+        if (match) { encontrou = true; if (!primeiroBtnEncontrado) primeiroBtnEncontrado = b; }
+      });
+
+      if (primeiroBtnEncontrado) {
+        primeiroBtnEncontrado.scrollIntoView({behavior:'smooth',block:'center'});
+      } else {
+        msg('Nenhuma baia encontrada para "' + termo + '".', true);
+      }
+    }
+
+    function limparBusca() {
+      elMapSearch.value = '';
+      limparDestaqueTitular();
+      if (elSearchClear) elSearchClear.style.display = 'none';
+    }
+
     elMapSearchBtn.addEventListener('click', buscarNoMapa);
-    elMapSearch.addEventListener('keydown', function(e){if(e.key==='Enter')buscarNoMapa();});
+    elMapSearch.addEventListener('keydown', function(e){ if(e.key==='Enter') buscarNoMapa(); });
+    if (elSearchClear) elSearchClear.addEventListener('click', limparBusca);
   }
 
   $('exportCsv').addEventListener('click', exportCSV);
