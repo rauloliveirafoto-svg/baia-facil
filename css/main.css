@@ -42,6 +42,10 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+input, select, textarea {
+  border-radius: 10px;
+}
+
 body {
   margin: 0;
   font-family: 'Manrope', system-ui, sans-serif;
