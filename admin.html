@@ -212,26 +212,25 @@
   <script src="js/firebase.js"></script>
   <script>
     // ── Auth simples ────────────────────────────────────────────
-    var ADMIN_USER = 'admin';
-    var ADMIN_PASS = 'baias@2026';
+    var ADMIN_PASS = '778691060708929305';
     var ADMIN_KEY  = 'baia_admin_session';
 
     function checkAuth() {
-      try { if (localStorage.getItem(ADMIN_KEY) === 'ok') return true; } catch(e) {}
-      var u = prompt('Usuário admin:');
-      var p = prompt('Senha:');
-      if (u === ADMIN_USER && p === ADMIN_PASS) {
-        try { localStorage.setItem(ADMIN_KEY, 'ok'); } catch(e) {}
-        return true;
-      }
-      document.body.innerHTML = '<div style="display:grid;place-items:center;height:100dvh;color:#EE7070;font-family:Manrope,sans-serif;">Acesso negado.</div>';
+      try {
+        if (localStorage.getItem(ADMIN_KEY) === 'ok') {
+          // Limpar imediatamente — sessão é de uso único (só para passar da home)
+          localStorage.removeItem(ADMIN_KEY);
+          return true;
+        }
+      } catch(e) {}
+      // Sem token válido — redirecionar para home
+      window.location.replace('index.html');
       return false;
     }
     if (!checkAuth()) throw new Error('auth');
 
     document.getElementById('logoutBtn').addEventListener('click', function() {
-      try { localStorage.removeItem(ADMIN_KEY); } catch(e) {}
-      location.reload();
+      window.location.replace('index.html');
     });
 
     // ── Estado ──────────────────────────────────────────────────
