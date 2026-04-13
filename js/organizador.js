@@ -106,9 +106,9 @@ document.addEventListener('DOMContentLoaded', function() {
       var ativas     = provas.filter(function(p){ return p.status !== 'encerrada'; });
       var encerradas = provas.filter(function(p){ return p.status === 'encerrada'; });
 
-      // Ordenar por id numérico (decrescente = mais recente primeiro nas ativas)
-      ativas.sort(function(a,b){ return Number(b.id) - Number(a.id); });
-      encerradas.sort(function(a,b){ return Number(b.id) - Number(a.id); });
+      // Ordenar por data de criação (mais recente primeiro)
+      ativas.sort(function(a,b){ return (b.createdAt||b.id||'').localeCompare(a.createdAt||a.id||''); });
+      encerradas.sort(function(a,b){ return (b.createdAt||b.id||'').localeCompare(a.createdAt||a.id||''); });
 
       elSel.innerHTML = '';
 
