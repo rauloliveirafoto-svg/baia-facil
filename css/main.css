@@ -62,6 +62,14 @@ textarea:focus {
 input::placeholder, textarea::placeholder {
   color: rgba(107,148,128,.35);
 }
+/* Prevenir browser autocomplete de sobrescrever o background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--cream);
+  -webkit-box-shadow: 0 0 0px 1000px rgba(6,15,11,.95) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
 /* Selects transparentes na topbar não devem ser afetados */
 select[style*="background:transparent"] {
   background: transparent !important;
