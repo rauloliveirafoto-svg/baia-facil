@@ -670,15 +670,15 @@
         <p>Preencha seus dados para liberar o mapa de baias.</p>
         <div class="form-row">
           <label for="intakeHolder">Titular da reserva *</label>
-          <input id="intakeHolder" type="text" placeholder="Nome do titular" required autocomplete="nope"/>
+          <div id="intakeHolderWrap"></div>
         </div>
         <div class="form-row">
           <label for="intakeQuantity">Quantidade de baias *</label>
-          <input id="intakeQuantity" type="number" min="1" step="1" placeholder="Ex: 3" required autocomplete="nope"/>
+          <div id="intakeQuantityWrap"></div>
         </div>
         <div class="form-row">
           <label for="intakePhone">Telefone de contato *</label>
-          <input id="intakePhone" type="tel" placeholder="(11) 99999-9999" required autocomplete="nope"/>
+          <div id="intakePhoneWrap"></div>
         </div>
         <p id="intakeError" class="validation-error" role="alert" aria-live="assertive"></p>
         <button id="startReservationFlow" class="btn btn--primary" type="button">Continuar para o mapa →</button>
@@ -934,6 +934,23 @@
   }
 
     document.addEventListener('DOMContentLoaded', function() {
+
+    // Criar inputs do intake dinamicamente para evitar autocomplete do browser
+    (function() {
+      function criarInput(wrapId, attrs) {
+        var wrap = document.getElementById(wrapId);
+        if (!wrap) return;
+        var inp = document.createElement('input');
+        Object.keys(attrs).forEach(function(k){ inp.setAttribute(k, attrs[k]); });
+        inp.setAttribute('autocomplete', 'new-password');
+        inp.setAttribute('data-lpignore', 'true'); // LastPass
+        inp.setAttribute('data-form-type', 'other'); // Dashlane
+        wrap.appendChild(inp);
+      }
+      criarInput('intakeHolderWrap',   { id:'intakeHolder',   type:'text',   placeholder:'Nome do titular',    required:'', name:'baia_titular' });
+      criarInput('intakeQuantityWrap', { id:'intakeQuantity', type:'number', placeholder:'Ex: 3', min:'1', step:'1', required:'', name:'baia_qtd' });
+      criarInput('intakePhoneWrap',    { id:'intakePhone',    type:'text',   placeholder:'(11) 99999-9999',    required:'', name:'baia_fone', inputmode:'tel' });
+    })();
 
     // ── Home dinâmica — provas carregadas do Firestore ──────────
     var _eventsCache = []; // cache local para uso em openEvent etc.
