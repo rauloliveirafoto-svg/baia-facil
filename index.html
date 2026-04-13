@@ -627,9 +627,8 @@
     <div class="view-mode-banner" id="viewModeBanner" hidden>
       👁 Modo visualização — apenas leitura. Nenhuma ação disponível.
     </div>
-    <div class="topbar-intake" id="topbarIntake">
-      <img src="img/logo.png" alt="Baia Fácil" />
-    </div>
+    <!-- topbar-intake removida — logo não aparece na tela de cadastro -->
+    <div id="topbarIntake" hidden></div>
     <header class="topbar-map" id="topbarMap" hidden>
       <div class="t-item">
         <span class="t-label">Evento</span>
@@ -679,7 +678,8 @@
         </div>
         <div class="form-row">
           <label for="intakePhone">Telefone de contato *</label>
-          <input id="intakePhone" type="tel" placeholder="(11) 99999-9999" required />
+          <input id="intakePhone" type="tel" placeholder="(11) 99999-9999" required autocomplete="off"
+            style="-webkit-text-fill-color:var(--cream);background:rgba(6,15,11,.8)!important;"/>
         </div>
         <p id="intakeError" class="validation-error" role="alert" aria-live="assertive"></p>
         <button id="startReservationFlow" class="btn btn--primary" type="button">Continuar para o mapa →</button>
