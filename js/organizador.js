@@ -50,12 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
   var elManPrev  = $('manualSelectedPreview');
   var elManFeed  = $('manualFeedback');
 
-  var EVENTOS = {
-    '1':'CSN Parque Equestre','2':'Copa Brasil de Saltos','3':'Torneio Haras das Palmeiras',
-    '4':'Circuito Equestre Sul','5':'Grande Prêmio Itapeva','6':'Festival de Adestramento',
-    '7':'Troféu Primavera','8':'Copa Nordeste Equestre','9':'Campeonato Mineiro de Saltos',
-  };
-
   // ── Estado ─────────────────────────────────────────────────
   var evId      = localStorage.getItem('baia_org_ev') || '1';
   var cache     = null;
@@ -69,6 +63,37 @@ document.addEventListener('DOMContentLoaded', function() {
   var _unsub    = null;
 
   if (elSel) elSel.value = evId;
+
+  // ── Fixar larguras da tabela via colgroup ──────────────────
+  (function fixTableCols() {
+    var table = elTable && elTable.closest('table');
+    if (!table) return;
+    // Remover colgroup anterior se existir
+    var old = table.querySelector('colgroup');
+    if (old) old.remove();
+    var cg = document.createElement('colgroup');
+    // Baia | Titular | Qtd | Contato | Status | Ação
+    [42, 0, 36, 130, 28, 62].forEach(function(w) {
+      var col = document.createElement('col');
+      if (w) col.style.width = w + 'px';
+      cg.appendChild(col);
+    });
+    table.style.tableLayout = 'fixed';
+    table.style.width = '100%';
+    table.insertBefore(cg, table.firstChild);
+
+    // Atualizar header para incluir coluna Titular
+    var thead = table.querySelector('thead tr');
+    if (thead && !thead.querySelector('[data-col="titular"]')) {
+      var thBaia = thead.querySelector('th:first-child');
+      if (thBaia) {
+        var thTitular = document.createElement('th');
+        thTitular.setAttribute('data-col','titular');
+        thTitular.textContent = 'Titular';
+        thBaia.insertAdjacentElement('afterend', thTitular);
+      }
+    }
+  })();
 
   // ── Init ───────────────────────────────────────────────────
   window.BAIA_MAP.buildStallMap({ mapElement:elMap, template:elTpl, onStallClick:clickBaia });
@@ -249,25 +274,25 @@ document.addEventListener('DOMContentLoaded', function() {
     renderPagina();
   }
 
+  var statusColors = {available:'#4daa6a',reserved:'#e07070',blocked:'#e8a030',maintenance:'#5a7a5e',selected:'#c9a84c'};
+
   function renderPagina() {
     elTable.innerHTML='';
     if (!linhas.length) {
       elTable.innerHTML='<tr class="empty-row"><td colspan="6">Nenhuma baia encontrada.</td></tr>';
       removerMaisBtn(); return;
     }
-    var statusColors = {available:'#4daa6a',reserved:'#e07070',blocked:'#e8a030',maintenance:'#5a7a5e',selected:'#c9a84c'};
     linhas.slice(0, pagina*PAGE).forEach(function(s) {
       var dotColor = statusColors[s.status] || '#7a9e7e';
+      var nome = s.holderName ? esc(s.holderName) : '<span style="color:var(--muted)">—</span>';
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td><strong>'+fmt(s.number)+'</strong></td>'+
-        '<td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(s.holderName?esc(s.holderName):'')+'">'+
-          (s.holderName?esc(s.holderName):'<span style="color:var(--muted)">—</span>')+
-        '</td>'+
+        '<td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(s.holderName?esc(s.holderName):'')+'">'+nome+'</td>'+
         '<td>'+(s.requestedStalls||'<span style="color:var(--muted)">—</span>')+'</td>'+
-        '<td>'+(s.contactPhone?esc(s.contactPhone):'<span style="color:var(--muted)">—</span>')+'</td>'+
-        '<td title="'+statusLabel(s.status)+'"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+dotColor+';"></span></td>'+
-        '<td><button class="btn" data-n="'+s.number+'" type="button" style="padding:.3rem .6rem;font-size:.78rem;">Abrir</button></td>';
+        '<td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(s.contactPhone?esc(s.contactPhone):'<span style="color:var(--muted)">—</span>')+'</td>'+
+        '<td style="text-align:center;" title="'+statusLabel(s.status)+'"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+dotColor+';flex-shrink:0;"></span></td>'+
+        '<td><button class="btn" data-n="'+s.number+'" type="button" style="padding:.3rem .5rem;font-size:.78rem;width:100%;">Abrir</button></td>';
       elTable.appendChild(tr);
     });
     elTable.querySelectorAll('[data-n]').forEach(function(b) {
