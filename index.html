@@ -1166,7 +1166,12 @@
 
     function mostrarWelcomeSeNecessario(ev) {
       var msg = ev && (ev.welcomeMsg || ev.welcome_msg || '');
-      if (!msg || _welcomeShown[ev.id]) return;
+      if (!msg) return;
+      // Verificar se este dispositivo já viu a mensagem desta prova
+      var lsKey = 'baia_welcome_' + ev.id;
+      try { if (localStorage.getItem(lsKey) === '1') return; } catch(e) {}
+      // Marcar como visto (por dispositivo, por prova)
+      try { localStorage.setItem(lsKey, '1'); } catch(e) {}
       _welcomeShown[ev.id] = true;
       document.getElementById('welcomeModalEvent').textContent = ev.eventName || ev.name || '';
       document.getElementById('welcomeModalText').textContent  = msg;
