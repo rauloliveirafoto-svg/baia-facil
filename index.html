@@ -1158,7 +1158,7 @@
         document.getElementById('selectedEventLabel').textContent = ev.name;
 
         if (isView) {
-          // Modo visualização: mostrar tela direto no mapa aéreo sem intake
+          // Modo visualização: mostrar mapa direto sem intake
           sairModoVisualizacao();
           showScreen('reserva');
           document.getElementById('topbarIntake').hidden = false;
@@ -1169,6 +1169,7 @@
           if (typeof window._entrarEvento === 'function') window._entrarEvento(ev.name);
           // Habilitar modo somente-leitura no competidor
           if (typeof window._ativarModoVisualizacao === 'function') window._ativarModoVisualizacao();
+          mostrarWelcomeSeNecessario(window._selectedEvent);
           abrirSelecaoBlocos();
         } else {
           showScreen('reserva');
@@ -1218,8 +1219,6 @@
       // welcome é mostrado em startReservationFlow — não duplicar aqui
       abrirSelecaoBlocos();
     }
-
-    /* aerialAdvanceBtn removido junto com o mapa aéreo */
 
     function abrirBloco(bloco) {
       window._blocoAtivo = bloco;
@@ -1297,8 +1296,7 @@
       }, 50);
     }
 
-    // atualizarBlocos removida — mapa aéreo foi removido
-    window._atualizarBlocos = function() {};
+    // _atualizarBlocos removida — mapa aéreo foi removido
 
     // voltarParaDados removida — mapa aéreo foi removido, função não é mais chamada
 
