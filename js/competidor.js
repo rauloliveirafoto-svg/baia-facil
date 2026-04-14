@@ -208,6 +208,12 @@ document.addEventListener('DOMContentLoaded', function() {
   var _blocoFiltro = null; // bloco ativo selecionado no mapa aéreo
 
   // ── Mostrar todos os blocos (chamado ao avançar do mapa aéreo) ──
+  // Expor reset do blocoFiltro para goHome() chamar ao voltar para home
+  window._resetBlocoFiltro = function() {
+    _blocoFiltro = null;
+    lastRender = new Map();
+  };
+
   window._mostrarTodosBlocos = function() {
     _blocoFiltro = null;
     lastRender = new Map();
@@ -377,11 +383,18 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   startBtn.addEventListener('click', async function() {
+    // Rebuscar elementos caso inputs dinâmicos ainda não existissem na inicialização
+    var _nome = document.getElementById('intakeHolder');
+    var _qtd  = document.getElementById('intakeQuantity');
+    var _tel  = document.getElementById('intakePhone');
+    if (!_nome || !_qtd || !_tel) { intakeErro.textContent='Erro interno. Recarregue a página.'; return; }
     intakeErro.textContent = '';
-    var nome  = intakeNome.value.trim();
-    var qtd   = Number(intakeQtd.value);
-    var tel   = maskTel(intakeTel.value);
-    intakeTel.value = tel;
+    var nome  = _nome.value.trim();
+    var qtd   = Number(_qtd.value);
+    var tel   = maskTel(_tel.value);
+    _tel.value = tel;
+    // Sincronizar referências locais
+    intakeNome = _nome; intakeQtd = _qtd; intakeTel = _tel;
 
     if (!nome || !qtd || qtd<1 || !tel) { intakeErro.textContent='Preencha todos os campos.'; return; }
     if (!Number.isInteger(qtd) || qtd<=0) { intakeErro.textContent='Quantidade inválida.'; return; }
@@ -394,8 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.BAIA_STATE.competitorCredits = qtd;
 
     // Esconder o intake para sinalizar ao index.html que a validação passou.
-    // O mapa de baias (mapSection) é aberto apenas após o competidor
-    // selecionar um bloco no mapa aéreo — via window._filtrarBloco().
+    // index.html detecta isso e chama abrirSelecaoBlocos() diretamente.
     intakeSection.hidden = true;
   });
 
