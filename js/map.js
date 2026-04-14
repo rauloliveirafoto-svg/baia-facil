@@ -49,8 +49,8 @@
       start:  0, // recalculado abaixo
     }));
 
-    // Recalcular starts preservando o start do primeiro bloco original
-    result[0].start = layout[0].start;
+    // Recalcular starts — garantir que o start inicial é pelo menos 1
+    result[0].start = Math.max(1, Number(layout[0].start) || 1);
     for (let i = 1; i < result.length; i++) {
       result[i].start = result[i - 1].start + result[i - 1].stalls;
     }
@@ -132,40 +132,16 @@
     mapElement.appendChild(blockEl);
   }
 
-  // ── Todos os blocos lado a lado — mapa vertical do competidor ──
-  function buildStallMapVertical({ mapElement, template, onStallClick, blocos }) {
-    if (!mapElement || !template) { console.warn('[buildStallMapVertical] ausente'); return; }
-    const layout = normalizarBlocos(getBlocksLayout(blocos));
-    mapElement.innerHTML = '';
-
-    const grid = document.createElement('div');
-    grid.className = 'stalls-grid-horizontal';
-    mapElement.appendChild(grid);
-
-    layout.forEach((block, blockIndex) => {
-      const blockEl = document.createElement('div');
-      blockEl.className = 'block block--vertical';
-      const title = document.createElement('h2');
-      title.className = 'block__title';
-      title.textContent = block.label || ('Bloco ' + block.id);
-      blockEl.appendChild(title);
-      buildTwoCols(blockEl, template, block.start, block.stalls, onStallClick);
-      grid.appendChild(blockEl);
-
-      if (blockIndex < layout.length - 1) {
-        const corridor = document.createElement('div');
-        corridor.className = 'corridor corridor--vertical';
-        corridor.innerHTML = '<span>Corredor</span>';
-        grid.appendChild(corridor);
-      }
-    });
+  // ── Todos os blocos lado a lado — alias de buildStallMap (mesmo layout) ──
+  function buildStallMapVertical(opts) {
+    buildStallMap(opts);
   }
 
   global.BAIA_MAP = {
     getBlocksLayout,
-    normalizarBlocos,
     buildStallMap,
     buildStallMapBloco,
     buildStallMapVertical,
+    // normalizarBlocos é interna — não exposta externamente
   };
 })(window);
