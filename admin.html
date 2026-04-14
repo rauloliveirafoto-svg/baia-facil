@@ -522,7 +522,8 @@
         if (btn.dataset.action === 'deletar') deletarProva(id, nome);
       };
     }
-    function esc(s){ return String(s).replace(/'/g,"\\'"); }
+    function esc(s)    { return String(s).replace(/'/g,"\\'"); }
+    function escHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
     // ── Formulário ───────────────────────────────────────────────
     function feedback(msg, err) {
