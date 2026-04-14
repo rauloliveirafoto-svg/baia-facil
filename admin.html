@@ -108,6 +108,74 @@
 
     @media(max-width:900px){.layout{grid-template-columns:1fr;}}
     @media(max-width:560px){.stats{grid-template-columns:1fr 1fr;}.field-row,.field-row-3{grid-template-columns:1fr;}}
+
+    /* ── Tabs ── */
+    .tabs { display:flex; gap:.5rem; margin-bottom:1.5rem; }
+    .tab-btn {
+      padding:.55rem 1.25rem; border-radius:9px; border:1px solid var(--border);
+      background:rgba(255,255,255,.04); color:var(--muted); font-family:'Manrope',sans-serif;
+      font-size:.84rem; font-weight:600; cursor:pointer; transition:all .18s;
+    }
+    .tab-btn.active { background:rgba(200,160,39,.15); border-color:var(--gold); color:var(--gold); }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* ── Organizadores ── */
+    .org-list { display:flex; flex-direction:column; gap:.5rem; margin-top:.75rem; }
+    .org-card {
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+      border-radius:12px; padding:.85rem 1rem;
+      display:grid; grid-template-columns:1fr auto; gap:.5rem; align-items:start;
+    }
+    .org-card__name { font-weight:700; color:var(--cream); font-size:.92rem; }
+    .org-card__user { font-size:.75rem; color:var(--muted); margin-top:.1rem; }
+    .org-card__provas { font-size:.73rem; color:rgba(200,160,39,.7); margin-top:.3rem; }
+    .org-card__senha { font-size:.73rem; color:rgba(34,196,122,.7); margin-top:.15rem; font-family:monospace; }
+    .org-card__inativo { opacity:.45; }
+    .org-card__actions { display:flex; gap:.4rem; flex-shrink:0; }
+    .org-card__btn {
+      padding:.3rem .65rem; border-radius:7px; border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.04); color:var(--muted); font-family:'Manrope',sans-serif;
+      font-size:.75rem; font-weight:600; cursor:pointer; transition:all .18s; white-space:nowrap;
+    }
+    .org-card__btn:hover { border-color:var(--border); color:var(--cream); }
+    .org-card__btn.danger { border-color:rgba(238,112,112,.3); color:#EE7070; background:rgba(238,112,112,.07); }
+    .org-card__btn.danger:hover { background:rgba(238,112,112,.18); }
+
+    /* ── Checkboxes de provas ── */
+    .provas-check { display:flex; flex-direction:column; gap:.4rem; max-height:180px; overflow-y:auto;
+      background:rgba(0,0,0,.2); border-radius:9px; padding:.65rem .85rem;
+      border:1px solid rgba(255,255,255,.07); }
+    .provas-check label { display:flex; align-items:center; gap:.5rem; font-size:.82rem; color:var(--cream); cursor:pointer; }
+    .provas-check input[type=checkbox] { width:15px; height:15px; accent-color:var(--gold); flex-shrink:0; }
+
+    /* ── Modal atividade ── */
+    .ativ-modal {
+      position:fixed; inset:0; z-index:80;
+      background:rgba(4,10,5,.85); backdrop-filter:blur(5px);
+      display:flex; align-items:center; justify-content:center; padding:1rem;
+    }
+    .ativ-modal__box {
+      width:min(680px,100%); max-height:85dvh;
+      background:#0d2b10; border:1px solid var(--border); border-radius:18px;
+      padding:1.5rem; display:flex; flex-direction:column; gap:1rem;
+      box-shadow:0 24px 64px rgba(0,0,0,.7);
+    }
+    .ativ-modal__head { display:flex; justify-content:space-between; align-items:center; }
+    .ativ-modal__title { font-family:'Barlow Condensed',sans-serif; font-size:1.2rem; font-weight:800; color:var(--cream); }
+    .ativ-modal__close { background:none; border:none; color:var(--muted); font-size:1.4rem; cursor:pointer; }
+    .ativ-modal__close:hover { color:var(--cream); }
+    .ativ-log { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:.4rem; }
+    .ativ-row {
+      display:grid; grid-template-columns:130px 1fr 1fr; gap:.5rem;
+      padding:.5rem .65rem; border-radius:8px; background:rgba(255,255,255,.03);
+      font-size:.8rem; align-items:center;
+    }
+    .ativ-row__time { color:var(--muted); font-size:.72rem; }
+    .ativ-row__acao { color:var(--cream); font-weight:600; }
+    .ativ-row__det  { color:rgba(200,160,39,.7); font-size:.73rem; }
+    .ativ-export { display:flex; gap:.5rem; }
+    .ativ-export button { flex:1; }
   </style>
 </head>
 <body>
@@ -119,6 +187,15 @@
     <button class="logout-btn" id="logoutBtn">Sair</button>
   </header>
 
+  <div style="max-width:1280px;margin:1.5rem auto 0;padding:0 1.25rem;">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="provas">🏆 Provas</button>
+      <button class="tab-btn" data-tab="organizadores">👤 Organizadores</button>
+    </div>
+  </div>
+
+  <!-- ── TAB PROVAS ── -->
+  <div id="tab-provas" class="tab-panel active">
   <div class="layout">
     <!-- Coluna esquerda: lista de provas -->
     <div>
@@ -193,6 +270,87 @@
       <p class="feedback" id="formFeedback"></p>
       <button class="btn-primary" id="btnSalvar">Criar prova</button>
       <button class="btn-secondary" id="btnCancelar" style="display:none;">Cancelar edição</button>
+    </div>
+  </div>
+
+  </div><!-- /layout provas -->
+  </div><!-- /tab-provas -->
+
+  <!-- ── TAB ORGANIZADORES ── -->
+  <div id="tab-organizadores" class="tab-panel">
+  <div style="max-width:1280px;margin:0 auto 3rem;padding:0 1.25rem;display:grid;grid-template-columns:1fr 380px;gap:1.25rem;align-items:start;">
+
+    <!-- Lista -->
+    <div>
+      <div class="panel">
+        <div class="panel__title" style="display:flex;justify-content:space-between;align-items:center;">
+          Organizadores cadastrados
+          <span id="orgCount" style="font-size:.75rem;color:var(--muted);font-weight:400;">—</span>
+        </div>
+        <div class="org-list" id="orgList">
+          <p style="color:var(--muted);font-size:.84rem;font-style:italic;">Carregando...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulário novo organizador -->
+    <div class="panel" style="position:sticky;top:80px;">
+      <div class="panel__title" id="orgFormTitle">Novo organizador</div>
+      <input type="hidden" id="orgEditingId"/>
+
+      <div class="field">
+        <label>Nome completo *</label>
+        <input id="orgNome" type="text" placeholder="Ex: João da Silva"/>
+      </div>
+      <div class="field">
+        <label>Usuário (login) *</label>
+        <input id="orgUsuario" type="text" placeholder="Ex: joaosilva" autocomplete="off"/>
+        <small style="color:var(--muted);font-size:.7rem;margin-top:.2rem;display:block;">Apenas letras minúsculas e números, sem espaços.</small>
+      </div>
+      <div class="field">
+        <label>Senha</label>
+        <div style="display:flex;gap:.5rem;">
+          <input id="orgSenha" type="text" placeholder="Gerada automaticamente" autocomplete="off" style="flex:1;"/>
+          <button id="orgGerarSenha" type="button" class="btn-secondary" style="white-space:nowrap;padding:.5rem .75rem;font-size:.78rem;">↺ Gerar</button>
+        </div>
+        <small style="color:var(--muted);font-size:.7rem;margin-top:.2rem;display:block;">Padrão: <code id="orgSenhaPreview" style="color:var(--green);">primeironome@2026</code></small>
+      </div>
+      <div class="field">
+        <label>Acesso às provas</label>
+        <div class="provas-check" id="orgProvasCheck">
+          <p style="color:var(--muted);font-size:.78rem;font-style:italic;">Carregando provas...</p>
+        </div>
+      </div>
+      <div class="field" style="flex-direction:row;align-items:center;gap:.5rem;margin-top:.25rem;">
+        <input id="orgAtivo" type="checkbox" checked style="width:16px;height:16px;accent-color:var(--gold);"/>
+        <label for="orgAtivo" style="font-size:.82rem;color:var(--cream);cursor:pointer;">Perfil ativo</label>
+      </div>
+
+      <p class="feedback" id="orgFeedback" style="min-height:1.2rem;margin:.5rem 0;"></p>
+
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn-primary" id="orgSalvar" style="flex:1;">Criar organizador</button>
+        <button class="btn-secondary" id="orgCancelar" style="display:none;">Cancelar</button>
+      </div>
+    </div>
+
+  </div>
+  </div><!-- /tab-organizadores -->
+
+  <!-- Modal atividade do organizador -->
+  <div class="ativ-modal" id="atividadeModal" style="display:none;">
+    <div class="ativ-modal__box">
+      <div class="ativ-modal__head">
+        <span class="ativ-modal__title" id="atividadeTitle">Atividade</span>
+        <button class="ativ-modal__close" id="atividadeClose">✕</button>
+      </div>
+      <div class="ativ-log" id="atividadeLog">
+        <p style="color:var(--muted);font-style:italic;font-size:.84rem;">Carregando...</p>
+      </div>
+      <div class="ativ-export">
+        <button class="btn-secondary" id="atividadeExportCsv">📄 Exportar CSV</button>
+        <button class="btn-secondary" id="atividadeExportPdf">📑 Exportar PDF</button>
+      </div>
     </div>
   </div>
 
@@ -511,6 +669,327 @@
         carregarProvas();
       }
     }, 300);
+
+    // ══════════════════════════════════════════════════════════
+    // TABS
+    // ══════════════════════════════════════════════════════════
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+        btn.classList.add('active');
+        var panel = document.getElementById('tab-' + btn.dataset.tab);
+        if (panel) panel.classList.add('active');
+        if (btn.dataset.tab === 'organizadores') carregarOrgs();
+      });
+    });
+
+    // ══════════════════════════════════════════════════════════
+    // ORGANIZADORES
+    // ══════════════════════════════════════════════════════════
+    var _orgs        = [];
+    var _orgEditando = null;
+    var _atividadeOrg = null;
+    var _atividadeLista = [];
+
+    function orgFeedback(msg, err) {
+      var el = document.getElementById('orgFeedback');
+      el.textContent = msg;
+      el.className = 'feedback ' + (err ? 'feedback-err' : 'feedback-ok');
+      if (!err) setTimeout(function(){ el.textContent=''; }, 4000);
+    }
+
+    function orgLimparForm() {
+      document.getElementById('orgEditingId').value = '';
+      document.getElementById('orgNome').value    = '';
+      document.getElementById('orgUsuario').value = '';
+      document.getElementById('orgSenha').value   = '';
+      document.getElementById('orgAtivo').checked = true;
+      document.getElementById('orgFormTitle').textContent = 'Novo organizador';
+      document.getElementById('orgSalvar').textContent    = 'Criar organizador';
+      document.getElementById('orgCancelar').style.display = 'none';
+      document.getElementById('orgSenhaPreview').textContent = 'primeironome@2026';
+      _orgEditando = null;
+      renderProvasCheck([]);
+    }
+
+    async function carregarOrgs() {
+      if (!window.FB) return;
+      try {
+        _orgs = await window.FB.orgGetTodos();
+        renderOrgList();
+        // Atualizar checkboxes de provas no formulário
+        var selecionadas = _orgEditando
+          ? (_orgs.find(function(o){ return o.id===_orgEditando; }) || {}).provas || []
+          : [];
+        renderProvasCheck(selecionadas);
+      } catch(e) {
+        document.getElementById('orgList').innerHTML =
+          '<p style="color:var(--red);font-size:.84rem;">Erro: '+e.message+'</p>';
+      }
+    }
+
+    function renderOrgList() {
+      var el = document.getElementById('orgList');
+      var count = document.getElementById('orgCount');
+      if (count) count.textContent = _orgs.length + ' cadastrado(s)';
+      if (!_orgs.length) {
+        el.innerHTML = '<p style="color:var(--muted);font-size:.84rem;font-style:italic;">Nenhum organizador cadastrado ainda.</p>';
+        return;
+      }
+      el.innerHTML = '';
+      _orgs.forEach(function(org) {
+        var card = document.createElement('div');
+        card.className = 'org-card' + (org.ativo === false ? ' org-card__inativo' : '');
+
+        var info = document.createElement('div');
+        var provasNomes = (org.provas||[]).map(function(pid) {
+          var p = _provas.find(function(x){ return x.id === pid; });
+          return p ? p.eventName : pid;
+        }).join(', ') || 'Nenhuma prova';
+
+        var statusTag = org.ativo === false
+          ? '<span style="color:var(--red);font-size:.68rem;font-weight:700;margin-left:.4rem;">INATIVO</span>'
+          : '';
+
+        info.innerHTML =
+          '<div class="org-card__name">'+escHtml(org.nome||org.id)+statusTag+'</div>'+
+          '<div class="org-card__user">@'+escHtml(org.usuario||org.id)+'</div>'+
+          '<div class="org-card__provas">📋 '+escHtml(provasNomes)+'</div>'+
+          '<div class="org-card__senha">🔑 '+escHtml(org.senha||'—')+'</div>';
+
+        var actions = document.createElement('div');
+        actions.className = 'org-card__actions';
+
+        var btnEdit = document.createElement('button');
+        btnEdit.className = 'org-card__btn';
+        btnEdit.textContent = '✏ Editar';
+        btnEdit.addEventListener('click', function(){ orgIniciarEdicao(org); });
+
+        var btnAtiv = document.createElement('button');
+        btnAtiv.className = 'org-card__btn';
+        btnAtiv.textContent = org.ativo === false ? '✓ Ativar' : '⊘ Desativar';
+        btnAtiv.addEventListener('click', function(){ orgToggleAtivo(org); });
+
+        var btnLog = document.createElement('button');
+        btnLog.className = 'org-card__btn';
+        btnLog.textContent = '📋 Atividade';
+        btnLog.addEventListener('click', function(){ abrirAtividade(org); });
+
+        var btnDel = document.createElement('button');
+        btnDel.className = 'org-card__btn danger';
+        btnDel.textContent = '✕ Excluir';
+        btnDel.addEventListener('click', function(){ orgDeletar(org); });
+
+        actions.appendChild(btnEdit);
+        actions.appendChild(btnAtiv);
+        actions.appendChild(btnLog);
+        actions.appendChild(btnDel);
+        card.appendChild(info);
+        card.appendChild(actions);
+        el.appendChild(card);
+      });
+    }
+
+    function renderProvasCheck(selecionadas) {
+      var wrap = document.getElementById('orgProvasCheck');
+      if (!wrap) return;
+      if (!_provas.length) {
+        wrap.innerHTML = '<p style="color:var(--muted);font-size:.78rem;font-style:italic;">Nenhuma prova disponível.</p>';
+        return;
+      }
+      wrap.innerHTML = '';
+      _provas.forEach(function(p) {
+        var label = document.createElement('label');
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = p.id;
+        cb.checked = selecionadas.indexOf(p.id) >= 0;
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(' ' + (p.eventName||p.id)));
+        wrap.appendChild(label);
+      });
+    }
+
+    function getProvasSelecionadas() {
+      return Array.from(document.querySelectorAll('#orgProvasCheck input:checked'))
+        .map(function(cb){ return cb.value; });
+    }
+
+    // Preview de senha ao digitar o nome
+    document.getElementById('orgNome').addEventListener('input', function() {
+      if (_orgEditando) return; // não sobrescrever em edição
+      if (!window.FB) return;
+      var senha = window.FB.gerarSenhaOrg(this.value);
+      document.getElementById('orgSenhaPreview').textContent = senha || 'primeironome@2026';
+      if (!document.getElementById('orgSenha').value) {
+        // Pré-preencher o campo de senha
+      }
+    });
+
+    document.getElementById('orgGerarSenha').addEventListener('click', function() {
+      var nome = document.getElementById('orgNome').value;
+      if (!window.FB) return;
+      var senha = window.FB.gerarSenhaOrg(nome);
+      document.getElementById('orgSenha').value = senha;
+      orgFeedback('Senha gerada: ' + senha, false);
+    });
+
+    document.getElementById('orgSalvar').addEventListener('click', async function() {
+      var nome    = document.getElementById('orgNome').value.trim();
+      var usuario = document.getElementById('orgUsuario').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+      var senha   = document.getElementById('orgSenha').value.trim() ||
+                    (window.FB ? window.FB.gerarSenhaOrg(nome) : nome.split(' ')[0].toLowerCase()+'@2026');
+      var ativo   = document.getElementById('orgAtivo').checked;
+      var provas  = getProvasSelecionadas();
+
+      if (!nome)    { orgFeedback('Informe o nome.', true); return; }
+      if (!usuario) { orgFeedback('Informe o usuário (só letras e números).', true); return; }
+
+      this.disabled = true;
+      try {
+        if (_orgEditando) {
+          await window.FB.orgEditar(_orgEditando, { nome, provas, ativo, senha });
+          orgFeedback('Organizador atualizado.', false);
+        } else {
+          await window.FB.orgCriar({ nome, usuario, provas, senha, criadoPor:'admin' });
+          orgFeedback('Organizador criado! Login: ' + usuario + ' | Senha: ' + senha, false);
+        }
+        orgLimparForm();
+        await carregarOrgs();
+      } catch(e) {
+        orgFeedback('Erro: ' + e.message, true);
+      } finally {
+        this.disabled = false;
+      }
+    });
+
+    document.getElementById('orgCancelar').addEventListener('click', orgLimparForm);
+
+    function orgIniciarEdicao(org) {
+      _orgEditando = org.id;
+      document.getElementById('orgEditingId').value = org.id;
+      document.getElementById('orgNome').value    = org.nome || '';
+      document.getElementById('orgUsuario').value = org.usuario || org.id;
+      document.getElementById('orgUsuario').readOnly = true;
+      document.getElementById('orgSenha').value   = org.senha || '';
+      document.getElementById('orgAtivo').checked = org.ativo !== false;
+      document.getElementById('orgFormTitle').textContent = 'Editar: ' + (org.nome||org.id);
+      document.getElementById('orgSalvar').textContent    = 'Salvar alterações';
+      document.getElementById('orgCancelar').style.display = 'inline-flex';
+      renderProvasCheck(org.provas || []);
+      document.getElementById('orgNome').focus();
+      document.getElementById('orgNome').scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+
+    async function orgToggleAtivo(org) {
+      var novoEstado = org.ativo === false ? true : false;
+      var msg = novoEstado ? 'Ativar o organizador ' : 'Desativar o organizador ';
+      confirmar(
+        (novoEstado ? 'Ativar' : 'Desativar') + ' organizador',
+        msg + (org.nome||org.id) + '?',
+        async function() {
+          await window.FB.orgEditar(org.id, { ativo: novoEstado });
+          await carregarOrgs();
+        }
+      );
+    }
+
+    async function orgDeletar(org) {
+      confirmar(
+        'Excluir organizador',
+        'Excluir permanentemente o organizador ' + (org.nome||org.id) + '? Esta ação não pode ser desfeita.',
+        async function() {
+          await window.FB.orgDeletar(org.id);
+          await carregarOrgs();
+        }
+      );
+    }
+
+    // ── Modal de atividade ──────────────────────────────────────
+    async function abrirAtividade(org) {
+      _atividadeOrg = org;
+      document.getElementById('atividadeTitle').textContent = 'Atividade — ' + (org.nome||org.id);
+      document.getElementById('atividadeModal').style.display = 'flex';
+      document.getElementById('atividadeLog').innerHTML =
+        '<p style="color:var(--muted);font-style:italic;font-size:.84rem;">Carregando...</p>';
+
+      _atividadeLista = await window.FB.orgGetAtividade(org.id);
+      renderAtividadeLog();
+    }
+
+    function renderAtividadeLog() {
+      var el = document.getElementById('atividadeLog');
+      if (!_atividadeLista.length) {
+        el.innerHTML = '<p style="color:var(--muted);font-style:italic;font-size:.84rem;">Nenhuma atividade registrada.</p>';
+        return;
+      }
+      el.innerHTML = '';
+      _atividadeLista.forEach(function(a) {
+        var row = document.createElement('div');
+        row.className = 'ativ-row';
+        var time = a.at ? new Date(a.at).toLocaleString('pt-BR') : '—';
+        row.innerHTML =
+          '<span class="ativ-row__time">'+escHtml(time)+'</span>'+
+          '<span class="ativ-row__acao">'+escHtml(a.acao||'—')+'</span>'+
+          '<span class="ativ-row__det">'+escHtml(a.detalhes||'')+'</span>';
+        el.appendChild(row);
+      });
+    }
+
+    document.getElementById('atividadeClose').addEventListener('click', function() {
+      document.getElementById('atividadeModal').style.display = 'none';
+      _atividadeOrg = null;
+    });
+
+    document.getElementById('atividadeExportCsv').addEventListener('click', function() {
+      if (!_atividadeOrg || !_atividadeLista.length) return;
+      var rows = [['Data/Hora','Ação','Detalhes']];
+      _atividadeLista.forEach(function(a) {
+        rows.push([
+          a.at ? new Date(a.at).toLocaleString('pt-BR') : '—',
+          a.acao || '',
+          a.detalhes || '',
+        ]);
+      });
+      var csv = rows.map(function(r){
+        return r.map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
+      }).join('
+');
+      var blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+      var url  = URL.createObjectURL(blob);
+      var a    = Object.assign(document.createElement('a'), {
+        href:url, download:'atividade-'+(_atividadeOrg.usuario||_atividadeOrg.id)+'.csv'
+      });
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('atividadeExportPdf').addEventListener('click', async function() {
+      if (!_atividadeOrg || !_atividadeLista.length) return;
+      var org  = _atividadeOrg;
+      var nome = org.nome || org.id;
+      // Montar HTML simples para impressão
+      var linhas = _atividadeLista.map(function(a) {
+        var time = a.at ? new Date(a.at).toLocaleString('pt-BR') : '—';
+        return '<tr><td>'+escHtml(time)+'</td><td>'+escHtml(a.acao||'—')+'</td><td>'+escHtml(a.detalhes||'')+'</td></tr>';
+      }).join('');
+      var win = window.open('','_blank');
+      win.document.write(
+        '<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Atividade — '+escHtml(nome)+'</title>'+
+        '<style>body{font-family:Arial,sans-serif;margin:2cm;color:#111;}h1{font-size:1.1rem;}'+
+        'table{width:100%;border-collapse:collapse;font-size:.82rem;}'+
+        'th{background:#f0f0f0;padding:.4rem .5rem;text-align:left;border-bottom:2px solid #ccc;}'+
+        'td{padding:.35rem .5rem;border-bottom:1px solid #eee;}'+
+        'tr:nth-child(even) td{background:#fafafa;}</style></head><body>'+
+        '<h1>Atividade — '+escHtml(nome)+' (@'+escHtml(org.usuario||org.id)+')</h1>'+
+        '<p style="font-size:.78rem;color:#666;margin-bottom:1rem;">Gerado em '+new Date().toLocaleString('pt-BR')+'</p>'+
+        '<table><thead><tr><th>Data/Hora</th><th>Ação</th><th>Detalhes</th></tr></thead>'+
+        '<tbody>'+linhas+'</tbody></table></body></html>'
+      );
+      win.document.close();
+      setTimeout(function(){ win.print(); }, 400);
+    });
+
   </script>
 </body>
 </html>

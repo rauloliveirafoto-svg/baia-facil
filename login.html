@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Acesso ao Painel | Reserva de Baias</title>
+    <link rel="icon" href="img/logo.png" type="image/png">
+    <title>Acesso ao Painel | Baia Fácil</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -26,18 +27,21 @@
           <p class="login-subtitle">Acesso restrito ao painel do organizador</p>
         </div>
 
-        <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:0.65rem 1rem;margin-bottom:0.5rem;font-size:0.78rem;color:var(--gold);text-align:center;">
-          <strong>Demo:</strong> &nbsp;usuário <code style="background:rgba(255,255,255,.08);padding:0.1rem 0.4rem;border-radius:4px;">organizador</code> &nbsp;senha <code style="background:rgba(255,255,255,.08);padding:0.1rem 0.4rem;border-radius:4px;">baias2025</code>
-        </div>
-        <form class="login-form" id="loginForm" novalidate>
+        <form class="login-form" id="loginForm" novalidate autocomplete="off">
+          <!-- Honeypots para evitar autocomplete do browser -->
+          <div style="position:absolute;left:-9999px;opacity:0;height:0;overflow:hidden;">
+            <input type="text" name="username_fake" tabindex="-1"/>
+            <input type="password" name="password_fake" tabindex="-1"/>
+          </div>
+
           <div class="field">
             <label class="field__label" for="loginUser">Usuário</label>
             <input
               class="field__input"
               id="loginUser"
               type="text"
-              placeholder="organizador"
-              autocomplete="username"
+              placeholder="seu usuário"
+              autocomplete="nope"
               required
             />
           </div>
@@ -50,7 +54,7 @@
                 id="loginPass"
                 type="password"
                 placeholder="••••••••"
-                autocomplete="current-password"
+                autocomplete="nope"
                 required
               />
               <button class="field__eye" id="togglePass" type="button" aria-label="Mostrar senha">
@@ -77,6 +81,11 @@
       </div>
     </main>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/firebase.js"></script>
     <script src="js/auth.js"></script>
     <script>
       // Redireciona se já estiver autenticado
@@ -84,54 +93,62 @@
         window.location.replace('organizador.html');
       }
 
-      const form = document.getElementById('loginForm');
-      const userInput = document.getElementById('loginUser');
-      const passInput = document.getElementById('loginPass');
-      const loginError = document.getElementById('loginError');
-      const togglePass = document.getElementById('togglePass');
+      var form       = document.getElementById('loginForm');
+      var userInput  = document.getElementById('loginUser');
+      var passInput  = document.getElementById('loginPass');
+      var loginError = document.getElementById('loginError');
+      var togglePass = document.getElementById('togglePass');
 
-      togglePass.addEventListener('click', () => {
-        const isPassword = passInput.type === 'password';
+      togglePass.addEventListener('click', function() {
+        var isPassword = passInput.type === 'password';
         passInput.type = isPassword ? 'text' : 'password';
         togglePass.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
       });
 
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', function(e) {
         e.preventDefault();
         loginError.textContent = '';
 
-        const user = userInput.value.trim();
-        const pass = passInput.value;
+        var user = userInput.value.trim();
+        var pass = passInput.value;
 
         if (!user || !pass) {
           loginError.textContent = 'Preencha usuário e senha para continuar.';
           return;
         }
 
-        var btn = document.getElementById('loginBtn');
+        var btn     = document.getElementById('loginBtn');
         var btnText = btn.querySelector('.login-btn__text');
         btn.disabled = true;
         btnText.textContent = 'Verificando...';
 
-        setTimeout(function() {
-          var result = BAIA_AUTH.login(user, pass);
-          if (result) {
-            btnText.textContent = '✓ Acesso autorizado';
-            // Passa sessão via hash como fallback para file://
-            var token = btoa(JSON.stringify(result));
-            setTimeout(function() {
-              window.location.href = 'organizador.html#auth=' + token;
-            }, 400);
-          } else {
-            loginError.textContent = 'Usuário ou senha incorretos. Tente novamente.';
-            passInput.value = '';
+        // Tentar login — primeiro credenciais fixas, depois Firebase
+        setTimeout(async function() {
+          try {
+            var result = await BAIA_AUTH.loginFirebase(user, pass);
+            if (result) {
+              btnText.textContent = '✓ Acesso autorizado';
+              // Passa sessão via hash como fallback para file://
+              var token = btoa(JSON.stringify(result));
+              setTimeout(function() {
+                window.location.href = 'organizador.html#auth=' + token;
+              }, 400);
+            } else {
+              loginError.textContent = 'Usuário ou senha incorretos. Tente novamente.';
+              passInput.value = '';
+              btn.disabled = false;
+              btnText.textContent = 'Entrar no painel';
+              passInput.focus();
+            }
+          } catch(err) {
+            loginError.textContent = 'Erro de conexão. Verifique seu sinal.';
             btn.disabled = false;
             btnText.textContent = 'Entrar no painel';
-            passInput.focus();
           }
-        }, 500);
+        }, 400);
       });
-      // Botão limpar sessão (para testes)
+
+      // Botão limpar sessão
       var clearBtn = document.getElementById('clearSessionBtn');
       if (clearBtn) {
         clearBtn.addEventListener('click', function() {
