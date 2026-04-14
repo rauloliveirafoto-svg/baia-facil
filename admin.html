@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
+  <link rel="icon" href="img/logo.png" type="image/png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Baia Fácil | Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -299,28 +300,68 @@
 
     function renderTabela() {
       var tbody = document.getElementById('provasTableBody');
+      tbody.innerHTML = '';
       if (!_provas.length) {
         tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:1.5rem;">Nenhuma prova cadastrada.</td></tr>';
         return;
       }
-      tbody.innerHTML = _provas.map(function(p) {
+      _provas.forEach(function(p) {
         var enc = p.status === 'encerrada';
-        return '<tr>'+
-          '<td style="font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(p.eventName||'—')+'</td>'+
-          '<td style="color:var(--muted);font-size:.78rem;">'+(p.date||'—')+'</td>'+
-          '<td>'+(p.totalStalls||'—')+'</td>'+
-          '<td>'+(p.numBlocos||'—')+'</td>'+
-          '<td style="color:'+(p._res>0?'#22C47A':'var(--muted)')+';">'+(p._res||0)+'</td>'+
-          '<td><span class="chip '+(enc?'chip-enc':'chip-ok')+'">'+(enc?'Encerrada':'Ativa')+'</span></td>'+
-          '<td><div class="tbl-actions">'+
-            '<button class="icon-btn" onclick="editarProva(\''+p.id+'\')">✏ Editar</button>'+
-            '<button class="icon-btn" onclick="resetarProva(\''+p.id+'\',\''+esc(p.eventName||'')+'\')">↺ Reset</button>'+
-            '<button class="icon-btn danger" onclick="deletarProva(\''+p.id+'\',\''+esc(p.eventName||'')+'\')">✕ Apagar</button>'+
-          '</div></td>'+
-        '</tr>';
-      }).join('');
-    }
+        var tr = document.createElement('tr');
 
+        var nameCell = document.createElement('td');
+        nameCell.style.cssText = 'font-weight:600;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        nameCell.textContent = p.eventName || '—';
+        tr.appendChild(nameCell);
+
+        var tdDate = document.createElement('td');
+        tdDate.style.cssText = 'color:var(--muted);font-size:.78rem;';
+        tdDate.textContent = p.date || '—';
+        tr.appendChild(tdDate);
+
+        [p.totalStalls||'—', p.numBlocos||'—'].forEach(function(val) {
+          var td = document.createElement('td'); td.textContent = val; tr.appendChild(td);
+        });
+
+        var tdRes = document.createElement('td');
+        tdRes.style.color = p._res > 0 ? '#22C47A' : 'var(--muted)';
+        tdRes.textContent = p._res || 0;
+        tr.appendChild(tdRes);
+
+        var tdChip = document.createElement('td');
+        var chip = document.createElement('span');
+        chip.className = 'chip ' + (enc ? 'chip-enc' : 'chip-ok');
+        chip.textContent = enc ? 'Encerrada' : 'Ativa';
+        tdChip.appendChild(chip);
+        tr.appendChild(tdChip);
+
+        var tdAct = document.createElement('td');
+        var wrap = document.createElement('div');
+        wrap.className = 'tbl-actions';
+        [
+          {label:'✏ Editar', action:'editar', cls:'icon-btn'},
+          {label:'↺ Reset',  action:'resetar',cls:'icon-btn'},
+          {label:'✕ Apagar', action:'deletar',cls:'icon-btn danger'},
+        ].forEach(function(item) {
+          var btn = document.createElement('button');
+          btn.className = item.cls; btn.textContent = item.label;
+          btn.dataset.action = item.action; btn.dataset.id = p.id; btn.dataset.nome = p.eventName || '';
+          wrap.appendChild(btn);
+        });
+        tdAct.appendChild(wrap);
+        tr.appendChild(tdAct);
+        tbody.appendChild(tr);
+      });
+
+      tbody.onclick = function(e) {
+        var btn = e.target.closest('[data-action]');
+        if (!btn) return;
+        var id = btn.dataset.id, nome = btn.dataset.nome || '';
+        if (btn.dataset.action === 'editar')  editarProva(id);
+        if (btn.dataset.action === 'resetar') resetarProva(id, nome);
+        if (btn.dataset.action === 'deletar') deletarProva(id, nome);
+      };
+    }
     function esc(s){ return String(s).replace(/'/g,"\\'"); }
 
     // ── Formulário ───────────────────────────────────────────────

@@ -1215,7 +1215,7 @@
 
     function abrirMapaAereo() {
       // Mapa aéreo removido — ir direto para seleção de blocos
-      mostrarWelcomeSeNecessario(window._selectedEvent);
+      // welcome é mostrado em startReservationFlow — não duplicar aqui
       abrirSelecaoBlocos();
     }
 
@@ -1251,8 +1251,9 @@
 
       msg.textContent = 'O '+bloco.label+' não tem vagas suficientes para '+qtd+' baia(s).';
 
+      var BLOCOS_LOCAL = (window.BAIA_CONFIG && window.BAIA_CONFIG.STALL_BLOCKS) || [];
       var alternativo = null;
-      BLOCOS.forEach(function(b) {
+      BLOCOS_LOCAL.forEach(function(b) {
         if (b.id === bloco.id || alternativo) return;
         var disp = stalls.filter(function(s){ return s.block===b.id && s.status==='available'; }).length;
         if (disp >= qtd) alternativo = b;
@@ -1357,7 +1358,6 @@
     }
 
     /* ── goHome ─────────────────────────────────────────── */
-    window._goHomeCallback = function() { goHome(); };
 
     function goHome() {
       sairModoVisualizacao();
@@ -1398,6 +1398,7 @@
       document.getElementById('aerialAlert').hidden = true;
       if (typeof window.pararListenerCompetidor==='function') window.pararListenerCompetidor();
       window._selectedEvent=null; window._blocoAtivo=null;
+      if (typeof window._resetBlocoFiltro === 'function') window._resetBlocoFiltro();
       showScreen('home');
       window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
     }
@@ -1422,10 +1423,8 @@
        MODO VISUALIZAÇÃO DO MAPA
     ══════════════════════════════════════════════════════ */
     var _modoVisualizacao = false;
-    var btnVerMapa = document.getElementById('btnVerMapa');
     var viewModeBanner = document.getElementById('viewModeBanner');
-
-    // btnVerMapa removido do header — agora cada card tem seu próprio botão "Ver mapa"
+    // btnVerMapa removido — cada card tem seu próprio botão "Ver mapa"
     // A flag _modoVisualizacao é setada diretamente no listener do card
 
     function abrirModoVisualizacao() {
