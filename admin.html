@@ -388,6 +388,8 @@
     }
     if (!checkAuth()) throw new Error('auth');
 
+    document.addEventListener('DOMContentLoaded', function() {
+
     document.getElementById('logoutBtn').addEventListener('click', function() {
       window.location.replace('index.html');
     });
@@ -989,6 +991,8 @@
       win.document.close();
       setTimeout(function(){ win.print(); }, 400);
     });
+
+    }); // DOMContentLoaded
 
   </script>
 </body>
