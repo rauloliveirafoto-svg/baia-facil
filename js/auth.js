@@ -36,6 +36,7 @@
     }
     if (!data) {
       // 3. Cookie
+      // CORREÇÃO: usar '\\s' dentro da string para que RegExp receba \s (whitespace) e não s literal
       try {
         var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + KEY + '=([^;]*)'));
         if (m) data = JSON.parse(decodeURIComponent(m[1]));
@@ -73,6 +74,34 @@
     return data;
   }
 
+  // Login assíncrono — valida contra Firebase (organizadores criados pelo admin)
+  async function loginFirebase(user, pass) {
+    // 1. Tentar credenciais fixas primeiro (admin/organizador padrão)
+    var resultado = login(user, pass);
+    if (resultado) return resultado;
+
+    // 2. Tentar organizador do Firebase
+    if (!window.FB || !window.FB.orgBuscar) return false;
+    var org = await window.FB.orgBuscar(user.trim().toLowerCase());
+    if (!org) return false;
+    if (!org.ativo) return false;
+    if (org.senha !== pass) return false;
+
+    var data = {
+      user:   org.usuario,
+      role:   'organizer',
+      nome:   org.nome,
+      provas: org.provas || [],
+      at:     Date.now(),
+    };
+    save(data);
+    // Registrar acesso no log de atividade
+    if (window.FB && window.FB.orgRegistrarAtividade) {
+      window.FB.orgRegistrarAtividade(org.usuario, 'Login', navigator.platform || '');
+    }
+    return data;
+  }
+
   function logout()          { clear(); }
   function isAuthenticated() { return !!load(); }
   function getSession()      { return load(); }
@@ -84,5 +113,5 @@
     }
   }
 
-  global.BAIA_AUTH = { login, logout, isAuthenticated, getSession, requireAuth };
+  global.BAIA_AUTH = { login, loginFirebase, logout, isAuthenticated, getSession, requireAuth };
 })(window);

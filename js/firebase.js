@@ -589,6 +589,116 @@
     return list;
   }
 
+  // ── Gestão de organizadores ─────────────────────────────────
+  // Coleção: organizadores/{usuario}
+  // Campos: nome, usuario, senha, provas[], criadoEm, ativo
+
+  function refOrg(usuario) {
+    return db.collection('organizadores').doc(String(usuario).toLowerCase().trim());
+  }
+
+  // Gerar senha padrão: primeironome@2026
+  function gerarSenhaOrg(nome) {
+    var primeiro = (nome || '').trim().split(/\s+/)[0].toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '') // remover acentos
+      .replace(/[^a-z0-9]/g, ''); // só letras e números
+    return primeiro + '@2026';
+  }
+
+  async function orgCriar(dados) {
+    // dados: { nome, usuario, provas[] }
+    var usuario = String(dados.usuario || '').toLowerCase().trim();
+    if (!usuario) throw new Error('Usuário inválido');
+    var snap = await refOrg(usuario).get();
+    if (snap.exists) throw new Error('Usuário já existe: ' + usuario);
+    var senha = gerarSenhaOrg(dados.nome);
+    var doc = {
+      nome:     dados.nome || '',
+      usuario:  usuario,
+      senha:    senha,
+      provas:   dados.provas || [],
+      ativo:    true,
+      criadoEm: new Date().toISOString(),
+      criadoPor: dados.criadoPor || 'admin',
+    };
+    await refOrg(usuario).set(doc);
+    return Object.assign({ id: usuario }, doc);
+  }
+
+  async function orgEditar(usuario, dados) {
+    var snap = await refOrg(usuario).get();
+    if (!snap.exists) throw new Error('Organizador não encontrado');
+    var update = {};
+    if (dados.nome   !== undefined) update.nome   = dados.nome;
+    if (dados.provas !== undefined) update.provas  = dados.provas;
+    if (dados.ativo  !== undefined) update.ativo   = dados.ativo;
+    if (dados.senha  !== undefined) update.senha   = dados.senha;
+    update.atualizadoEm = new Date().toISOString();
+    await refOrg(usuario).update(update);
+    return update;
+  }
+
+  async function orgDeletar(usuario) {
+    await refOrg(usuario).delete();
+    // Apagar log de atividade
+    try {
+      await db.collection('organizadores').doc(String(usuario))
+        .collection('atividade').doc('log').delete();
+    } catch(e) {}
+  }
+
+  async function orgGetTodos() {
+    var snap = await db.collection('organizadores').get();
+    var list = [];
+    snap.forEach(function(d) { list.push(Object.assign({ id: d.id }, d.data())); });
+    list.sort(function(a, b){ return (a.nome||'').localeCompare(b.nome||''); });
+    return list;
+  }
+
+  // Buscar um organizador pelo usuário — usado pelo login
+  async function orgBuscar(usuario) {
+    try {
+      var snap = await refOrg(usuario).get();
+      return snap.exists ? Object.assign({ id: snap.id }, snap.data()) : null;
+    } catch(e) { return null; }
+  }
+
+  // Registrar ação do organizador (para relatório de atividade)
+  async function orgRegistrarAtividade(usuario, acao, detalhes) {
+    var entrada = {
+      at:       new Date().toISOString(),
+      ts:       Date.now(),
+      acao:     acao || '',
+      detalhes: detalhes || '',
+      usuario:  usuario || '',
+    };
+    try {
+      await db.collection('organizadores').doc(String(usuario))
+        .collection('atividade').doc('log')
+        .set({ acoes: firebase.firestore.FieldValue.arrayUnion(entrada) }, { merge: true });
+    } catch(e) { console.warn('[orgRegistrarAtividade]', e.message); }
+  }
+
+  // Buscar log de atividade de um organizador
+  async function orgGetAtividade(usuario) {
+    try {
+      var snap = await db.collection('organizadores').doc(String(usuario))
+        .collection('atividade').doc('log').get();
+      if (!snap.exists) return [];
+      var acoes = snap.data().acoes || [];
+      acoes.sort(function(a, b){ return (b.ts||0) - (a.ts||0); });
+      return acoes;
+    } catch(e) { return []; }
+  }
+
+  // Redefinir senha de um organizador
+  async function orgRedefinirSenha(usuario, novaSenha) {
+    await refOrg(usuario).update({
+      senha: novaSenha,
+      atualizadoEm: new Date().toISOString(),
+    });
+  }
+
   window.FB = {
     initProva, getProvas, salvar, escutar, reservarAtomico,
     buscarReservasPorTelefone, buscarReservasPorProtocolo,
@@ -598,5 +708,8 @@
     // Admin
     adminCriarProva, adminEditarProva, adminDeletarProva, adminResetarProva, adminGetProvas,
     normalizarBlocos, montarStalls,
+    // Organizadores
+    orgCriar, orgEditar, orgDeletar, orgGetTodos, orgBuscar,
+    orgRegistrarAtividade, orgGetAtividade, orgRedefinirSenha, gerarSenhaOrg,
   };
 })();

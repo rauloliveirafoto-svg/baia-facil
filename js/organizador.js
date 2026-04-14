@@ -104,6 +104,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!elSel || !window.FB) return;
     try {
       var provas = await window.FB.getProvas();
+
+      // Filtrar provas pelo perfil do organizador (se tiver lista de provas na sessão)
+      var sessao = window.BAIA_AUTH && window.BAIA_AUTH.getSession();
+      var provasPermitidas = sessao && sessao.provas && sessao.provas.length
+        ? sessao.provas : null; // null = acesso total (organizador padrão / admin)
+
+      if (provasPermitidas) {
+        provas = provas.filter(function(p){ return provasPermitidas.indexOf(p.id) >= 0; });
+      }
+
       // Separar ativas e encerradas
       var ativas     = provas.filter(function(p){ return p.status !== 'encerrada'; });
       var encerradas = provas.filter(function(p){ return p.status === 'encerrada'; });
@@ -208,7 +218,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ── Botões de ação ─────────────────────────────────────────
   $('btnReleaseStall').addEventListener('click', function() {
-    reqSel(function() { atualizarBaia(selBaia,{status:'available'}); addLog('Liberada', selBaia); msg('Baia liberada.'); });
+    reqSel(function() {
+      atualizarBaia(selBaia,{status:'available'}); addLog('Liberada', selBaia); msg('Baia liberada.');
+      if (window.FB && window.FB.orgRegistrarAtividade && sessUser !== 'organizador' && sessUser !== 'admin') {
+        window.FB.orgRegistrarAtividade(sessUser, 'Baia liberada', 'Baia '+fmt(selBaia)+' — '+evId);
+      }
+    });
   });
   $('btnBlockStall').addEventListener('click', function() {
     reqSel(function() {
