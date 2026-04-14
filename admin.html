@@ -956,8 +956,7 @@
       });
       var csv = rows.map(function(r){
         return r.map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
-      }).join('
-');
+      }).join('\n');
       var blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
       var url  = URL.createObjectURL(blob);
       var a    = Object.assign(document.createElement('a'), {
