@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="img/logo.png" type="image/png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Check-in | Baia Fácil</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -141,19 +142,13 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK + config compartilhada via firebase.js -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/firebase.js"></script>
   <script>
-    // ── Init Firebase ────────────────────────────────────────────
-    firebase.initializeApp({
-      apiKey:            'AIzaSyBlzdSYuhpVoDQgDtmXaDf6q_sdHXrotxI',
-      authDomain:        'baia-facil.firebaseapp.com',
-      projectId:         'baia-facil',
-      storageBucket:     'baia-facil.firebasestorage.app',
-      messagingSenderId: '884178519628',
-      appId:             '1:884178519628:web:de4343fc588e2cb18416e9',
-    });
+    // db compartilhado via firebase.js (já inicializado)
     var db = firebase.firestore();
 
     // ── Params da URL ────────────────────────────────────────────
@@ -213,6 +208,13 @@
       try {
         var result = await realizarCheckin(evId, baiaNum, tel);
 
+        if (result.encerrada) {
+          notFoundTitle.textContent = 'Prova encerrada';
+          notFoundMsg.textContent   = 'Esta prova foi encerrada. O check-in não está mais disponível.';
+          show('notFoundSection');
+          return;
+        }
+
         if (result.ok) {
           // Montar detalhes
           successDetails.innerHTML =
@@ -244,6 +246,12 @@
         if (!snap.exists) throw new Error('Prova não encontrada');
 
         var data   = snap.data();
+
+        // Bloquear check-in em prova encerrada — mensagem clara ao competidor
+        if (data.status === 'encerrada') {
+          resultado = { ok: false, encerrada: true }; return;
+        }
+
         var stalls = data.stalls || [];
         var stall  = stalls.find(function(s){ return s.number === baiaNum; });
 
