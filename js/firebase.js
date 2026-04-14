@@ -271,7 +271,8 @@
   // ── Buscar por telefone ───────────────────────────────────────
   async function buscarReservasPorTelefone(telefone) {
     var tel  = telefone.replace(/\D/g, '');
-    var snap = await db.collection('provas').get();
+    // Full scan — aceitável com <50 provas; revisar se crescer muito
+    var snap = await db.collection('provas').limit(50).get();
     var resultados = [];
     snap.forEach(function(doc) {
       var data  = doc.data();
@@ -294,7 +295,8 @@
   // ── Buscar por protocolo ──────────────────────────────────────
   async function buscarReservasPorProtocolo(protocolo) {
     var proto = protocolo.trim().toUpperCase();
-    var snap  = await db.collection('provas').get();
+    // Full scan — aceitável com <50 provas; revisar se crescer muito
+    var snap  = await db.collection('provas').limit(50).get();
     var resultados = [];
     snap.forEach(function(doc) {
       var data    = doc.data();
@@ -320,9 +322,9 @@
         .collection('acessos')
         .add({
           at:   new Date().toISOString(),
-          ua:   navigator.userAgent.slice(0, 120),
           ts:   Date.now(),
           tipo: tipo || 'reserva',   // 'reserva' | 'visualizacao'
+          // userAgent removido — dados do dispositivo não são necessários (LGPD)
         })
         .catch(function(){});
     } catch(e) {}
@@ -522,7 +524,10 @@
     };
 
     // Se mudou total de baias ou blocos, recriar stalls (só se não tiver reservas)
-    var temReservas = (atual.stalls || []).some(function(s){ return s.status === 'reserved'; });
+    // Bloquear recriação se houver baias reservadas OU em seleção ativa
+    var temReservas = (atual.stalls || []).some(function(s){
+      return s.status === 'reserved' || s.status === 'selected' || s.status === 'blocked';
+    });
     if (!temReservas && dados.totalStalls && dados.numBlocos) {
       var blocos = normalizarBlocos(dados.totalStalls, dados.numBlocos);
       update.blocos      = blocos;
