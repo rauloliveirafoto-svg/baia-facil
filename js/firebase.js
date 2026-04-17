@@ -227,6 +227,17 @@
       });
       if (conflito.length > 0) { resultado = { ok:false, conflito:conflito }; return; }
 
+      // MELHORIA 2: Um telefone só pode ter uma reserva por prova
+      var telNorm = telefone.replace(/\D/g, '');
+      var jaReservou = stalls.some(function(s) {
+        return s.status === 'reserved' &&
+               s.contactPhone && s.contactPhone.replace(/\D/g,'') === telNorm;
+      });
+      if (jaReservou) {
+        resultado = { ok:false, telefoneJaUsado:true, conflito:[] };
+        return;
+      }
+
       var now = new Date();
       var nowISO = now.toISOString();
 

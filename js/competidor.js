@@ -550,16 +550,30 @@ document.addEventListener('DOMContentLoaded', function() {
             var el = document.getElementById('receiptProtocol');
             if (el) el.textContent = state.receipt.protocolo;
             var feed = document.getElementById('feedback');
-            if (feed) feed.textContent = 'Reserva sincronizada! Protocolo: ' + state.receipt.protocolo;
+            if (feed) feed.textContent = '✓ Reserva sincronizada! Protocolo: ' + state.receipt.protocolo;
+            setCompConn('online');
+            // Atualizar QR no modal se ainda estiver aberto
+            var receiptImg = document.querySelector('#receiptContent img[alt="QR Code"]');
+            if (receiptImg && state.receipt) {
+              var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=' +
+                encodeURIComponent(state.receipt.protocolo + ' | ' + state.receipt.evento +
+                  ' | Baia(s): ' + state.receipt.baias.map(fmt).join(',') +
+                  ' | Titular: ' + state.receipt.titular);
+              receiptImg.src = qrUrl;
+            }
           }
         },
         function() {
           // Desistiu após 30min — avisar
           var feed = document.getElementById('feedback');
-          if (feed) feed.textContent = 'Não foi possível confirmar a reserva. Procure o organizador.';
+          if (feed) feed.textContent = '⚠️ Não foi possível confirmar a reserva. Procure o organizador com o protocolo temporário.';
+          setCompConn('offline');
         }
       );
       res = { ok:true, data:getState(), protocolo: protoTemp, offline: true };
+      // Mostrar indicador de sincronização pendente
+      if (feedbackEl) feedbackEl.textContent = '⏳ Sem conexão — reserva salva localmente. Sincronizando quando o sinal voltar...';
+      setCompConn('syncing');
     }
 
     if (!res.ok) {
@@ -567,6 +581,13 @@ document.addEventListener('DOMContentLoaded', function() {
       if (res.encerrada) {
         if (feedbackEl) feedbackEl.textContent = 'Esta prova foi encerrada. Suas baias foram liberadas.';
         clearCurrentSelection();
+        return;
+      }
+      // Telefone já usado nesta prova
+      if (res.telefoneJaUsado) {
+        if (feedbackEl) feedbackEl.textContent = 'Este telefone já possui uma reserva nesta prova. Cada contato pode reservar apenas uma vez.';
+        finishBtn.disabled = false;
+        _finalizando = false;
         return;
       }
       var conf = res.conflito.map(fmt).join(', ');
@@ -610,13 +631,28 @@ document.addEventListener('DOMContentLoaded', function() {
       ? '<p style="margin:.3rem 0 .6rem;font-size:.82rem;color:#C8A027;background:rgba(200,160,39,.08);border:1px solid rgba(200,160,39,.25);border-radius:8px;padding:.4rem .7rem;">'+
         '⚠️ Reserva salva localmente. Protocolo temporário — confirme a conexão.</p>'
       : '';
+    // QR code via API pública (sem dependência externa)
+    var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=' +
+      encodeURIComponent(state.receipt.protocolo + ' | ' + state.receipt.evento +
+        ' | Baia(s): ' + state.receipt.baias.map(fmt).join(',') +
+        ' | Titular: ' + state.receipt.titular);
+
     if (receiptContent) receiptContent.innerHTML =
       offlineAviso+
-      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Evento:</strong> '+state.receipt.evento+'</p>'+
-      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Titular:</strong> '+state.receipt.titular+'</p>'+
-      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Baia(s):</strong> '+state.receipt.baias.map(fmt).join(', ')+'</p>'+
-      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Data e hora:</strong> '+state.receipt.timestamp.toLocaleString('pt-BR')+'</p>'+
-      '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Status:</strong> <span class="receipt-status">'+state.receipt.status+'</span></p>';
+      '<div style="display:flex;gap:1rem;align-items:flex-start;">'+
+        '<div style="flex:1;">'+
+          '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Evento:</strong> '+state.receipt.evento+'</p>'+
+          '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Titular:</strong> '+state.receipt.titular+'</p>'+
+          '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Baia(s):</strong> '+state.receipt.baias.map(fmt).join(', ')+'</p>'+
+          '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Data e hora:</strong> '+state.receipt.timestamp.toLocaleString('pt-BR')+'</p>'+
+          '<p style="margin:.3rem 0;font-size:.9rem;"><strong>Status:</strong> <span class="receipt-status">'+state.receipt.status+'</span></p>'+
+        '</div>'+
+        '<div style="flex-shrink:0;text-align:center;">'+
+          '<img src="'+qrUrl+'" width="100" height="100" alt="QR Code" '+
+            'style="border-radius:8px;border:2px solid rgba(200,160,39,.25);background:#fff;padding:4px;"/>'+
+          '<p style="font-size:.62rem;color:var(--muted);margin:.3rem 0 0;">Apresente ao check-in</p>'+
+        '</div>'+
+      '</div>';
     receiptModal.hidden = false;
   }
 
@@ -641,7 +677,14 @@ document.addEventListener('DOMContentLoaded', function() {
       '<div class="row"><strong>Baia(s)</strong><span>'+r.baias.map(fmt).join(', ')+'</span></div>'+
       '<div class="row"><strong>Data/Hora</strong><span>'+r.timestamp.toLocaleString('pt-BR')+'</span></div>'+
       '<div class="row"><strong>Status</strong><span class="status">'+r.status+'</span></div>'+
-      '</div><div class="ftr">Baia Fácil · '+r.protocolo+'</div></div></body></html>';
+      '</div>'+
+      '<div style="text-align:center;padding:20px 32px;">'+
+        '<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='+
+          encodeURIComponent(r.protocolo+' | '+r.evento+' | Baia(s): '+r.baias.map(fmt).join(','))+
+          '" width="140" height="140" alt="QR Code" style="border:2px solid #e0d0a0;border-radius:8px;padding:4px;background:#fff;"/>'+
+        '<p style="font-size:.72rem;color:#999;margin:.5rem 0 0;">Apresente este QR no check-in</p>'+
+      '</div>'+
+      '<div class="ftr">Baia Fácil · '+r.protocolo+'</div></div></body></html>';
   }
 
   function startTimer() {
