@@ -1401,6 +1401,10 @@
       window.refreshBadgesFromFirebase && window.refreshBadgesFromFirebase();
     }
 
+    // Conecta o botão "Fechar" do comprovante (competidor.js) ao goHome.
+    // Sem isso, fechar o comprovante apenas esconde a janela e fica parado no mapa.
+    window._goHomeCallback = goHome;
+
     /* ── Helper: trocar telas ───────────────────────────── */
     function showScreen(name) {
       document.getElementById('homeScreen').hidden    = name!=='home';
