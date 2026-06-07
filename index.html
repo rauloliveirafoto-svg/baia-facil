@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" href="img/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@600;700;800&family=Poppins:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Bebas+Neue&family=Inter:wght@600;700;800&family=Poppins:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/stalls-layout.css" />
   <style>
@@ -134,8 +134,9 @@
     }
 
     .home-body { flex:1; width:100%; max-width:1080px; padding:1.75rem 1.25rem 3rem; display:flex; flex-direction:column; gap:1.1rem; position:relative; z-index:1; }
-    .home-section-title { font-family:'Poppins',sans-serif; font-size:1.25rem; color:var(--cream); font-weight:700; margin:0 0 0.15rem; letter-spacing:-0.01em; }
-    .home-section-sub { font-size:0.84rem; color:var(--muted); margin:0; }
+    .home-section-title { font-family:'Poppins',sans-serif; font-size:1.95rem; color:var(--cream); font-weight:800; margin:0 0 0.3rem; letter-spacing:-0.02em; line-height:1.1; text-shadow:0 2px 14px rgba(0,0,0,.45); }
+    .home-section-title::after { content:''; display:block; width:54px; height:3px; margin-top:0.55rem; border-radius:3px; background:linear-gradient(90deg,var(--gold-light),var(--gold)); box-shadow:0 0 10px rgba(200,160,39,.5); }
+    .home-section-sub { font-size:1rem; color:#A6C7B6; margin:0 0 0.5rem; font-weight:500; }
     /* ── GRID DE CARDS — 2 colunas estilo marketplace ──── */
     .events-grid {
       display: grid;
@@ -146,8 +147,8 @@
 
     /* Card horizontal — imagem esquerda, conteúdo direita */
     .event-card {
-      background: #122B24;
-      border: 1px solid rgba(212,175,55,0.1);
+      background: linear-gradient(160deg, #163326 0%, #0F2419 100%);
+      border: 1px solid rgba(212,175,55,0.18);
       border-radius: 14px;
       padding: 0;
       cursor: pointer;
@@ -197,41 +198,42 @@
     }
 
     .event-card__name {
-      font-family: 'Poppins', sans-serif;
-      font-size: 0.88rem; font-weight: 700;
-      color: var(--cream); line-height: 1.3;
+      font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+      font-size: 1.7rem; font-weight: 400;
+      color: var(--cream); line-height: 1.02;
+      letter-spacing: 0.02em; text-transform: uppercase;
       display: -webkit-box; -webkit-line-clamp: 2;
       -webkit-box-orient: vertical; overflow: hidden;
     }
 
     .event-card__meta {
-      display: flex; flex-direction: column; gap: 0.15rem; margin-top: 0.15rem;
+      display: flex; flex-direction: column; gap: 0.22rem; margin-top: 0.25rem;
     }
 
     .event-card__date {
-      font-size: 0.7rem; color: rgba(212,175,55,.8);
-      font-weight: 600; display: flex; align-items: center; gap: 0.3rem;
+      font-size: 0.84rem; color: var(--gold-light);
+      font-weight: 700; display: flex; align-items: center; gap: 0.35rem;
     }
 
     .event-card__loc {
-      font-size: 0.68rem; color: var(--muted); font-weight: 500;
-      display: flex; align-items: center; gap: 0.3rem;
+      font-size: 0.82rem; color: #B7D2C6; font-weight: 600;
+      display: flex; align-items: center; gap: 0.35rem;
     }
 
     .event-card__venue {
-      font-size: 0.67rem; color: rgba(168,193,184,.5); font-weight: 500;
-      display: flex; align-items: center; gap: 0.3rem;
+      font-size: 0.8rem; color: #8FB0A3; font-weight: 500;
+      display: flex; align-items: center; gap: 0.35rem;
     }
 
     .event-card__badge {
-      display: inline-flex; align-items: center; gap: 0.35rem;
-      font-size: 0.78rem; font-weight: 700;
-      padding: 0.3rem 0.75rem; border-radius: 999px;
-      width: fit-content; margin-top: 0.3rem;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.85rem; font-weight: 800;
+      padding: 0.36rem 0.85rem; border-radius: 999px;
+      width: fit-content; margin-top: 0.4rem;
       border: 1px solid transparent;
       letter-spacing: 0.01em;
     }
-    .event-card__badge-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .event-card__badge-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 
     /* Rodapé com botão — separado por borda */
     .event-card__action {
@@ -241,30 +243,34 @@
 
     .event-card__cta {
       display: inline-flex; align-items: center; gap: 0.4rem;
-      background: transparent;
-      border: 1px solid rgba(212,175,55,.35);
-      color: var(--gold); font-family: 'Manrope', sans-serif;
-      font-size: 0.74rem; font-weight: 700;
-      padding: 0.42rem 0.9rem; border-radius: 8px;
-      transition: background .18s, border-color .18s, color .18s;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      border: 1px solid var(--gold);
+      color: #0A1F16; font-family: 'Poppins', sans-serif;
+      font-size: 0.86rem; font-weight: 800;
+      padding: 0.5rem 1.05rem; border-radius: 9px;
+      transition: filter .18s, box-shadow .18s, transform .12s;
       letter-spacing: 0.01em; white-space: nowrap;
+      box-shadow: 0 2px 10px rgba(200,160,39,.25);
     }
     .event-card:hover .event-card__cta {
-      background: rgba(212,175,55,.1);
-      border-color: rgba(212,175,55,.6);
-      color: var(--gold-light);
+      filter: brightness(1.08);
+      box-shadow: 0 4px 16px rgba(200,160,39,.4);
     }
+    .event-card__cta:active { transform: translateY(1px); }
 
     /* Botão "Ver mapa" secundário */
     .event-card__cta--view {
       background: transparent;
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(242,239,230,.45);
+      border: 1px solid rgba(212,175,55,.3);
+      color: var(--gold-light);
+      font-weight: 700;
+      box-shadow: none;
     }
     .event-card:hover .event-card__cta--view {
-      background: rgba(255,255,255,.05);
-      border-color: rgba(255,255,255,.22);
-      color: rgba(242,239,230,.75);
+      background: rgba(212,175,55,.08);
+      border-color: rgba(212,175,55,.5);
+      color: var(--gold-light);
+      filter: none;
     }
 
     /* Prova encerrada — P&B + vai para o final */
