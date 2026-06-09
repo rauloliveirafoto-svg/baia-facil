@@ -243,15 +243,22 @@
       .table-wrap { overflow-x: auto; }
 
       .reservation-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; table-layout: fixed; }
-      .reservation-table th:nth-child(1), .reservation-table td:nth-child(1) { width: 58px; }   /* Baia */
-      .reservation-table th:nth-child(2), .reservation-table td:nth-child(2) { width: 30%; }    /* Titular */
-      .reservation-table th:nth-child(3), .reservation-table td:nth-child(3) { width: 52px; }   /* Qtd. */
-      .reservation-table th:nth-child(5), .reservation-table td:nth-child(5) { width: 118px; }  /* Status */
-      .reservation-table th:nth-child(6), .reservation-table td:nth-child(6) { width: 78px; }   /* ação */
+      .reservation-table th:nth-child(1), .reservation-table td:nth-child(1) { width: 56px; }   /* Baia */
+      .reservation-table th:nth-child(3), .reservation-table td:nth-child(3) { width: 48px; }   /* Qtd. */
+      .reservation-table th:nth-child(4), .reservation-table td:nth-child(4) { width: 140px; }  /* Contato */
+      .reservation-table th:nth-child(5), .reservation-table td:nth-child(5) { width: 76px; }   /* ação */
+      /* Titular (col 2) não tem largura fixa: absorve o espaço restante e corta com … */
       .reservation-table td.cell-titular,
       .reservation-table th:nth-child(2) {
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
+      /* Número da baia colorido por status (substitui a coluna Status) */
+      .baia-num { font-weight: 800; }
+      .baia-num--available   { color: #3FE08F; }
+      .baia-num--reserved    { color: #E06060; }
+      .baia-num--blocked,
+      .baia-num--selected    { color: var(--gold-light); }
+      .baia-num--maintenance { color: #E0A060; }
       .reservation-table th,
       .reservation-table td {
         padding: 0.45rem 0.4rem;
@@ -733,7 +740,6 @@
                   <th>Titular</th>
                   <th>Qtd.</th>
                   <th>Contato</th>
-                  <th>Status</th>
                   <th></th>
                 </tr>
               </thead>
