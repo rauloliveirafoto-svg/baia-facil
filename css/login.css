@@ -1,148 +1,123 @@
-
-/* Fallback offline — sistema não quebra sem Google Fonts */
-@supports not (font-family: 'Barlow Condensed') {
-  :root { --font-title: system-ui, sans-serif; }
-}
-
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Poppins:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
+/* ============================================================
+   Baia Fácil — Login (identidade unificada: verde + dourado)
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
 
 :root {
-  --bg-deep:  #060F0B;
-  --bg-mid:   #0B1E16;
-  --gold:     #C8A027;
-  --gold-light:#E4C05A;
-  --gold-dark: #9A7618;
-  --cream:    #F2EFE6;
-  --text:     #EDE9DF;
-  --muted:    #6B9480;
-  --border:   rgba(200,160,39,0.18);
-  --card-bg:  rgba(15,36,25,0.97);
-  --danger:   #DC4545;
+  --bg-deep:#060F0B; --gold:#C8A027; --gold-light:#E4C05A;
+  --cream:#F2EFE6; --text:#EDE9DF; --muted:#6B9480; --danger:#E06060;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+html, body { height: 100%; }
 body {
-  min-height: 100dvh;
-  font-family: 'Manrope', system-ui, sans-serif;
-  background: var(--bg-deep);
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
   color: var(--text);
-  display: grid; place-items: center; overflow: hidden;
+  background: var(--bg-deep);
+  background-image: radial-gradient(ellipse 90% 70% at 50% -10%, rgba(28,61,42,0.75) 0%, transparent 60%);
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
 }
 
-.login-bg {
-  position: fixed; inset: 0; z-index: 0;
-  background:
-    radial-gradient(ellipse 65% 55% at 10% 90%, rgba(26,107,80,.2) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 45% at 90% 10%, rgba(200,160,39,.07) 0%, transparent 50%),
-    var(--bg-deep);
+/* ── Fundo decorativo ───────────────────────────── */
+.login-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.login-circles .circle {
+  position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.5;
 }
+.circle--1 { width: 460px; height: 460px; top: -160px; left: -120px; background: radial-gradient(circle, rgba(34,168,118,0.30), transparent 70%); }
+.circle--2 { width: 520px; height: 520px; bottom: -200px; right: -160px; background: radial-gradient(circle, rgba(200,160,39,0.22), transparent 70%); }
+.circle--3 { width: 300px; height: 300px; top: 40%; left: 55%; background: radial-gradient(circle, rgba(26,107,80,0.25), transparent 70%); }
+.login-grain { position: absolute; inset: 0; opacity: 0.04;
+  background-image: radial-gradient(rgba(255,255,255,0.6) 0.5px, transparent 0.5px);
+  background-size: 4px 4px; }
 
-.login-grain {
-  position: fixed; inset: 0; z-index: 1; opacity: .028; pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-size: 160px;
-}
-
-.login-circles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-.circle { position: absolute; border-radius: 50%; border: 1px solid rgba(26,107,80,.07); }
-.circle--1 { width: 600px; height: 600px; top: -200px; right: -200px; animation: rotate 50s linear infinite; }
-.circle--2 { width: 400px; height: 400px; bottom: -100px; left: -100px; animation: rotate 35s linear infinite reverse; }
-.circle--3 { width: 200px; height: 200px; top: 50%; left: 50%; translate: -50% -50%; border-color: rgba(200,160,39,.05); animation: pulse 7s ease-in-out infinite; }
-
-@keyframes rotate { to { transform: rotate(360deg); } }
-@keyframes pulse { 0%,100%{transform:scale(1);opacity:.3} 50%{transform:scale(1.1);opacity:.8} }
-
-.login-wrap {
-  position: relative; z-index: 10;
-  width: min(440px, calc(100vw - 2rem)); padding: 1rem;
-  animation: fadeUp .5s cubic-bezier(.16,1,.3,1) both;
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+/* ── Card ───────────────────────────────────────── */
+.login-wrap { position: relative; z-index: 1; width: 100%; padding: 1.5rem; display: flex; justify-content: center; }
 .login-card {
-  background: var(--card-bg);
-  border: 1px solid rgba(200,160,39,.15);
-  border-top: 3px solid var(--gold);
-  border-radius: 20px;
-  padding: 2.75rem 2.25rem;
-  backdrop-filter: blur(28px);
-  box-shadow:
-    0 40px 100px rgba(0,0,0,.7),
-    0 8px 32px rgba(0,0,0,.45),
-    inset 0 1px 0 rgba(255,255,255,.05);
-  display: grid; gap: 2rem;
+  width: 100%; max-width: 410px;
+  background: linear-gradient(160deg, #163326 0%, #0F2419 100%);
+  border: 1px solid rgba(200,160,39,0.25);
+  border-radius: 18px;
+  padding: 2.6rem 2.1rem 2.1rem;
+  box-shadow: 0 24px 70px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.02) inset;
+  backdrop-filter: blur(10px);
 }
 
-.login-brand { text-align: center; display: grid; gap: 0.5rem; }
-.login-logo { display: block; margin: 0 auto; height: 150px; width: auto; mix-blend-mode: lighten; filter: brightness(1.05); }
+/* ── Marca ──────────────────────────────────────── */
+.login-brand { text-align: center; margin-bottom: 1.8rem; }
+.login-logo {
+  height: 70px; width: auto; display: block; margin: 0 auto 1rem;
+  filter: drop-shadow(0 2px 12px rgba(0,0,0,.6));
+}
 .login-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 2rem; font-weight: 800; color: var(--cream);
-  letter-spacing: 0.04em; line-height: 1.1;
-  text-transform: uppercase;
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 2rem; font-weight: 400; letter-spacing: 0.04em;
+  color: var(--cream); margin: 0 0 0.35rem; line-height: 1; text-transform: uppercase;
 }
-.login-subtitle { font-size: 0.8rem; color: var(--muted); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+.login-subtitle {
+  font-size: 0.85rem; color: #A6C7B6; margin: 0; font-weight: 500; line-height: 1.4;
+}
 
-.login-form { display: grid; gap: 1.1rem; }
-.field { display: grid; gap: 0.45rem; }
+/* ── Formulário ─────────────────────────────────── */
+.login-form { display: flex; flex-direction: column; gap: 1.05rem; }
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
 .field__label {
-  font-size: 0.64rem; font-weight: 800;
-  text-transform: uppercase; letter-spacing: 0.18em; color: var(--gold);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Poppins', sans-serif; font-size: 0.78rem; font-weight: 600;
+  color: var(--gold-light); letter-spacing: 0.04em; text-transform: uppercase;
 }
-.field__row { position: relative; display: grid; }
-
 .field__input {
-  width: 100%;
-  background: rgba(6,15,11,.8);
-  border: 1px solid rgba(255,255,255,.1); border-radius: 10px;
-  padding: 0.85rem 1.1rem; font-family: 'Manrope', sans-serif; font-size: 0.95rem; font-weight: 500;
-  color: var(--text); transition: border-color .2s, box-shadow .2s, background .2s; outline: none;
+  width: 100%; padding: 0.8rem 0.95rem;
+  background: rgba(6,15,11,.85);
+  border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+  color: var(--text); font-family: 'Manrope', sans-serif; font-size: 0.95rem;
+  outline: none; transition: border-color .18s, box-shadow .18s;
 }
-.field__row .field__input { padding-right: 3rem; }
-.field__input::placeholder { color: rgba(107,148,128,.28); }
+.field__input::placeholder { color: rgba(166,199,182,.4); }
 .field__input:focus {
-  border-color: rgba(200,160,39,.5);
-  box-shadow: 0 0 0 3px rgba(200,160,39,.08), 0 0 0 1px rgba(200,160,39,.28);
-  background: rgba(200,160,39,.03);
+  border-color: rgba(200,160,39,.6);
+  box-shadow: 0 0 0 3px rgba(200,160,39,.12);
 }
-
+.field__row { position: relative; display: flex; align-items: center; }
+.field__row .field__input { padding-right: 3rem; }
 .field__eye {
-  position: absolute; right: 0.85rem; top: 50%; translate: 0 -50%;
-  background: none; border: none; color: var(--muted); cursor: pointer;
-  padding: 0.25rem; display: grid; place-items: center;
-  border-radius: 6px; transition: color .2s;
+  position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: rgba(166,199,182,.6); padding: 0.4rem; display: flex; transition: color .18s;
 }
-.field__eye:hover { color: var(--gold); }
+.field__eye:hover { color: var(--gold-light); }
 
-.login-error { font-size: 0.82rem; color: var(--danger); min-height: 1.2rem; text-align: center; font-weight: 700; }
+.login-error {
+  color: var(--danger); font-size: 0.82rem; font-weight: 600;
+  margin: 0; min-height: 1.1rem; text-align: center;
+}
 
+/* ── Botão principal (dourado sólido) ───────────── */
 .login-btn {
-  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-  width: 100%; padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #C8A027 0%, #9A7618 100%);
-  border: none; border-radius: 10px; color: #06100C;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; font-weight: 800; cursor: pointer;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  box-shadow: 0 4px 28px rgba(200,160,39,.4), 0 0 0 1px rgba(200,160,39,.25);
-  transition: opacity .2s, transform .18s cubic-bezier(.16,1,.3,1), box-shadow .2s;
-  margin-top: 0.25rem;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 100%; margin-top: 0.3rem; padding: 0.85rem 1rem;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  border: 1px solid var(--gold); border-radius: 11px;
+  color: #0A1F16; font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 800;
+  letter-spacing: 0.01em; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(200,160,39,.28);
+  transition: filter .18s, box-shadow .18s, transform .12s, opacity .18s;
 }
-.login-btn:hover { opacity: .92; transform: translateY(-2px); box-shadow: 0 10px 36px rgba(200,160,39,.5), 0 0 0 1px rgba(200,160,39,.35); }
-.login-btn:active { transform: translateY(0); }
-.login-btn__arrow { font-size: 1.2rem; transition: transform .2s; }
-.login-btn:hover .login-btn__arrow { transform: translateX(5px); }
+.login-btn:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 6px 22px rgba(200,160,39,.42); }
+.login-btn:active:not(:disabled) { transform: translateY(1px); }
+.login-btn:disabled { opacity: 0.7; cursor: default; }
+.login-btn__arrow { font-size: 1.1rem; transition: transform .18s; }
+.login-btn:hover:not(:disabled) .login-btn__arrow { transform: translateX(3px); }
 
-.login-footer { text-align: center; padding-top: 0.6rem; border-top: 1px solid rgba(255,255,255,.06); }
-.login-footer__link { color: var(--muted); text-decoration: none; font-size: 0.83rem; font-weight: 500; transition: color .2s; }
-.login-footer__link:hover { color: var(--gold-light); }
+/* ── Rodapé ─────────────────────────────────────── */
+.login-footer { margin-top: 1.6rem; }
+.login-footer__link {
+  color: var(--gold-light); text-decoration: none; font-size: 0.85rem; font-weight: 600;
+  transition: color .18s;
+}
+.login-footer__link:hover { color: var(--cream); text-decoration: underline; }
 
 @media (max-width: 480px) {
-  .login-card { padding: 2rem 1.5rem; }
-  .login-title { font-size: 1.6rem; }
+  .login-card { padding: 2rem 1.4rem 1.6rem; }
+  .login-title { font-size: 1.7rem; }
 }
