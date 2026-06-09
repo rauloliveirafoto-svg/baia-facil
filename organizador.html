@@ -242,7 +242,16 @@
 
       .table-wrap { overflow-x: auto; }
 
-      .reservation-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+      .reservation-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; table-layout: fixed; }
+      .reservation-table th:nth-child(1), .reservation-table td:nth-child(1) { width: 58px; }   /* Baia */
+      .reservation-table th:nth-child(2), .reservation-table td:nth-child(2) { width: 30%; }    /* Titular */
+      .reservation-table th:nth-child(3), .reservation-table td:nth-child(3) { width: 52px; }   /* Qtd. */
+      .reservation-table th:nth-child(5), .reservation-table td:nth-child(5) { width: 118px; }  /* Status */
+      .reservation-table th:nth-child(6), .reservation-table td:nth-child(6) { width: 78px; }   /* ação */
+      .reservation-table td.cell-titular,
+      .reservation-table th:nth-child(2) {
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
       .reservation-table th,
       .reservation-table td {
         padding: 0.45rem 0.4rem;
