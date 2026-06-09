@@ -172,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var mapEl           = $('stallMap');
   var tplEl           = $('stallTemplate');
   var finishBtn       = $('finishReservation');
+  var undoBtn         = $('undoSelection');
   var seqModal        = $('sequenceModal');
   var seqList         = $('sequenceList');
   var acceptBtn       = $('acceptSequence');
@@ -412,6 +413,10 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   finishBtn.addEventListener('click', finalizar);
+  if (undoBtn) undoBtn.addEventListener('click', function() {
+    clearCurrentSelection();
+    if (feedbackEl) feedbackEl.textContent = 'Seleção desfeita. As baias foram liberadas — escolha novamente.';
+  });
   acceptBtn.addEventListener('click', ctrlSelecao.acceptSequence);
   rejectBtn.addEventListener('click', ctrlSelecao.rejectSequence);
   closeReceiptBtn.addEventListener('click', function() {
@@ -746,5 +751,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // _atualizarBlocos removido — mapa aéreo foi removido
+
+    // Botão "Refazer seleção": visível só quando há baias em uso
+    if (undoBtn) {
+      var emUso = (state.selectedStalls||[]).length + (state.suggestedSequence||[]).length;
+      undoBtn.hidden = !(state.mode && emUso > 0);
+    }
   }
 });
