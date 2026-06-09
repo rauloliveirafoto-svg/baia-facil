@@ -293,7 +293,9 @@
     .topbar-map .t-label { font-size:0.66rem; text-transform:uppercase; letter-spacing:0.14em; color:rgba(228,192,90,.85); font-weight:700; font-family:'Barlow Condensed',sans-serif; }
     .topbar-map .t-val { font-size:1.4rem; color:#F2EFE6; font-weight:700; font-family:'Manrope',sans-serif; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; }
     .topbar-map .t-timer .t-val { color:#E4C05A; font-weight:800; font-family:'Barlow Condensed',sans-serif; font-size:1.85rem; letter-spacing:0.04em; font-variant-numeric:tabular-nums; }
-    .topbar-map .t-action { margin-left:auto; }
+    .topbar-map .t-action { margin-left:auto; display:flex; align-items:center; gap:0.6rem; }
+    .undo-btn { display:inline-flex; align-items:center; gap:0.4rem; background:transparent; border:1px solid rgba(212,175,55,.4); color:var(--gold-light); font-family:'Poppins',sans-serif; font-size:0.86rem; font-weight:700; padding:0.7rem 1.1rem; border-radius:11px; cursor:pointer; white-space:nowrap; transition:background .18s, border-color .18s, color .18s; }
+    .undo-btn:hover { background:rgba(212,175,55,.1); border-color:rgba(212,175,55,.7); color:#F2D96A; }
     .topbar-map .finish-btn { padding:0.8rem 1.7rem; font-size:1.02rem; min-width:0; border-radius:12px; white-space:nowrap; }
     .map-feedback-strip { flex-basis:100%; font-size:0.82rem; color:var(--success); padding:0; display:flex; align-items:center; justify-content:space-between; }
     .intake-back { background:none; border:none; color:var(--muted); font-family:'Manrope',sans-serif; font-size:0.84rem; cursor:pointer; padding:0; display:flex; align-items:center; gap:0.35rem; transition:color .2s; margin-bottom:0.15rem; }
@@ -644,6 +646,7 @@
         </div>
       </div>
       <div class="t-action">
+        <button id="undoSelection" class="undo-btn" type="button" hidden>↺ Refazer seleção</button>
         <button id="finishReservation" class="finish-btn" disabled type="button">✓ Finalizar reserva</button>
       </div>
       <div class="map-feedback-strip">
