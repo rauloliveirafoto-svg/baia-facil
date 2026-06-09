@@ -824,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td><strong>'+fmt(s.number)+'</strong></td>'+
-        '<td>'+(s.holderName?esc(s.holderName):'<span style="color:var(--muted)">—</span>')+'</td>'+
+        '<td class="cell-titular" title="'+esc(s.holderName||'')+'">'+(s.holderName?esc(s.holderName):'<span style="color:var(--muted)">—</span>')+'</td>'+
         '<td>'+(s.requestedStalls||'<span style="color:var(--muted)">—</span>')+'</td>'+
         '<td>'+(s.contactPhone?esc(s.contactPhone):'<span style="color:var(--muted)">—</span>')+'</td>'+
         '<td><span class="status-chip status-chip--'+s.status+'">'+statusLabel(s.status)+'</span></td>'+
