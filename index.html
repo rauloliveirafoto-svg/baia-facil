@@ -285,14 +285,17 @@
     #reservaScreen { display:flex; flex-direction:column; min-height:100dvh; }
     .topbar-intake { display:flex; justify-content:center; align-items:center; padding:0 2.5rem; min-height:80px; background:#081510; background-image:radial-gradient(ellipse 80% 120% at 50% -10%, rgba(28,61,42,0.85) 0%, transparent 65%); backdrop-filter:blur(28px); border-bottom:2px solid rgba(200,160,39,0.5); box-shadow:0 1px 0 rgba(200,160,39,0.06),0 8px 40px rgba(0,0,0,.8); }
     .topbar-intake img { height:56px; width:auto; filter:drop-shadow(0 1px 8px rgba(0,0,0,.7)); transition:transform .2s ease; }
-    .topbar-map { display:grid; grid-template-columns:auto 1fr 1fr 1fr auto; align-items:center; gap:0.5rem; padding:0.75rem 2rem; background:linear-gradient(175deg,#112D1F 0%,#071410 100%); backdrop-filter:blur(28px); border-bottom:3px solid rgba(200,160,39,.35); box-shadow:inset 0 -1px 0 rgba(200,160,39,.08),0 6px 0 rgba(0,0,0,.3),0 12px 60px rgba(0,0,0,.75); position:sticky; top:0; z-index:30; }
-    .topbar-map .t-item { display:flex; flex-direction:column; gap:0.1rem; padding:0 0.5rem; border-left:1px solid var(--border-sub); }
-    .topbar-map .t-label { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.16em; color:rgba(200,160,39,.8); font-weight:700; font-family:'Barlow Condensed',sans-serif; }
-    .topbar-map .t-val { font-size:1rem; color:#F2EFE6; font-weight:700; font-family:'Manrope',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .topbar-map .t-timer .t-val { color:#C8A027; font-weight:800; font-family:'Barlow Condensed',sans-serif; font-size:1.15rem; letter-spacing:0.04em; font-variant-numeric:tabular-nums; }
-    .topbar-map .t-action { justify-self:end; }
-    .topbar-map .finish-btn { padding:0.75rem 1.6rem; font-size:1rem; min-width:0; border-radius:12px; white-space:nowrap; }
-    .map-feedback-strip { grid-column:1/-1; font-size:0.82rem; color:var(--success); padding:0 0.5rem; display:flex; align-items:center; justify-content:space-between; }
+    .topbar-map { display:flex; align-items:center; gap:1.75rem; flex-wrap:wrap; padding:0.9rem 2rem; background:linear-gradient(175deg,#112D1F 0%,#071410 100%); backdrop-filter:blur(28px); border-bottom:3px solid rgba(200,160,39,.35); box-shadow:inset 0 -1px 0 rgba(200,160,39,.08),0 6px 0 rgba(0,0,0,.3),0 12px 60px rgba(0,0,0,.75); position:sticky; top:0; z-index:30; }
+    .topbar-map .t-event { display:flex; flex-direction:column; gap:0.2rem; padding-right:1.75rem; border-right:1px solid var(--border-sub); }
+    .topbar-map .t-event-name { font-family:'Bebas Neue','Barlow Condensed',sans-serif; font-size:1.85rem; line-height:1; color:#F2EFE6; letter-spacing:0.025em; text-transform:uppercase; max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .topbar-map .t-stats { display:flex; align-items:center; gap:2rem; flex:1; }
+    .topbar-map .t-item { display:flex; flex-direction:column; gap:0.18rem; padding:0; border:none; }
+    .topbar-map .t-label { font-size:0.66rem; text-transform:uppercase; letter-spacing:0.14em; color:rgba(228,192,90,.85); font-weight:700; font-family:'Barlow Condensed',sans-serif; }
+    .topbar-map .t-val { font-size:1.4rem; color:#F2EFE6; font-weight:700; font-family:'Manrope',sans-serif; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:240px; }
+    .topbar-map .t-timer .t-val { color:#E4C05A; font-weight:800; font-family:'Barlow Condensed',sans-serif; font-size:1.85rem; letter-spacing:0.04em; font-variant-numeric:tabular-nums; }
+    .topbar-map .t-action { margin-left:auto; }
+    .topbar-map .finish-btn { padding:0.8rem 1.7rem; font-size:1.02rem; min-width:0; border-radius:12px; white-space:nowrap; }
+    .map-feedback-strip { flex-basis:100%; font-size:0.82rem; color:var(--success); padding:0; display:flex; align-items:center; justify-content:space-between; }
     .intake-back { background:none; border:none; color:var(--muted); font-family:'Manrope',sans-serif; font-size:0.84rem; cursor:pointer; padding:0; display:flex; align-items:center; gap:0.35rem; transition:color .2s; margin-bottom:0.15rem; }
     .intake-back:hover { color:var(--gold-light); }
     .intake-event-tag { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin:0 0 0.15rem; }
@@ -622,23 +625,22 @@
     <!-- topbar-intake removida — logo não aparece na tela de cadastro -->
     <div id="topbarIntake" hidden></div>
     <header class="topbar-map" id="topbarMap" hidden>
-      <div class="t-item">
+      <div class="t-event">
         <span class="t-label">Evento</span>
-        <span class="t-val" id="eventName">—</span>
+        <span class="t-event-name" id="eventName">—</span>
       </div>
-      <div class="t-item">
-        <span class="t-label">Titular</span>
-        <span class="t-val" id="competitorName">—</span>
-      </div>
-      <div class="t-item t-timer">
-        <span class="t-label">Baias / Tempo</span>
-        <span class="t-val"><span id="stallCredits">0</span> &nbsp;·&nbsp; <span id="timer">--:--</span></span>
-      </div>
-      <div class="t-item" style="flex:0 0 auto;">
-        <div style="display:flex;gap:0.4rem;align-items:center;">
-          <input id="mapSearchInput" type="number" min="1" max="999" placeholder="Nº da baia..."
-            style="width:110px;padding:0.45rem 0.7rem;font-size:0.82rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--cream);outline:none;font-family:'Manrope',sans-serif;"/>
-          <button id="mapSearchBtn" class="btn" type="button" style="padding:0.45rem 0.75rem;font-size:0.82rem;white-space:nowrap;">Ir</button>
+      <div class="t-stats">
+        <div class="t-item">
+          <span class="t-label">Titular</span>
+          <span class="t-val" id="competitorName">—</span>
+        </div>
+        <div class="t-item">
+          <span class="t-label">Baias</span>
+          <span class="t-val"><span id="stallCredits">0</span></span>
+        </div>
+        <div class="t-item t-timer">
+          <span class="t-label">Tempo restante</span>
+          <span class="t-val" id="timer">--:--</span>
         </div>
       </div>
       <div class="t-action">
@@ -1223,7 +1225,7 @@
       var creditsEl = document.getElementById('stallCredits');
       var timerEl   = document.getElementById('timer');
       var state     = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name + ' · ' + bloco.label;
+      if (evEl && window._selectedEvent) evEl.textContent = (window._selectedEvent.eventName || window._selectedEvent.name || 'Evento') + ' · ' + bloco.label;
       if (nameEl    && state) nameEl.textContent    = state.holderName || '';
       if (creditsEl && state) creditsEl.textContent = String(state.requestedStalls || 0);
       if (timerEl) timerEl.textContent = '--:--';
@@ -1277,7 +1279,7 @@
       var creditsEl = document.getElementById('stallCredits');
       var timerEl   = document.getElementById('timer');
       var state     = window.BAIA_STATE && window.BAIA_STATE.competitor;
-      if (evEl && window._selectedEvent) evEl.textContent = window._selectedEvent.name;
+      if (evEl && window._selectedEvent) evEl.textContent = (window._selectedEvent.eventName || window._selectedEvent.name || 'Evento');
       if (nameEl    && state) nameEl.textContent    = state.holderName || '';
       if (creditsEl && state) creditsEl.textContent = String(state.requestedStalls || 0);
       if (timerEl) timerEl.textContent = '--:--';
