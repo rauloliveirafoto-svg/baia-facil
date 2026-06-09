@@ -817,17 +817,16 @@ document.addEventListener('DOMContentLoaded', function() {
     removerMaisBtn();
 
     if (!linhas.length) {
-      elTable.innerHTML='<tr class="empty-row"><td colspan="6">Nenhuma baia encontrada.</td></tr>';
+      elTable.innerHTML='<tr class="empty-row"><td colspan="5">Nenhuma baia encontrada.</td></tr>';
       return;
     }
     linhas.slice(0, pagina*PAGE).forEach(function(s) {
       var tr = document.createElement('tr');
       tr.innerHTML =
-        '<td><strong>'+fmt(s.number)+'</strong></td>'+
+        '<td><strong class="baia-num baia-num--'+s.status+'">'+fmt(s.number)+'</strong></td>'+
         '<td class="cell-titular" title="'+esc(s.holderName||'')+'">'+(s.holderName?esc(s.holderName):'<span style="color:var(--muted)">—</span>')+'</td>'+
         '<td>'+(s.requestedStalls||'<span style="color:var(--muted)">—</span>')+'</td>'+
         '<td>'+(s.contactPhone?esc(s.contactPhone):'<span style="color:var(--muted)">—</span>')+'</td>'+
-        '<td><span class="status-chip status-chip--'+s.status+'">'+statusLabel(s.status)+'</span></td>'+
         '<td><button class="btn" data-n="'+s.number+'" type="button" style="padding:.3rem .6rem;font-size:.78rem;">Abrir</button></td>';
       elTable.appendChild(tr);
     });
