@@ -4,7 +4,7 @@
   :root { --font-title: system-ui, sans-serif; }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@600;700;800&family=Poppins:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Bebas+Neue&family=Inter:wght@600;700;800&family=Poppins:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
 
 :root {
   --bg-deep:    #060F0B;
@@ -179,7 +179,7 @@ body::after {
 /* ── INTAKE CARD ─────────────────────────── */
 .intake-card {
   width: min(100%, 580px);
-  background: var(--bg-card);
+  background: linear-gradient(160deg, #163326 0%, #0F2419 100%);
   border: 1px solid rgba(200,160,39,.2);
   border-top: 3px solid var(--gold);
   border-radius: 20px;
@@ -199,12 +199,12 @@ body::after {
 
 .intake-card h1 {
   margin: 0;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 2rem; color: var(--cream); font-weight: 800;
-  letter-spacing: 0.01em; line-height: 1.1;
+  font-family: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  font-size: 2.5rem; color: var(--cream); font-weight: 400;
+  letter-spacing: 0.03em; line-height: 1;
   text-transform: uppercase;
 }
-.intake-card > p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.65; }
+.intake-card > p { margin: 0; color: #A6C7B6; font-size: 0.95rem; line-height: 1.6; font-weight: 500; }
 .validation-error { margin: 0; color: var(--danger); font-size: 0.84rem; min-height: 1rem; font-weight: 700; }
 
 /* ── MAP ─────────────────────────────────── */
@@ -506,8 +506,8 @@ body::after {
 
 .form-row { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 0.8rem; }
 .form-row label {
-  font-size: 0.66rem; color: var(--gold); font-weight: 700;
-  text-transform: uppercase; letter-spacing: .16em;
+  font-size: 0.74rem; color: var(--gold-light); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .12em;
   font-family: 'Barlow Condensed', sans-serif;
 }
 .inline-row { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; }
